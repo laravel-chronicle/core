@@ -59,7 +59,6 @@ it('throws exception when subject is missing', function () {
 
 })->throws(MissingSubjectException::class);
 
-
 it('throws exception when action is missing', function () {
     $resolver = mock(ReferenceResolver::class);
 
