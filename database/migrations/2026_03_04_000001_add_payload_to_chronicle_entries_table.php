@@ -4,6 +4,12 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
+/**
+ * Add payload column to chronicle_entries table.
+ *
+ * The payload column stores the canonical serialized
+ * entry payload used for hashing and export operations.
+ */
 return new class extends Migration
 {
     /**
@@ -23,27 +29,19 @@ return new class extends Migration
     {
         $table = config('chronicle.tables.entries', 'chronicle_entries');
 
-        Schema::connection($this->getConnection())->create($table, function (Blueprint $table) {
-            $table->ulid('id')->primary();
-            $table->timestamp('recorded_at');
-            $table->string('actor_type');
-            $table->string('actor_id');
-            $table->string('action');
-            $table->string('subject_type');
-            $table->string('subject_id');
-            $table->json('metadata')->nullable();
-            $table->json('context')->nullable();
-            $table->timestamp('created_at')->useCurrent();
+        Schema::connection($this->getConnection())->table($table, function (Blueprint $table) {
+            $table->json('payload')
+                ->nullable()
+                ->after('subject_id');
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         $table = config('chronicle.tables.entries', 'chronicle_entries');
 
-        Schema::connection($this->getConnection())->dropIfExists($table);
+        Schema::connection($this->getConnection())->table($table, function (Blueprint $table) {
+            $table->dropColumn('payload');
+        });
     }
 };

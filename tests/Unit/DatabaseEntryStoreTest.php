@@ -24,9 +24,15 @@ it('persists entries in the database', function () {
         'diff' => null,
         'tags' => null,
         'correlation_id' => null,
+        'payload' => [
+            'actor_id' => '1',
+        ],
     ];
 
     $store->append($payload);
 
-    expect(Entry::count())->toBe(1);
+    $entry = Entry::first();
+
+    expect(Entry::count())->toBe(1)
+        ->and($entry->payload)->toBeArray();
 });

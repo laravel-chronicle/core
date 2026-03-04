@@ -4,6 +4,9 @@ namespace Chronicle;
 
 use Chronicle\Contracts\EntryStore;
 use Chronicle\Contracts\ReferenceResolver;
+use Chronicle\Pipeline\EntryPipeline;
+use Chronicle\Pipeline\PersistEntry;
+use Chronicle\Serialization\CanonicalPayloadSerializer;
 use Chronicle\Storage\DatabaseEntryStore;
 use Chronicle\Support\DefaultReferenceResolver;
 use Illuminate\Support\ServiceProvider;
@@ -33,6 +36,15 @@ class ChronicleServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->mergeConfigFrom(__DIR__.'/../config/chronicle.php', 'chronicle');
+
+        $this->app->singleton(CanonicalPayloadSerializer::class);
+
+        $this->app->singleton(EntryPipeline::class, function ($app) {
+            return new EntryPipeline([
+                $app->make(CanonicalPayloadSerializer::class),
+                $app->make(PersistEntry::class),
+            ]);
+        });
 
         $this->registerContracts();
 
@@ -76,8 +88,8 @@ class ChronicleServiceProvider extends ServiceProvider
     {
         $this->app->singleton('chronicle', function ($app) {
             return new ChronicleManager(
-                store: $app->make(EntryStore::class),
                 resolver: $app->make(ReferenceResolver::class),
+                pipeline: $app->make(EntryPipeline::class),
             );
         });
     }

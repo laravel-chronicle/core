@@ -1,13 +1,13 @@
 <?php
 
 use Chronicle\ChronicleManager;
-use Chronicle\Contracts\EntryStore;
 use Chronicle\Contracts\ReferenceResolver;
 use Chronicle\EntryBuilder;
 use Chronicle\Exceptions\MissingActionException;
 use Chronicle\Exceptions\MissingActorException;
 use Chronicle\Exceptions\MissingSubjectException;
 use Chronicle\Reference;
+
 
 it('builds a valid entry payload', function () {
     $resolver = mock(ReferenceResolver::class);
@@ -20,8 +20,7 @@ it('builds a valid entry payload', function () {
             new Reference('invoice', '10')
         );
 
-    $store = mock(EntryStore::class);
-    $manager = new ChronicleManager($store, $resolver);
+    $manager = mock(ChronicleManager::class);
 
     $builder = new EntryBuilder($resolver, $manager);
 
@@ -43,8 +42,7 @@ it('builds a valid entry payload', function () {
 it('throws exception when actor is missing', function () {
     $resolver = mock(ReferenceResolver::class);
 
-    $store = mock(EntryStore::class);
-    $manager = new ChronicleManager($store, $resolver);
+    $manager = mock(ChronicleManager::class);
 
     $builder = new EntryBuilder($resolver, $manager);
 
@@ -58,8 +56,7 @@ it('throws exception when actor is missing', function () {
 it('throws exception when subject is missing', function () {
     $resolver = mock(ReferenceResolver::class);
 
-    $store = mock(EntryStore::class);
-    $manager = new ChronicleManager($store, $resolver);
+    $manager = mock(ChronicleManager::class);
 
     $builder = new EntryBuilder($resolver, $manager);
 
@@ -73,8 +70,7 @@ it('throws exception when subject is missing', function () {
 it('throws exception when action is missing', function () {
     $resolver = mock(ReferenceResolver::class);
 
-    $store = mock(EntryStore::class);
-    $manager = new ChronicleManager($store, $resolver);
+    $manager = mock(ChronicleManager::class);
 
     $builder = new EntryBuilder($resolver, $manager);
 

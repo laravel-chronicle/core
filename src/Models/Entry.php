@@ -55,6 +55,7 @@ class Entry extends Model
         'action',
         'subject_type',
         'subject_id',
+        'payload',
         'metadata',
         'context',
         'created_at',
@@ -69,6 +70,7 @@ class Entry extends Model
     {
         return [
             'recorded_at' => 'datetime',
+            'payload' => 'array',
             'metadata' => 'array',
             'context' => 'array',
             'created_at' => 'immutable_datetime',
