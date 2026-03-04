@@ -71,6 +71,7 @@ class Entry extends Model
         'subject_type',
         'subject_id',
         'payload',
+        'payload_hash',
         'metadata',
         'context',
         'created_at',

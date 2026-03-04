@@ -38,6 +38,8 @@ class ArrayDriver implements StorageDriver
             'action' => $entry['action'],
             'subject_type' => $entry['subject_type'],
             'subject_id' => $entry['subject_id'],
+            'payload' => $entry['payload'],
+            'payload_hash' => $entry['payload_hash'],
             'metadata' => $entry['metadata'],
             'context' => $entry['context'],
             //            'tags' => $entry['tags'],
