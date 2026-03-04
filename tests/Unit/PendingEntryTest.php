@@ -23,7 +23,7 @@ it('exposes attributes as provided', function () {
     $entry = new PendingEntry($attributes);
 
     expect($entry->attributes())->toBe($attributes)
-        ->and($entry->payload())->toBeNull();
+        ->and($entry->payload())->toBe([]);
 });
 
 it('stores and exposes payload data', function () {

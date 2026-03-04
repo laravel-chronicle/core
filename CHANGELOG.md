@@ -10,6 +10,88 @@ breaking changes between any two versions — see upgrade notes per version.
 
 ---
 
+## [0.3.0] - 2026-03-04
+
+### Added
+
+#### Payload Hashing
+
+Introduced cryptographic hashing of Chronicle entry payloads.
+
+Each entry now includes a `payload_hash` computed using:
+`SHA256(canonical_payload)`
+
+The payload hash allows Chronicle to detect tampering of stored entry data.
+
+New components:
+
+- `EntryHasher`
+- `HashPayload` pipeline processor
+
+#### Database Schema
+
+Added a new column to the `chronicle_entries` table:
+
+- `payload_hash` (SHA-256 hash stored as a 64-character string)
+
+This column stores the hash of the canonical payload representation.
+
+#### Pipeline Integration
+
+Payload hashing has been integrated into the Chronicle processing pipeline.
+
+The pipeline now executes the following processors:
+EntryBuilder  
+↓  
+PendingEntry  
+↓  
+CanonicalizePayload  
+↓  
+HashPayload  
+↓  
+PersistEntry
+
+This architecture allows future integrity processors to be added without
+modifying the Chronicle manager.
+
+---
+
+### Security
+
+Payload hashing introduces the first cryptographic integrity layer in Chronicle.
+
+If the canonical payload stored in the database is modified, the computed hash
+will no longer match the stored `payload_hash`, allowing integrity verification
+tools to detect tampering.
+
+---
+
+### Internal
+
+- Added `EntryHasher` service for SHA-256 payload hashing
+- Introduced `HashPayload` pipeline processor
+- Updated `PendingEntry` to store payload hash
+- Updated pipeline tests to cover payload hashing
+- Updated feature tests to assert that payload hashes are persisted
+
+---
+
+### Notes
+
+Payload hashing is the first step in Chronicle's tamper-evident ledger model.
+
+Upcoming releases will introduce:
+
+- hash chaining between entries
+- ledger verification tools (`chronicle:verify`)
+- checkpoint anchoring
+- signed exports
+
+These features will allow Chronicle to detect modification, deletion,
+or reordering of entries in the audit log.
+
+---
+
 ## [0.2.0] - 2026-03-04
 
 ### Added
@@ -123,6 +205,7 @@ Upcoming releases will introduce:
 
 These features will transform Chronicle from an append-only audit log
 into a tamper-evident ledger.
+
 ---
 
 ## [0.1.0] - 2026-03-04

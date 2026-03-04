@@ -15,6 +15,7 @@ function makePending(string $action = 'test.event', array $overrides = []): arra
         'subject_type' => $overrides['subject_type'] ?? 'system',
         'subject_id' => $overrides['subject_id'] ?? 'system',
         'payload' => $overrides['payload'] ?? ['action' => $action],
+        'payload_hash' => $overrides['payload_hash'] ?? '',
         'metadata' => $overrides['metadata'] ?? null,
         'context' => $overrides['context'] ?? ['transport' => 'cli', 'sapi' => 'cli'],
         'created_at' => $overrides['created_at'] ?? Carbon::parse('2026-01-01 00:00:00', 'UTC'),

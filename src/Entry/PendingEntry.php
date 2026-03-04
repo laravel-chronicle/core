@@ -21,9 +21,9 @@ class PendingEntry
     /**
      * Canonical payload representation.
      *
-     * @var array<string, mixed>|null
+     * @var array<string, mixed>
      */
-    protected ?array $payload = null;
+    protected array $payload = [];
 
     /**
      * SHA-256 hash of the canonical payload.
@@ -73,9 +73,9 @@ class PendingEntry
     /**
      * Get canonical payload.
      *
-     * @return array<string, mixed>|null
+     * @return array<string, mixed>
      */
-    public function payload(): ?array
+    public function payload(): array
     {
         return $this->payload;
     }
@@ -129,7 +129,7 @@ class PendingEntry
     {
         return array_merge($this->attributes, [
             'payload' => $this->payload,
-            //            'payload_hash' => $this->payloadHash,
+            'payload_hash' => $this->payloadHash,
             //            'chain_hash' => $this->chainHash,
             //            'checkpoint_id' => $this->checkpointId,
         ]);

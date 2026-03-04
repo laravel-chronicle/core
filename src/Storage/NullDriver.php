@@ -48,6 +48,7 @@ class NullDriver implements StorageDriver
             'subject_type' => $entry['subject_type'],
             'subject_id' => $entry['subject_id'],
             'payload' => $entry['payload'],
+            'payload_hash' => $entry['payload_hash'],
             'metadata' => $entry['metadata'],
             'context' => $entry['context'],
             //            'tags' => json_encode($entry['tags']),
