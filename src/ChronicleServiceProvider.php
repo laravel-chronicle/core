@@ -2,11 +2,18 @@
 
 namespace Chronicle;
 
-use Chronicle\Contracts\EntryStore;
 use Chronicle\Contracts\ReferenceResolver;
-use Chronicle\Storage\DatabaseEntryStore;
+use Chronicle\Contracts\StorageDriver;
+use Chronicle\Pipeline\CanonicalizePayload;
+use Chronicle\Pipeline\EntryPipeline;
+use Chronicle\Pipeline\PersistEntry;
+use Chronicle\Serialization\CanonicalPayloadSerializer;
+use Chronicle\Storage\ArrayDriver;
+use Chronicle\Storage\EloquentDriver;
+use Chronicle\Storage\NullDriver;
 use Chronicle\Support\DefaultReferenceResolver;
 use Illuminate\Support\ServiceProvider;
+use InvalidArgumentException;
 
 /**
  * Class ChronicleServiceProvider
@@ -33,6 +40,15 @@ class ChronicleServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->mergeConfigFrom(__DIR__.'/../config/chronicle.php', 'chronicle');
+
+        $this->app->singleton(CanonicalPayloadSerializer::class);
+
+        $this->app->singleton(EntryPipeline::class, function ($app) {
+            return new EntryPipeline([
+                $app->make(CanonicalizePayload::class),
+                $app->make(PersistEntry::class),
+            ]);
+        });
 
         $this->registerContracts();
 
@@ -61,7 +77,19 @@ class ChronicleServiceProvider extends ServiceProvider
      */
     protected function registerContracts(): void
     {
-        $this->app->singleton(EntryStore::class, DatabaseEntryStore::class);
+        $this->app->singleton(StorageDriver::class, function ($app) {
+            $configuredDriver = config('chronicle.driver');
+            $driver = is_string($configuredDriver) ? $configuredDriver : 'eloquent';
+
+            return match ($driver) {
+                'eloquent' => $app->make(EloquentDriver::class),
+                'array' => $app->make(ArrayDriver::class),
+                'null' => $app->make(NullDriver::class),
+                default => throw new InvalidArgumentException(
+                    sprintf('Unsupported Chronicle driver [%s].', $driver)
+                ),
+            };
+        });
 
         $this->app->singleton(ReferenceResolver::class, DefaultReferenceResolver::class);
     }
@@ -76,8 +104,8 @@ class ChronicleServiceProvider extends ServiceProvider
     {
         $this->app->singleton('chronicle', function ($app) {
             return new ChronicleManager(
-                store: $app->make(EntryStore::class),
                 resolver: $app->make(ReferenceResolver::class),
+                pipeline: $app->make(EntryPipeline::class),
             );
         });
     }

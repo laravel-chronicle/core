@@ -2,7 +2,7 @@
 
 namespace Chronicle\Facades;
 
-use Chronicle\EntryBuilder;
+use Chronicle\Entry\EntryBuilder;
 use Illuminate\Support\Facades\Facade;
 
 /**
@@ -22,8 +22,7 @@ use Illuminate\Support\Facades\Facade;
  * The facade resolves the underlying ChronicleManager
  * from Laravel's service container.
  *
- * @method static EntryBuilder entry()
- * @method static void record(array<string, mixed> $payload)
+ * @method static EntryBuilder record()
  */
 class Chronicle extends Facade
 {

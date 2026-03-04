@@ -3,6 +3,7 @@
 namespace Chronicle\Tests;
 
 use Chronicle\ChronicleServiceProvider;
+use Chronicle\Storage\EloquentDriver;
 use Orchestra\Testbench\TestCase as Orchestra;
 
 abstract class TestCase extends Orchestra
@@ -24,5 +25,16 @@ abstract class TestCase extends Orchestra
             'database' => ':memory:',
             'prefix' => '',
         ]);
+    }
+
+    /**
+     * Switch the active driver to EloquentDriver for the current test.
+     */
+    protected function useEloquentDriver(): void
+    {
+        config(['chronicle.driver' => 'eloquent']);
+        app('chronicle')->swapDriver(
+            new EloquentDriver
+        );
     }
 }
