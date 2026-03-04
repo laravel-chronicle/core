@@ -2,6 +2,7 @@
 
 namespace Chronicle;
 
+use Chronicle\Contracts\ReferenceResolver;
 use Chronicle\Exceptions\MissingActionException;
 use Chronicle\Exceptions\MissingActorException;
 use Chronicle\Exceptions\MissingSubjectException;
@@ -35,6 +36,12 @@ use Illuminate\Support\Str;
  */
 class EntryBuilder
 {
+    /**
+     * Resolver used to convert actor and subject values
+     * into Chronicle references.
+     */
+    protected ReferenceResolver $resolver;
+
     /**
      * Actor responsible for the action.
      *
@@ -95,6 +102,14 @@ class EntryBuilder
      * Correlation identifier used to group related entries.
      */
     protected ?string $correlationId = null;
+
+    /**
+     * Create a new EntryBuilder instance.
+     */
+    public function __construct(ReferenceResolver $resolver)
+    {
+        $this->resolver = $resolver;
+    }
 
     /**
      * Define the actor responsible for the action.
@@ -203,28 +218,31 @@ class EntryBuilder
      * a fully structured entry payload ready for further
      * processing by Chronicle.
      *
+     * @return array<string, mixed>
+     *
      * @throws MissingActorException
      * @throws MissingActionException
      * @throws MissingSubjectException
-     *
-     * @return array<string, mixed>
      */
     public function build(): array
     {
         $this->validate();
 
+        $actor = $this->resolver->resolve($this->actor);
+        $subject = $this->resolver->resolve($this->subject);
+
         return [
             'id' => (string) Str::ulid(),
             'recorded_at' => now(),
-            'actor_type' => $this->resolveType($this->actor),
-            'actor_id' => $this->resolveId($this->actor),
+            'actor_type' => $actor->type,
+            'actor_id' => $actor->id,
             'action' => $this->action,
-            'subject_type' => $this->resolveType($this->subject),
-            'subject_id' => $this->resolveId($this->subject),
+            'subject_type' => $subject->type,
+            'subject_id' => $subject->id,
             'metadata' => $this->metadata ?: null,
             'context' => $this->context ?: null,
             'diff' => $this->diff ?: null,
-            'tags' => $this->tags ? $this->normalizeTags($this->tags) : null,
+            'tags' => $this->tags ?: null,
             'correlation_id' => $this->correlationId,
         ];
     }
@@ -249,58 +267,5 @@ class EntryBuilder
         if (! $this->subject) {
             throw new MissingSubjectException;
         }
-    }
-
-    /**
-     * Resolve the entity type for actor or subject.
-     *
-     * Object are converted to their class name,
-     * while scalar values are represented by their type.
-     */
-    protected function resolveType(mixed $entity): string
-    {
-        if (is_object($entity)) {
-            return $entity::class;
-        }
-
-        return gettype($entity);
-    }
-
-    /**
-     * Resolve the identifier for actor or subject.
-     *
-     * If the entity has an "id" property it will be used,
-     * otherwise the entity is cast to string.
-     */
-    protected function resolveId(mixed $entity): string
-    {
-        if (is_object($entity) && isset($entity->id)) {
-            return (string) $entity->id;
-        }
-
-        return (string) $entity;
-    }
-
-    /**
-     * Normalize tags for consistent storage.
-     *
-     * Normalization includes:
-     *  - trimming whitespace
-     *  - converting to lowercase
-     *  - removing duplicates
-     *  - sorting alphabetically
-     *
-     * @param  array<string, mixed>  $tags
-     * @return array<string, mixed>
-     */
-    protected function normalizeTags(array $tags): array
-    {
-        $tags = array_map(fn ($tag) => strtolower(trim($tag)), $tags);
-
-        $tags = array_unique($tags);
-
-        sort($tags);
-
-        return array_values($tags);
     }
 }
