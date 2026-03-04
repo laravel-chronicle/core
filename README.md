@@ -1,5 +1,7 @@
 # Laravel Chronicle
 
+[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/laravel-chronicle/core/badge)](https://scorecard.dev/viewer/?uri=github.com/laravel-chronicle/core)
+
 Chronicle is a **tamper-evident audit ledger for Laravel applications**.
 
 Unlike traditional activity logs, Chronicle provides:
