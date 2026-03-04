@@ -25,7 +25,6 @@ return new class extends Migration
 
         Schema::connection($this->getConnection())->create($table, function (Blueprint $table) {
             $table->ulid('id')->primary();
-            $table->timestamp('recorded_at');
             $table->string('actor_type');
             $table->string('actor_id');
             $table->string('action');

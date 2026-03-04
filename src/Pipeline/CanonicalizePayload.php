@@ -3,6 +3,7 @@
 namespace Chronicle\Pipeline;
 
 use Chronicle\Contracts\EntryProcessor;
+use Chronicle\Entry\PendingEntry;
 use Chronicle\Serialization\CanonicalPayloadSerializer;
 use JsonException;
 
@@ -21,12 +22,15 @@ class CanonicalizePayload implements EntryProcessor
     /**
      * @throws JsonException
      */
-    public function process(array $payload): array
+    public function process(PendingEntry $entry): PendingEntry
     {
-        $canonical = $this->serializer->serialize($payload);
+        $canonical = $this->serializer->serialize($entry->attributes());
 
-        $payload['payload'] = json_decode($canonical, true);
+        /** @var array<string, mixed> $payload */
+        $payload = json_decode($canonical, true);
 
-        return $payload;
+        $entry->setPayload($payload);
+
+        return $entry;
     }
 }

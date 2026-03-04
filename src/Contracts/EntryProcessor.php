@@ -2,6 +2,8 @@
 
 namespace Chronicle\Contracts;
 
+use Chronicle\Entry\PendingEntry;
+
 /**
  * Interface EntryProcessor
  *
@@ -12,9 +14,6 @@ interface EntryProcessor
 {
     /**
      * Process the entry payload.
-     *
-     * @param  array<string, mixed>  $payload
-     * @return array<string, mixed>
      */
-    public function process(array $payload): array;
+    public function process(PendingEntry $entry): PendingEntry;
 }

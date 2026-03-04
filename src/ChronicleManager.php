@@ -2,11 +2,15 @@
 
 namespace Chronicle;
 
-use Chronicle\Contracts\EntryStore;
 use Chronicle\Contracts\ReferenceResolver;
+use Chronicle\Contracts\StorageDriver;
+use Chronicle\Entry\EntryBuilder;
+use Chronicle\Entry\PendingEntry;
 use Chronicle\Pipeline\EntryPipeline;
-use Chronicle\Serialization\CanonicalPayloadSerializer;
-use JsonException;
+use Chronicle\Storage\ArrayDriver;
+use Chronicle\Storage\EloquentDriver;
+use Chronicle\Storage\NullDriver;
+use InvalidArgumentException;
 
 /**
  * Class ChronicleManager
@@ -25,11 +29,6 @@ use JsonException;
 class ChronicleManager
 {
     /**
-     * Entry storage implementation.
-     */
-//    protected EntryStore $store;
-
-    /**
      * Reference resolver used for actors and subjects.
      */
     protected ReferenceResolver $resolver;
@@ -39,21 +38,17 @@ class ChronicleManager
      */
     protected EntryPipeline $pipeline;
 
-//    protected CanonicalPayloadSerializer $serializer;
+    private ?StorageDriver $resolvedDriver = null;
 
     /**
      * Create a new Chronicle manager instance.
      */
     public function __construct(
-//        EntryStore $store,
         ReferenceResolver $resolver,
         EntryPipeline $pipeline
-//        CanonicalPayloadSerializer $serializer
     ) {
-//        $this->store = $store;
         $this->resolver = $resolver;
         $this->pipeline = $pipeline;
-//        $this->serializer = $serializer;
     }
 
     /**
@@ -64,13 +59,13 @@ class ChronicleManager
      *
      * Example:
      *
-     * Chronicle::entry()
+     * Chronicle::record()
      *      ->actor($user)
      *      ->action('invoice.sent')
      *      ->subject($invoice)
-     *      ->record();
+     *      ->commit();
      */
-    public function entry(): EntryBuilder
+    public function record(): EntryBuilder
     {
         return new EntryBuilder(
             resolver: $this->resolver,
@@ -88,13 +83,49 @@ class ChronicleManager
      *
      * @param  array<string, mixed>  $payload
      */
-    public function record(array $payload): void
+    public function commit(array $payload): void
     {
-        $this->pipeline->process($payload);
-//        $canonical = $this->serializer->serialize($payload);
-//
-//        $payload['payload'] = json_decode($canonical, true);
-//
-//        $this->store->append($payload);
+        $entry = new PendingEntry($payload);
+
+        $this->pipeline->process($entry);
+    }
+
+    public function driver(string $name): StorageDriver
+    {
+        return $this->resolveDriver($name);
+    }
+
+    public function getActiveDriver(): StorageDriver
+    {
+        if ($this->resolvedDriver === null) {
+            /** @var string $driver */
+            $driver = config('chronicle.driver', 'eloquent');
+
+            $this->resolvedDriver = $this->resolveDriver($driver);
+        }
+
+        return $this->resolvedDriver;
+    }
+
+    /**
+     * Swap the active driver directly. Used by fake() and useEloquentDriver() in tests.
+     */
+    public function swapDriver(StorageDriver $driver): void
+    {
+        $this->resolvedDriver = $driver;
+        //        $this->fake = null;
+    }
+
+    private function resolveDriver(string $name): StorageDriver
+    {
+        return match ($name) {
+            'null' => new NullDriver,
+            'array' => new ArrayDriver,
+            'eloquent' => new EloquentDriver,
+            default => throw new InvalidArgumentException(
+                "Chronicle driver [$name] is not defined. "
+                ."Register it via Chronicle::extend('$name', fn () => new YourDriver)."
+            )
+        };
     }
 }

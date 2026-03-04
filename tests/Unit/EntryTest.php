@@ -6,12 +6,12 @@ use Chronicle\Models\Entry;
 it('can create a chronicle entry', function () {
 
     Entry::create([
-        'recorded_at' => now(),
         'actor_type' => 'user',
         'actor_id' => '1',
         'action' => 'invoice.created',
         'subject_type' => 'invoice',
         'subject_id' => '10',
+        'created_at' => now(),
     ]);
 
     expect(Entry::count())->toBe(1);
@@ -20,12 +20,12 @@ it('can create a chronicle entry', function () {
 it('prevents updating entries', function () {
 
     $entry = Entry::create([
-        'recorded_at' => now(),
         'actor_type' => 'user',
         'actor_id' => '1',
         'action' => 'invoice.created',
         'subject_type' => 'invoice',
         'subject_id' => '10',
+        'created_at' => now(),
     ]);
 
     $entry->action = 'invoice.updated';
@@ -36,12 +36,12 @@ it('prevents updating entries', function () {
 
 it('prevents deleting entries', function () {
     $entry = Entry::create([
-        'recorded_at' => now(),
         'actor_type' => 'user',
         'actor_id' => '1',
         'action' => 'invoice.created',
         'subject_type' => 'invoice',
         'subject_id' => '10',
+        'created_at' => now(),
     ]);
 
     $entry->delete();
@@ -50,12 +50,12 @@ it('prevents deleting entries', function () {
 
 it('prevents force deleting an entry', function () {
     $entry = Entry::create([
-        'recorded_at' => now(),
         'actor_type' => 'user',
         'actor_id' => '1',
         'action' => 'invoice.created',
         'subject_type' => 'invoice',
         'subject_id' => '10',
+        'created_at' => now(),
     ]);
 
     $entry->forceDelete();
@@ -64,12 +64,12 @@ it('prevents force deleting an entry', function () {
 
 it('ensures database row is unchanged after failed update attempt', function () {
     $entry = Entry::create([
-        'recorded_at' => now(),
         'actor_type' => 'user',
         'actor_id' => '1',
         'action' => 'invoice.created',
         'subject_type' => 'invoice',
         'subject_id' => '10',
+        'created_at' => now(),
     ]);
 
     try {
@@ -83,4 +83,12 @@ it('ensures database row is unchanged after failed update attempt', function () 
     $entry->refresh();
 
     expect($entry->action)->toBe('invoice.created');
+});
+
+it('uses configured chronicle connection at runtime', function () {
+    config()->set('chronicle.connection', 'testing');
+
+    $entry = new Entry;
+
+    expect($entry->getConnectionName())->toBe('testing');
 });

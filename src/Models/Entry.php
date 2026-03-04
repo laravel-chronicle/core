@@ -22,6 +22,21 @@ class Entry extends Model
     use HasUlids;
 
     /**
+     * The connection used by Chronicle at runtime.
+     */
+    public function getConnectionName(): ?string
+    {
+        /** @var string|null $configured */
+        $configured = config('chronicle.connection');
+
+        if (is_string($configured) && $configured !== '') {
+            return $configured;
+        }
+
+        return parent::getConnectionName();
+    }
+
+    /**
      * The table associated with the model.
      * Reads from config so it can be overridden.
      */
@@ -49,7 +64,7 @@ class Entry extends Model
      * @var list<string>
      */
     protected $fillable = [
-        'recorded_at',
+        'id',
         'actor_type',
         'actor_id',
         'action',
@@ -69,7 +84,6 @@ class Entry extends Model
     protected function casts(): array
     {
         return [
-            'recorded_at' => 'datetime',
             'payload' => 'array',
             'metadata' => 'array',
             'context' => 'array',

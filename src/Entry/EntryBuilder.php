@@ -1,11 +1,13 @@
 <?php
 
-namespace Chronicle;
+namespace Chronicle\Entry;
 
+use Chronicle\ChronicleManager;
 use Chronicle\Contracts\ReferenceResolver;
 use Chronicle\Exceptions\MissingActionException;
 use Chronicle\Exceptions\MissingActorException;
 use Chronicle\Exceptions\MissingSubjectException;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
 
 /**
@@ -108,8 +110,10 @@ class EntryBuilder
     /**
      * Create a new EntryBuilder instance.
      */
-    public function __construct(ReferenceResolver $resolver, ChronicleManager $manager)
-    {
+    public function __construct(
+        ReferenceResolver $resolver,
+        ChronicleManager $manager,
+    ) {
         $this->resolver = $resolver;
         $this->manager = $manager;
     }
@@ -236,28 +240,27 @@ class EntryBuilder
 
         return [
             'id' => (string) Str::ulid(),
-            'recorded_at' => now(),
             'actor_type' => $actor->type,
             'actor_id' => $actor->id,
             'action' => $this->action,
             'subject_type' => $subject->type,
             'subject_id' => $subject->id,
-            'metadata' => $this->metadata ?: null,
-            'context' => $this->context ?: null,
-            'diff' => $this->diff ?: null,
-            'tags' => $this->tags ?: null,
-            'correlation_id' => $this->correlationId,
+            'metadata' => $this->metadata ?: [],
+            'context' => $this->context ?: [],
+            //            'diff' => $this->diff ?: null,
+            //            'tags' => $this->tags ?: null,
+            'created_at' => Carbon::now('UTC'),
         ];
     }
 
     /**
      * Build and persist the Chronicle entry.
      */
-    public function record(): void
+    public function commit(): void
     {
         $payload = $this->build();
 
-        $this->manager->record($payload);
+        $this->manager->commit($payload);
     }
 
     /**
@@ -269,15 +272,15 @@ class EntryBuilder
      */
     protected function validate(): void
     {
-        if (! $this->actor) {
+        if ($this->actor === null) {
             throw new MissingActorException;
         }
 
-        if (! $this->action) {
+        if ($this->action === null || trim($this->action) === '') {
             throw new MissingActionException;
         }
 
-        if (! $this->subject) {
+        if ($this->subject === null) {
             throw new MissingSubjectException;
         }
     }
