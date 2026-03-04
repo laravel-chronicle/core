@@ -1,0 +1,11 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Ask a question
+    url: https://github.com/laravel-chronicle/core/discussions/new?category=q-a
+    about: Aks the community for help
+  - name: Request a feature
+    url: https://github.com/laravel-chronicle/core/discussions/new?category=ideas
+    about: Share ideas for new features
+  - name: Report a security vulnerability
+    url: https://github.com/laravel-chronicle/core/security/policy
+    about: Learn how to notify us for sensitive security vulnerabilities
