@@ -42,6 +42,8 @@ class EntryBuilder
      */
     protected ReferenceResolver $resolver;
 
+    protected ChronicleManager $manager;
+
     /**
      * Actor responsible for the action.
      *
@@ -106,9 +108,10 @@ class EntryBuilder
     /**
      * Create a new EntryBuilder instance.
      */
-    public function __construct(ReferenceResolver $resolver)
+    public function __construct(ReferenceResolver $resolver, ChronicleManager $manager)
     {
         $this->resolver = $resolver;
+        $this->manager = $manager;
     }
 
     /**
@@ -245,6 +248,16 @@ class EntryBuilder
             'tags' => $this->tags ?: null,
             'correlation_id' => $this->correlationId,
         ];
+    }
+
+    /**
+     * Build and persist the Chronicle entry.
+     */
+    public function record(): void
+    {
+        $payload = $this->build();
+
+        $this->manager->record($payload);
     }
 
     /**

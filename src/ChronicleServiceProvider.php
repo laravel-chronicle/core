@@ -1,0 +1,108 @@
+<?php
+
+namespace Chronicle;
+
+use Chronicle\Contracts\EntryStore;
+use Chronicle\Contracts\ReferenceResolver;
+use Chronicle\Storage\DatabaseEntryStore;
+use Chronicle\Support\DefaultReferenceResolver;
+use Illuminate\Support\ServiceProvider;
+
+/**
+ * Class ChronicleServiceProvider
+ *
+ * Registers Chronicle services within Laravel service container.
+ *
+ * Responsibilities:
+ *
+ *  - Bind Chronicle core services
+ *  - Register default implementations for contracts
+ *  - Publish configuration and migrations
+ *  - Register Artisan commands
+ *
+ * The provider is automatically discovered via Composer.
+ */
+class ChronicleServiceProvider extends ServiceProvider
+{
+    /**
+     * Register Chronicle services in the container.
+     *
+     * This method binds Chronicle's core components
+     * so they can be resolved via dependency injection.
+     */
+    public function register(): void
+    {
+        $this->mergeConfigFrom(__DIR__.'/../config/chronicle.php', 'chronicle');
+
+        $this->registerContracts();
+
+        $this->registerChronicleManager();
+    }
+
+    /**
+     * Bootstrap Chronicle services
+     *
+     * This method handles tasks that require the application
+     * to be fully booted, such as publishing configuration
+     * and migrations.
+     */
+    public function boot(): void
+    {
+        $this->publishConfiguration();
+
+        $this->publishMigrations();
+    }
+
+    /**
+     * Register Chronicle contract implementations.
+     *
+     * These bindings define the default behavior of Chronicle
+     * while still allowing users to override implementations.
+     */
+    protected function registerContracts(): void
+    {
+        $this->app->singleton(EntryStore::class, DatabaseEntryStore::class);
+
+        $this->app->singleton(ReferenceResolver::class, DefaultReferenceResolver::class);
+    }
+
+    /**
+     * Register the Chronicle manager.
+     *
+     * The manager is the primary entry point used by
+     * the Chronicle facade and application code.
+     */
+    protected function registerChronicleManager(): void
+    {
+        $this->app->singleton('chronicle', function ($app) {
+            return new ChronicleManager(
+                store: $app->make(EntryStore::class),
+                resolver: $app->make(ReferenceResolver::class),
+            );
+        });
+    }
+
+    /**
+     * Publish Chronicle configuration file.
+     *
+     * Allows developers to customize Chronicle behavior.
+     */
+    protected function publishConfiguration(): void
+    {
+        $this->publishes([
+            __DIR__.'/../config/chronicle.php' => config_path('chronicle.php'),
+        ], 'chronicle-config');
+    }
+
+    /**
+     * Publish Chronicle database migrations.
+     *
+     * The migrations create the Chronicle ledger tables.
+     */
+    protected function publishMigrations(): void
+    {
+        $this->publishes([
+            __DIR__.'/../database/migrations' => database_path('migrations'),
+        ], 'chronicle-migrations');
+    }
+}
