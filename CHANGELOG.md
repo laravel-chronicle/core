@@ -10,6 +10,144 @@ breaking changes between any two versions — see upgrade notes per version.
 
 ---
 
+## [0.7.0] - 2026-03-05
+
+### Added
+
+#### Diff Engine
+
+Chronicle now supports structured diffs, allowing entries to record
+field-level changes.
+
+Diffs capture the previous and new value of changed attributes, enabling
+precise audit trails and timeline reconstruction.
+
+Example:
+
+```php
+Chronicle::entry()
+->actor($user)
+->action('invoice.updated')
+->subject($invoice)
+->diff([
+'amount' => [
+'old' => 1000,
+'new' => 500,
+],
+])
+->record();
+```
+
+Stored structure:
+```yaml
+{
+  "diff": {
+    "amount": {
+      "old": 1000,
+      "new": 500
+    }
+  }
+}
+```
+
+Diff data becomes part of the canonical payload and is included in
+Chronicle’s hashing pipeline.
+
+---
+
+#### change() Builder Helper
+
+Added a convenience method for recording individual field changes.
+
+Example:
+
+Chronicle::entry()
+->change('status', 'draft', 'paid')
+->change('amount', 1000, 500);
+
+Multiple changes can be recorded incrementally without constructing
+a full diff array.
+
+---
+
+#### modelDiff() Helper
+
+Chronicle can now generate diffs automatically from Eloquent model
+changes.
+
+Example:
+
+$invoice->amount = 500;
+$invoice->status = 'paid';
+
+Chronicle::entry()
+->actor($user)
+->action('invoice.updated')
+->subject($invoice)
+->modelDiff($invoice)
+->record();
+
+This method inspects the model’s dirty attributes using Laravel’s
+built-in change tracking and generates the corresponding diff.
+
+Ignored attributes:
+
+- created_at
+- updated_at
+
+This helper improves developer ergonomics while preserving Chronicle’s
+explicit logging philosophy.
+
+---
+
+### Changed
+
+#### EntryBuilder
+
+EntryBuilder now supports:
+
+- `diff(array $changes)`
+- `change(string $field, mixed $old, mixed $new)`
+- `modelDiff(Model $model)`
+
+Diff data is normalized and sorted to ensure deterministic canonical
+payload serialization.
+
+This guarantees stable payload hashes regardless of the order in which
+diff fields are defined.
+
+---
+
+### Internal
+
+- Added diff normalization logic
+- Added `modelDiff()` support using Eloquent dirty attributes
+- Added `change()` helper for incremental diff construction
+- Ensured deterministic diff ordering for canonical hashing
+- Added comprehensive tests for diff generation and normalization
+- Added test fixture models for package test isolation
+
+---
+
+### Notes
+
+The Diff Engine enables Chronicle to capture the exact state changes
+associated with an event rather than simply recording that an action
+occurred.
+
+This feature significantly improves Chronicle’s usefulness for:
+
+- audit trails
+- financial systems
+- administrative timelines
+- compliance reporting
+- debugging production incidents
+
+The diff system is intentionally explicit and avoids automatic model
+observers to preserve Chronicle’s low-magic design philosophy.
+
+---
+
 ## [0.6.0] - 2026-03-05
 
 ### Added
