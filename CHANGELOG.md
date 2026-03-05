@@ -9,6 +9,180 @@ Semantic versioning applies from **v1.0.0** onwards. Pre-1.0 releases may contai
 breaking changes between any two versions — see upgrade notes per version.
 
 ---
+## [0.5.0] - 2026-03-05
+
+### Added
+
+#### Checkpoints
+
+Introduced cryptographic checkpoints that anchor the Chronicle ledger.
+
+A checkpoint signs the current ledger `chain_hash`, preventing attackers
+from recomputing the entire chain after tampering.
+
+New database table:
+
+- `chronicle_checkpoints`
+
+Each checkpoint stores:
+
+- `chain_hash` – the ledger state being anchored
+- `signature` – cryptographic signature of the chain hash
+- `algorithm` – signing algorithm used
+- `key_id` – identifier of the signing key
+- `metadata` – optional extensibility metadata
+- `created_at` – timestamp of checkpoint creation
+
+Entries may reference a checkpoint using the new `checkpoint_id` column.
+
+#### SigningProvider Contract
+
+Added a `SigningProvider` contract responsible for generating and verifying
+cryptographic signatures.
+
+Chronicle delegates all signing operations to this provider, allowing the
+package to remain cryptography-agnostic.
+
+Default implementation:
+
+- `Ed25519SigningProvider` (using libsodium)
+
+This abstraction enables future integrations with:
+
+- AWS KMS
+- Hashicorp Vault
+- hardware security modules
+- Chronicle Cloud signing services
+
+#### CheckpointCreator
+
+Added the `CheckpointCreator` service responsible for generating checkpoints.
+
+Responsibilities include:
+
+- resolving the current ledger head (`chain_hash`)
+- generating a cryptographic signature
+- creating the checkpoint record
+- anchoring the ledger state
+
+#### Artisan Command: chronicle:checkpoint
+
+Added a new Artisan command to create checkpoints manually.
+
+```bash
+php artisan chronicle:checkpoint
+```
+
+
+This command anchors the current Chronicle ledger state with a cryptographic
+signature.
+
+#### IntegrityVerifier Upgrade
+
+The `IntegrityVerifier` now performs full ledger validation including:
+
+- payload hash verification
+- chain hash verification
+- checkpoint signature verification
+
+Verification now detects attempts to recompute the ledger after tampering.
+
+#### VerificationResult
+
+Added `VerificationResult`, a value object representing the outcome of a
+ledger verification process.
+
+The result includes:
+
+- verification status
+- failure type
+- entry where corruption begins
+- number of verified entries
+
+#### chronicle:verify Command
+
+Introduced the `chronicle:verify` command for auditing Chronicle ledger
+integrity.
+
+```bash
+php artisan chronicle:verify
+```
+
+
+This command validates:
+
+- entry payload hashes
+- ledger chain hashes
+- checkpoint signatures
+
+It reports the exact entry where corruption begins if integrity violations
+are detected.
+
+---
+
+### Changed
+
+#### Integrity Verification Architecture
+
+Verification logic has been extracted into a reusable service
+(`IntegrityVerifier`) allowing verification to be used by:
+
+- CLI commands
+- scheduled integrity checks
+- monitoring systems
+- Chronicle Cloud services
+
+The `chronicle:verify` command now acts as a presentation layer for the
+verification engine.
+
+---
+
+### Security
+
+Checkpoint anchoring introduces the third cryptographic integrity layer
+in Chronicle.
+
+The ledger now protects against:
+
+- payload modification
+- entry deletion
+- entry insertion
+- entry reordering
+- chain recomputation attacks
+
+Attackers with database access can no longer modify historical entries
+without detection unless they also possess the signing key.
+
+---
+
+### Internal
+
+- Added `Checkpoint` Eloquent model
+- Added `CheckpointCreator` service
+- Added `SigningProvider` contract
+- Added `Ed25519SigningProvider` implementation
+- Added `VerificationResult` value object
+- Upgraded `IntegrityVerifier`
+- Added `chronicle:checkpoint` command
+- Added `chronicle:verify` command
+- Updated tests to support signing providers
+- Added testing `FakeSigningProvider`
+
+---
+
+### Notes
+
+With checkpoints and full verification implemented, Chronicle now functions
+as a tamper-evident ledger system rather than a simple audit log.
+
+Upcoming releases will focus on:
+
+- dataset exports
+- signed export manifests
+- external verification tools
+- federation between Chronicle datasets
+
+---
 
 ## [0.4.0] - 2026-03-05
 

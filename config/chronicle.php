@@ -43,4 +43,11 @@ return [
         'entries' => env('CHRONICLE_TABLE_ENTRIES', 'chronicle_entries'),
         'checkpoints' => env('CHRONICLE_TABLE_CHECKPOINTS', 'chronicle_checkpoints'),
     ],
+
+    'signing' => [
+        'provider' => \Chronicle\Signing\Ed25519SigningProvider::class,
+        'key_id' => env('CHRONICLE_KEY_ID'),
+        'private_key' => env('CHRONICLE_PRIVATE_KEY'),
+        'public_key' => env('CHRONICLE_PUBLIC_KEY'),
+    ],
 ];

@@ -5,25 +5,24 @@ namespace Chronicle\Models;
 use Chronicle\Exceptions\ImmutabilityViolationException;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Carbon;
 
 /**
- * The Chronicle audit entry.
+ * Represents a cryptographic anchor in the Chronicle ledger.
  *
- * This model is READ-ONLY after creation.
- * Any attempt to update or delete a persisted
- * entry throws ImmutabilityViolationException.
+ * A checkpoint signs a specific chain hash, preventing attackers
+ * from recomputing the ledger after tampering.
  *
- * Do not call Entry::create() or new Entry()
- * directly in application code.
- * Use Chronicle::record()->...->commit() exclusively.
+ * Checkpoints are immutable once created.
  *
- * @property array<string,mixed> $payload
- * @property string $payload_hash
  * @property string $chain_hash
- * @property string $checkpoint_id
+ * @property string $signature
+ * @property string $algorithm
+ * @property string $key_id
+ * @property Carbon $created_at
  */
-class Entry extends Model
+class Checkpoint extends Model
 {
     use HasUlids;
 
@@ -49,7 +48,7 @@ class Entry extends Model
     public function getTable(): string
     {
         /** @var string $table */
-        $table = config('chronicle.tables.entries', 'chronicle_entries');
+        $table = config('chronicle.tables.checkpoints', 'chronicle_checkpoints');
 
         return $table;
     }
@@ -71,17 +70,11 @@ class Entry extends Model
      */
     protected $fillable = [
         'id',
-        'actor_type',
-        'actor_id',
-        'action',
-        'subject_type',
-        'subject_id',
-        'payload',
-        'payload_hash',
         'chain_hash',
-        'checkpoint_id',
+        'signature',
+        'algorithm',
+        'key_id',
         'metadata',
-        'context',
         'created_at',
     ];
 
@@ -93,9 +86,7 @@ class Entry extends Model
     protected function casts(): array
     {
         return [
-            'payload' => 'array',
             'metadata' => 'array',
-            'context' => 'array',
             'created_at' => 'immutable_datetime',
         ];
     }
@@ -141,12 +132,12 @@ class Entry extends Model
     }
 
     /**
-     * Checkpoint anchoring this entry.
+     * Entries anchored by this checkpoint.
      *
-     * @return BelongsTo<Checkpoint, $this>
+     * @return HasMany<Entry, $this>
      */
-    public function checkpoint(): BelongsTo
+    public function entries(): HasMany
     {
-        return $this->belongsTo(Checkpoint::class, 'checkpoint_id');
+        return $this->hasMany(Entry::class, 'checkpoint_id');
     }
 }
