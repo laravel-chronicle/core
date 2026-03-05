@@ -25,6 +25,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property string $checkpoint_id
  * @property string[] $tags
  * @property string $correlation_id
+ * @property string[]|null $diff
  */
 class Entry extends Model
 {
@@ -81,6 +82,7 @@ class Entry extends Model
         'subject_id',
         'payload',
         'payload_hash',
+        'diff',
         'chain_hash',
         'checkpoint_id',
         'metadata',
@@ -101,6 +103,7 @@ class Entry extends Model
             'payload' => 'array',
             'metadata' => 'array',
             'tags' => 'array',
+            'diff' => 'array',
             'context' => 'array',
             'created_at' => 'immutable_datetime',
         ];

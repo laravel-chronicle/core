@@ -7,6 +7,7 @@ use Chronicle\Contracts\ReferenceResolver;
 use Chronicle\Exceptions\MissingActionException;
 use Chronicle\Exceptions\MissingActorException;
 use Chronicle\Exceptions\MissingSubjectException;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
 
@@ -107,6 +108,12 @@ class EntryBuilder
      */
     protected ?string $correlationId = null;
 
+    /** @var string[] */
+    protected array $ignoredDiffFields = [
+        'updated_at',
+        'created_at',
+    ];
+
     /**
      * Create a new EntryBuilder instance.
      */
@@ -185,9 +192,44 @@ class EntryBuilder
      */
     public function diff(array $diff): EntryBuilder
     {
-        $this->diff = $diff;
+        $this->diff = $this->normalizeDiff($diff);
 
         return $this;
+    }
+
+    public function change(string $field, mixed $old, mixed $new): EntryBuilder
+    {
+        $this->diff[$field] = [
+            'old' => $old,
+            'new' => $new,
+        ];
+
+        return $this;
+    }
+
+    /**
+     * @param  array<string, mixed>  $diff
+     * @return array<string, mixed>
+     */
+    protected function normalizeDiff(array $diff): array
+    {
+        ksort($diff);
+
+        return collect($diff)
+            ->map(function (mixed $change): array {
+                if (! is_array($change)) {
+                    return [
+                        'old' => null,
+                        'new' => null,
+                    ];
+                }
+
+                return [
+                    'old' => $change['old'] ?? null,
+                    'new' => $change['new'] ?? null,
+                ];
+            })
+            ->toArray();
     }
 
     /**
@@ -233,6 +275,47 @@ class EntryBuilder
     }
 
     /**
+     * Generate a diff from an Eloquent model's dirty attributes.
+     */
+    public function modelDiff(Model $model): EntryBuilder
+    {
+        $dirty = $model->getDirty();
+
+        if (empty($dirty)) {
+            return $this;
+        }
+
+        $diff = [];
+
+        foreach ($dirty as $field => $newValue) {
+            if ($this->shouldIgnoreField($field)) {
+                continue;
+            }
+
+            $diff[$field] = [
+                'old' => $model->getOriginal($field),
+                'new' => $newValue,
+            ];
+        }
+
+        if (! empty($diff)) {
+            $this->diff(array_merge($this->diff, $diff));
+        }
+
+        return $this;
+    }
+
+    public function modelChanges(Model $model): EntryBuilder
+    {
+        return $this->modelDiff($model);
+    }
+
+    protected function shouldIgnoreField(string $field): bool
+    {
+        return in_array($field, $this->ignoredDiffFields, true);
+    }
+
+    /**
      * Build the entry payload.
      *
      * This method validates the builder state and returns
@@ -265,7 +348,7 @@ class EntryBuilder
             'subject_id' => $subject->id,
             'metadata' => $this->metadata ?: [],
             'context' => $this->context ?: [],
-            //            'diff' => $this->diff ?: null,
+            'diff' => $this->diff ?: null,
             'tags' => $this->tags,
             'correlation_id' => $this->correlationId,
             'created_at' => Carbon::now('UTC'),
