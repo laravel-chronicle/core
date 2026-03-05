@@ -39,6 +39,9 @@ class EloquentDriver implements StorageDriver
             'chain_hash' => $entry['chain_hash'],
             'metadata' => json_encode($entry['metadata']),
             'context' => json_encode($entry['context']),
+            'tags' => json_encode($entry['tags']),
+            'correlation_id' => $entry['correlation_id'],
+            'checkpoint_id' => $entry['checkpoint_id'],
             'created_at' => $entry['created_at'],
         ]);
 
@@ -56,8 +59,9 @@ class EloquentDriver implements StorageDriver
             'chain_hash' => $entry['chain_hash'],
             'metadata' => json_encode(['metadata']),
             'context' => json_encode($entry['context']),
-            //            'tags' => $entry['tags'],
-            //            'checkpoint_id' => $entry['checkpointId'],
+            'tags' => json_encode($entry['tags']),
+            'correlation_id' => $entry['correlation_id'],
+            'checkpoint_id' => $entry['checkpoint_id'],
             'created_at' => $entry['created_at'],
         ]);
 
