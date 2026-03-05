@@ -10,6 +10,114 @@ breaking changes between any two versions — see upgrade notes per version.
 
 ---
 
+## [0.4.0] - 2026-03-05
+
+### Added
+
+#### Hash Chaining
+
+Introduced cryptographic hash chaining between Chronicle entries.
+
+Each entry now includes a `chain_hash` computed using:
+
+SHA256(previous_chain_hash + payload_hash)
+
+This mechanism links every entry to the previous one, forming a
+tamper-evident ledger.
+
+The first entry in the ledger uses `"0"` as the previous chain hash.
+
+Hash chaining allows Chronicle to detect:
+
+- deletion of entries
+- insertion of forged entries
+- reordering of entries
+- payload tampering in earlier entries
+
+New component:
+
+- `ChainHasher`
+
+#### Chain Hash Pipeline Processor
+
+Added a new pipeline processor:
+
+- `ChainHashEntry`
+
+This processor computes the chain hash for a pending entry before it is
+persisted to the database.
+
+The Chronicle processing pipeline is now:
+
+EntryBuilder  
+↓  
+PendingEntry  
+↓  
+CanonicalizePayload  
+↓  
+HashPayload  
+↓  
+ChainHashEntry  
+↓  
+PersistEntry
+
+This architecture ensures that entries are chained before they are
+written to the ledger.
+
+#### Database Schema
+
+Added a new column to the `chronicle_entries` table:
+
+- `chain_hash` (64-character SHA-256 hash)
+
+This column stores the computed chain hash for each entry.
+
+---
+
+### Security
+
+Hash chaining introduces the second cryptographic integrity layer in
+Chronicle.
+
+With both `payload_hash` and `chain_hash`, the system can now detect:
+
+- payload modification
+- entry deletion
+- entry insertion
+- entry reordering
+
+Any modification of an entry will invalidate the hashes of all
+subsequent entries in the chain.
+
+---
+
+### Internal
+
+- Added `ChainHasher` service
+- Added `ChainHashEntry` pipeline processor
+- Updated `PendingEntry` to store chain hashes
+- Updated pipeline configuration to include chain hashing
+- Added unit tests for chain hashing
+- Added integration tests verifying chain creation
+
+---
+
+### Notes
+
+Hash chaining transforms Chronicle from an append-only audit log into a
+tamper-evident ledger.
+
+The next release will introduce:
+
+- ledger integrity verification (`chronicle:verify`)
+- `IntegrityVerifier` service
+- detailed verification reporting
+
+These tools will allow applications to audit the integrity of the
+entire Chronicle ledger.
+
+---
+
 ## [0.3.0] - 2026-03-04
 
 ### Added
