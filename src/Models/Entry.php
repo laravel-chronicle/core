@@ -16,6 +16,10 @@ use Illuminate\Database\Eloquent\Model;
  * Do not call Entry::create() or new Entry()
  * directly in application code.
  * Use Chronicle::record()->...->commit() exclusively.
+ *
+ * @property array<string,mixed> $payload
+ * @property string $payload_hash
+ * @property string $chain_hash
  */
 class Entry extends Model
 {
@@ -72,6 +76,7 @@ class Entry extends Model
         'subject_id',
         'payload',
         'payload_hash',
+        'chain_hash',
         'metadata',
         'context',
         'created_at',

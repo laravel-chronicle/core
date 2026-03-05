@@ -2,9 +2,11 @@
 
 namespace Chronicle;
 
+use Chronicle\Console\VerifyEntryCommand;
 use Chronicle\Contracts\ReferenceResolver;
 use Chronicle\Contracts\StorageDriver;
 use Chronicle\Pipeline\CanonicalizePayload;
+use Chronicle\Pipeline\ChainHashEntry;
 use Chronicle\Pipeline\EntryPipeline;
 use Chronicle\Pipeline\HashPayload;
 use Chronicle\Pipeline\PersistEntry;
@@ -48,6 +50,7 @@ class ChronicleServiceProvider extends ServiceProvider
             return new EntryPipeline([
                 $app->make(CanonicalizePayload::class),
                 $app->make(HashPayload::class),
+                $app->make(ChainHashEntry::class),
                 $app->make(PersistEntry::class),
             ]);
         });
@@ -69,6 +72,12 @@ class ChronicleServiceProvider extends ServiceProvider
         $this->publishConfiguration();
 
         $this->publishMigrations();
+
+        if ($this->app->runningInConsole()) {
+            $this->commands([
+                VerifyEntryCommand::class,
+            ]);
+        }
     }
 
     /**

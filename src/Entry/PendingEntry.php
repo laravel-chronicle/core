@@ -130,7 +130,7 @@ class PendingEntry
         return array_merge($this->attributes, [
             'payload' => $this->payload,
             'payload_hash' => $this->payloadHash,
-            //            'chain_hash' => $this->chainHash,
+            'chain_hash' => $this->chainHash,
             //            'checkpoint_id' => $this->checkpointId,
         ]);
     }
