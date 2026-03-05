@@ -2,7 +2,9 @@
 
 namespace Chronicle\Integrity;
 
+use Chronicle\Contracts\SigningProvider;
 use Chronicle\Hashing\ChainHasher;
+use Chronicle\Models\Checkpoint;
 use Chronicle\Models\Entry;
 use Chronicle\Serialization\CanonicalPayloadSerializer;
 
@@ -15,10 +17,16 @@ class IntegrityVerifier
 
     protected ChainHasher $chainHasher;
 
-    public function __construct(CanonicalPayloadSerializer $serializer, ChainHasher $chainHasher)
-    {
+    protected SigningProvider $signer;
+
+    public function __construct(
+        CanonicalPayloadSerializer $serializer,
+        ChainHasher $chainHasher,
+        SigningProvider $signer
+    ) {
         $this->serializer = $serializer;
         $this->chainHasher = $chainHasher;
+        $this->signer = $signer;
     }
 
     /**
@@ -36,6 +44,7 @@ class IntegrityVerifier
             ->chunk(500, function ($entries) use (&$previousChain, &$count, $result) {
                 /** @var Entry $entry */
                 foreach ($entries as $entry) {
+                    // Payload verification
                     $canonical = $this->serializer->serialize(
                         $entry->payload
                     );
@@ -51,6 +60,7 @@ class IntegrityVerifier
                         return false;
                     }
 
+                    // Chain verification
                     $expectedChain = $this->chainHasher->hash(
                         $previousChain,
                         $payloadHash
@@ -63,6 +73,34 @@ class IntegrityVerifier
                         );
 
                         return false;
+                    }
+
+                    // Checkpoint verification
+                    if ($entry->checkpoint_id) {
+                        $checkpoint = Checkpoint::find($entry->checkpoint_id);
+
+                        if (! $checkpoint) {
+                            $result->fail(
+                                'checkpoint_missing',
+                                $entry->id
+                            );
+
+                            return false;
+                        }
+
+                        $valid = $this->signer->verify(
+                            $checkpoint->chain_hash,
+                            $checkpoint->signature,
+                        );
+
+                        if (! $valid) {
+                            $result->fail(
+                                'checkpoint_signature_invalid',
+                                $entry->id
+                            );
+
+                            return false;
+                        }
                     }
 
                     $previousChain = $entry->chain_hash;

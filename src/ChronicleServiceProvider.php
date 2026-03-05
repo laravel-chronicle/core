@@ -2,8 +2,10 @@
 
 namespace Chronicle;
 
+use Chronicle\Console\CreateCheckpointCommand;
 use Chronicle\Console\VerifyEntryCommand;
 use Chronicle\Contracts\ReferenceResolver;
+use Chronicle\Contracts\SigningProvider;
 use Chronicle\Contracts\StorageDriver;
 use Chronicle\Pipeline\CanonicalizePayload;
 use Chronicle\Pipeline\ChainHashEntry;
@@ -58,6 +60,16 @@ class ChronicleServiceProvider extends ServiceProvider
         $this->registerContracts();
 
         $this->registerChronicleManager();
+
+        $this->app->singleton(SigningProvider::class, function ($app) {
+            $config = $app['config']['chronicle.signing'];
+
+            return new $config['provider'](
+                privateKey: $config['private_key'],
+                publicKey: $config['public_key'],
+                keyId: $config['key_id'],
+            );
+        });
     }
 
     /**
@@ -76,6 +88,7 @@ class ChronicleServiceProvider extends ServiceProvider
         if ($this->app->runningInConsole()) {
             $this->commands([
                 VerifyEntryCommand::class,
+                CreateCheckpointCommand::class,
             ]);
         }
     }
