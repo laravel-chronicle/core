@@ -9,6 +9,189 @@ Semantic versioning applies from **v1.0.0** onwards. Pre-1.0 releases may contai
 breaking changes between any two versions — see upgrade notes per version.
 
 ---
+
+## [0.6.0] - 2026-03-05
+
+### Added
+
+#### Tags
+
+Chronicle entries now support tags for structured classification and querying.
+
+Tags are stored as a JSON array and are normalized during entry creation:
+
+- trimmed
+- lowercased
+- duplicates removed
+- sorted alphabetically
+
+Example:
+
+Chronicle::entry()
+->actor($user)
+->action('order.created')
+->subject($order)
+->tags(['orders', 'checkout'])
+->record();
+
+Tags enable filtering, grouping, and analytics on Chronicle data.
+
+A `tag()` convenience method is also available for attaching single tags.
+
+Example:
+
+Chronicle::entry()
+->tag('security')
+->tag('authentication')
+
+---
+
+#### Correlation / Transactions
+
+Chronicle now supports correlation identifiers for grouping entries belonging
+to the same logical workflow.
+
+Transactions automatically assign a shared `correlation_id` to all entries
+created within the transaction.
+
+Example:
+
+Chronicle::transaction(function () use ($user, $order) {
+
+    Chronicle::entry()
+        ->actor($user)
+        ->action('order.created')
+        ->subject($order)
+        ->record();
+
+    Chronicle::entry()
+        ->actor($user)
+        ->action('payment.captured')
+        ->subject($order)
+        ->record();
+
+});
+
+All entries recorded within the transaction share the same correlation id.
+
+---
+
+#### Transaction Object API
+
+Transactions can also be created as objects:
+
+$tx = Chronicle::transaction();
+
+$tx->entry()->action('order.created')->record();
+$tx->entry()->action('payment.captured')->record();
+
+This allows explicit control over correlation context.
+
+---
+
+#### Hierarchical Transactions
+
+Transactions support nesting.
+
+Nested transactions generate hierarchical correlation identifiers, allowing
+Chronicle to represent complex workflows and sub-operations.
+
+Example:
+
+Root transaction:
+
+01HVABC
+
+Child transaction:
+
+01HVABC.01HVXYZ
+
+This allows reconstructing workflow trees without introducing additional
+database columns.
+
+---
+
+#### Current Transaction Accessor
+
+Added `Chronicle::currentTransaction()`.
+
+This method returns the currently active transaction (if one exists),
+allowing entries to be attached to the active workflow from anywhere
+in the application.
+
+Example:
+
+Chronicle::currentTransaction()?->entry()
+->actor('system')
+->action('cache.invalidated')
+->subject($product)
+->record();
+
+This improves integration with:
+
+- service layers
+- middleware
+- queue jobs
+- CLI scripts
+
+---
+
+#### Entry Query Helpers
+
+Added query helpers for working with correlated entries.
+
+Example:
+
+Entry::correlation($id)->get();
+
+This allows retrieving all entries belonging to a specific workflow.
+
+---
+
+### Changed
+
+#### EntryBuilder
+
+EntryBuilder now supports:
+
+- tags
+- correlation identifiers
+- automatic transaction context inheritance
+
+Entries created inside a transaction automatically inherit the
+current correlation id.
+
+---
+
+### Internal
+
+- Added `ChronicleTransaction` class
+- Added transaction context stack to `ChronicleManager`
+- Added tag normalization logic to `EntryBuilder`
+- Added `tag()` and `tags()` builder methods
+- Added `correlation()` builder method
+- Added correlation query scope to `Entry` model
+- Added transaction context resolution in the entry pipeline
+- Added comprehensive tests for tags and transactions
+
+---
+
+### Notes
+
+With this release Chronicle evolves from a simple append-only audit log
+into a structured event ledger capable of representing workflows,
+operations, and nested processes.
+
+Tags and transactions provide the foundation for future Chronicle
+features including:
+
+- timeline reconstruction
+- workflow visualization
+- analytics dashboards
+- Chronicle UI packages
+
+---
+
 ## [0.5.0] - 2026-03-05
 
 ### Added

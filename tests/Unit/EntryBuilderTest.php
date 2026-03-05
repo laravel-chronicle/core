@@ -20,6 +20,10 @@ it('builds a valid entry payload', function () {
         );
 
     $manager = mock(ChronicleManager::class);
+    $manager
+        ->shouldReceive('currentCorrelation')
+        ->andReturn(null)
+        ->byDefault();
 
     $builder = new EntryBuilder($resolver, $manager);
 
@@ -42,6 +46,10 @@ it('throws exception when actor is missing', function () {
     $resolver = mock(ReferenceResolver::class);
 
     $manager = mock(ChronicleManager::class);
+    $manager
+        ->shouldReceive('currentCorrelation')
+        ->andReturn(null)
+        ->byDefault();
 
     $builder = new EntryBuilder($resolver, $manager);
 
@@ -56,6 +64,10 @@ it('throws exception when subject is missing', function () {
     $resolver = mock(ReferenceResolver::class);
 
     $manager = mock(ChronicleManager::class);
+    $manager
+        ->shouldReceive('currentCorrelation')
+        ->andReturn(null)
+        ->byDefault();
 
     $builder = new EntryBuilder($resolver, $manager);
 
@@ -70,6 +82,10 @@ it('throws exception when action is missing', function () {
     $resolver = mock(ReferenceResolver::class);
 
     $manager = mock(ChronicleManager::class);
+    $manager
+        ->shouldReceive('currentCorrelation')
+        ->andReturn(null)
+        ->byDefault();
 
     $builder = new EntryBuilder($resolver, $manager);
 
@@ -92,6 +108,10 @@ it('accepts falsy-but-valid actor and subject values', function () {
         );
 
     $manager = mock(ChronicleManager::class);
+    $manager
+        ->shouldReceive('currentCorrelation')
+        ->andReturn(null)
+        ->byDefault();
 
     $builder = new EntryBuilder($resolver, $manager);
 
@@ -117,6 +137,10 @@ it('accepts action set to string zero', function () {
         );
 
     $manager = mock(ChronicleManager::class);
+    $manager
+        ->shouldReceive('currentCorrelation')
+        ->andReturn(null)
+        ->byDefault();
 
     $builder = new EntryBuilder($resolver, $manager);
 
@@ -133,6 +157,10 @@ it('throws exception when action is blank whitespace', function () {
     $resolver = mock(ReferenceResolver::class);
 
     $manager = mock(ChronicleManager::class);
+    $manager
+        ->shouldReceive('currentCorrelation')
+        ->andReturn(null)
+        ->byDefault();
 
     $builder = new EntryBuilder($resolver, $manager);
 

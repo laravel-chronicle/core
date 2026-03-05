@@ -3,6 +3,7 @@
 namespace Chronicle\Models;
 
 use Chronicle\Exceptions\ImmutabilityViolationException;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -22,6 +23,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property string $payload_hash
  * @property string $chain_hash
  * @property string $checkpoint_id
+ * @property string[] $tags
+ * @property string $correlation_id
  */
 class Entry extends Model
 {
@@ -81,6 +84,8 @@ class Entry extends Model
         'chain_hash',
         'checkpoint_id',
         'metadata',
+        'tags',
+        'correlation_id',
         'context',
         'created_at',
     ];
@@ -95,6 +100,7 @@ class Entry extends Model
         return [
             'payload' => 'array',
             'metadata' => 'array',
+            'tags' => 'array',
             'context' => 'array',
             'created_at' => 'immutable_datetime',
         ];
@@ -148,5 +154,14 @@ class Entry extends Model
     public function checkpoint(): BelongsTo
     {
         return $this->belongsTo(Checkpoint::class, 'checkpoint_id');
+    }
+
+    /**
+     * @param  Builder<$this>  $query
+     * @return Builder<$this>
+     */
+    public function scopeCorrelation(Builder $query, string $id): Builder
+    {
+        return $query->where('correlation_id', $id);
     }
 }

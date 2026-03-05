@@ -98,7 +98,7 @@ class EntryBuilder
     /**
      * Optional tags used for grouping or filtering.
      *
-     * @var array<string, mixed>
+     * @var string[]
      */
     protected array $tags = [];
 
@@ -191,15 +191,29 @@ class EntryBuilder
     }
 
     /**
-     * Assign tags to the entry.
+     * Attach tags to the Chronicle entry.
      *
-     * Tags are normalized before being stored.
+     * Tags are normalized to ensure deterministic payload
+     * serialization:
      *
-     * @param  array<string, mixed>  $tags
+     * - converted to lowercase
+     * - trimmed
+     * - duplicates removed
+     * - sorted alphabetically
+     *
+     * @param  string[]  $tags
      */
     public function tags(array $tags): EntryBuilder
     {
-        $this->tags = $tags;
+        $this->tags = collect($tags)
+            ->map(function (string $tag) {
+                return strtolower(trim($tag));
+            })
+            ->filter()
+            ->unique()
+            ->sort()
+            ->values()
+            ->all();
 
         return $this;
     }
@@ -211,7 +225,7 @@ class EntryBuilder
      * such as those belonging to a single request
      * or background job.
      */
-    public function correlationId(string $correlationId): EntryBuilder
+    public function correlation(string $correlationId): EntryBuilder
     {
         $this->correlationId = $correlationId;
 
@@ -238,6 +252,10 @@ class EntryBuilder
         $actor = $this->resolver->resolve($this->actor);
         $subject = $this->resolver->resolve($this->subject);
 
+        if (! $this->correlationId) {
+            $this->correlationId = $this->manager->currentCorrelation();
+        }
+
         return [
             'id' => (string) Str::ulid(),
             'actor_type' => $actor->type,
@@ -248,7 +266,8 @@ class EntryBuilder
             'metadata' => $this->metadata ?: [],
             'context' => $this->context ?: [],
             //            'diff' => $this->diff ?: null,
-            //            'tags' => $this->tags ?: null,
+            'tags' => $this->tags,
+            'correlation_id' => $this->correlationId,
             'created_at' => Carbon::now('UTC'),
         ];
     }

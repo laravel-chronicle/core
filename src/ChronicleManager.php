@@ -10,6 +10,8 @@ use Chronicle\Pipeline\EntryPipeline;
 use Chronicle\Storage\ArrayDriver;
 use Chronicle\Storage\EloquentDriver;
 use Chronicle\Storage\NullDriver;
+use Chronicle\Transaction\ChronicleTransaction;
+use Illuminate\Support\Str;
 use InvalidArgumentException;
 
 /**
@@ -39,6 +41,13 @@ class ChronicleManager
     protected EntryPipeline $pipeline;
 
     private ?StorageDriver $resolvedDriver = null;
+
+    /**
+     * Active transaction stack.
+     *
+     * @var array<int|string, mixed>
+     */
+    protected array $transactions = [];
 
     /**
      * Create a new Chronicle manager instance.
@@ -71,6 +80,67 @@ class ChronicleManager
             resolver: $this->resolver,
             manager: $this,
         );
+    }
+
+    public function transaction(?callable $callback = null): mixed
+    {
+        $correlationId = $this->generateCorrelation();
+
+        $transaction = new ChronicleTransaction(
+            manager: $this,
+            correlationId: $correlationId,
+        );
+
+        if (! $callback) {
+            return $transaction;
+        }
+
+        $this->transactions[] = $correlationId;
+
+        try {
+            return $callback($transaction);
+        } finally {
+            array_pop($this->transactions);
+        }
+    }
+
+    /**
+     * Get the current active transaction.
+     */
+    public function currentTransaction(): ?ChronicleTransaction
+    {
+        /** @var string $correlationId */
+        $correlationId = end($this->transactions);
+
+        if (! $correlationId) {
+            return null;
+        }
+
+        return new ChronicleTransaction(
+            manager: $this,
+            correlationId: $correlationId,
+        );
+    }
+
+    public function currentCorrelation(): ?string
+    {
+        /** @var string $correlationId */
+        $correlationId = end($this->transactions);
+
+        return $correlationId ?: null;
+    }
+
+    protected function generateCorrelation(): string
+    {
+        $id = (string) Str::uuid();
+
+        $parent = $this->currentCorrelation();
+
+        if (! $parent) {
+            return $id;
+        }
+
+        return "$parent.$id";
     }
 
     /**
