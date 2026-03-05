@@ -17,7 +17,6 @@ use Chronicle\Storage\ArrayDriver;
 use Chronicle\Storage\EloquentDriver;
 use Chronicle\Storage\NullDriver;
 use Chronicle\Support\DefaultReferenceResolver;
-use Chronicle\Tests\Fakes\FakeSigningProvider;
 use Illuminate\Support\ServiceProvider;
 use InvalidArgumentException;
 
@@ -63,9 +62,6 @@ class ChronicleServiceProvider extends ServiceProvider
         $this->registerChronicleManager();
 
         $this->app->singleton(SigningProvider::class, function ($app) {
-            if ($app->environment('testing')) {
-                return new FakeSigningProvider;
-            }
             $config = $app['config']['chronicle.signing'];
 
             return new $config['provider'](
