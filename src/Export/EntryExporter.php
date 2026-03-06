@@ -2,7 +2,9 @@
 
 namespace Chronicle\Export;
 
+use Chronicle\Exceptions\ExportWriteException;
 use Chronicle\Models\Entry;
+use JsonException;
 
 /**
  * Streams Chronicle entries into NDJSON format.
@@ -14,41 +16,52 @@ class EntryExporter
      */
     public function export(string $path): EntryExportResult
     {
-        /** @var resource $handle */
-        $handle = fopen($path, 'w');
+        /** @var resource|false $handle */
+        $handle = @fopen($path, 'wb');
+
+        if (! is_resource($handle)) {
+            throw ExportWriteException::writeFailed($path);
+        }
 
         $count = 0;
         $chainHead = null;
         $firstEntryId = null;
         $lastEntryId = null;
 
-        Entry::query()
-            ->orderBy('created_at')
-            ->chunk(500, function ($entries) use (
-                &$handle,
-                &$count,
-                &$chainHead,
-                &$firstEntryId,
-                &$lastEntryId,
-            ) {
-                foreach ($entries as $entry) {
-                    if (! $firstEntryId) {
-                        $firstEntryId = $entry->id;
+        try {
+            Entry::query()
+                ->orderBy('created_at')
+                ->orderBy('id')
+                ->chunk(500, function ($entries) use (
+                    &$handle,
+                    &$count,
+                    &$chainHead,
+                    &$firstEntryId,
+                    &$lastEntryId,
+                    $path,
+                ) {
+                    foreach ($entries as $entry) {
+                        if (! $firstEntryId) {
+                            $firstEntryId = $entry->id;
+                        }
+
+                        $lastEntryId = $entry->id;
+
+                        $line = $this->serializeEntry($entry)."\n";
+                        $written = @fwrite($handle, $line);
+
+                        if ($written === false || $written !== strlen($line)) {
+                            throw ExportWriteException::writeFailed($path);
+                        }
+
+                        $count++;
+
+                        $chainHead = $entry->chain_hash;
                     }
-
-                    $lastEntryId = $entry->id;
-
-                    $line = $this->serializeEntry($entry);
-
-                    fwrite($handle, $line."\n");
-
-                    $count++;
-
-                    $chainHead = $entry->chain_hash;
-                }
-            });
-
-        fclose($handle);
+                });
+        } finally {
+            fclose($handle);
+        }
 
         return new EntryExportResult(
             entryCount: $count,
@@ -80,9 +93,15 @@ class EntryExporter
             'created_at' => $entry->created_at,
         ];
 
-        return (string) json_encode(
-            $data,
-            JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE
-        );
+        try {
+            $json = json_encode(
+                $data,
+                JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR
+            );
+        } catch (JsonException) {
+            throw ExportWriteException::encodeFailed('entries');
+        }
+
+        return $json;
     }
 }

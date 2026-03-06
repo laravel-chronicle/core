@@ -2,6 +2,8 @@
 
 namespace Chronicle\Export;
 
+use JsonException;
+
 /**
  * Verifies the hash chain of exported Chronicle entries.
  */
@@ -12,7 +14,11 @@ class ExportChainVerifier
      */
     public function verify(string $entriesPath): bool
     {
-        $handle = fopen($entriesPath, 'r');
+        if (! is_file($entriesPath) || ! is_readable($entriesPath)) {
+            return false;
+        }
+
+        $handle = @fopen($entriesPath, 'rb');
 
         if (! $handle) {
             return false;
@@ -22,12 +28,33 @@ class ExportChainVerifier
         $previousHash = '0';
 
         while (($line = fgets($handle)) !== false) {
-            /** @var array<string, mixed> $entry */
-            $entry = json_decode($line, true);
+            if (trim($line) === '') {
+                continue;
+            }
 
-            /** @var string $payloadHash */
-            $payloadHash = $entry['payload_hash'];
-            $chainHash = $entry['chain_hash'];
+            try {
+                /** @var mixed $decoded */
+                $decoded = json_decode($line, true, 512, JSON_THROW_ON_ERROR);
+            } catch (JsonException) {
+                fclose($handle);
+
+                return false;
+            }
+
+            if (! is_array($decoded)) {
+                fclose($handle);
+
+                return false;
+            }
+
+            $payloadHash = $decoded['payload_hash'] ?? null;
+            $chainHash = $decoded['chain_hash'] ?? null;
+
+            if (! is_string($payloadHash) || ! is_string($chainHash)) {
+                fclose($handle);
+
+                return false;
+            }
 
             $computed = hash('sha256', $previousHash.$payloadHash);
 

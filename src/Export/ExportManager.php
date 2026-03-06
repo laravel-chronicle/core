@@ -2,6 +2,8 @@
 
 namespace Chronicle\Export;
 
+use Chronicle\Exceptions\ExportWriteException;
+
 /**
  * Coordinates Chronicle dataset exports.
  */
@@ -32,8 +34,8 @@ class ExportManager
      */
     public function export(string $path): ExportResult
     {
-        if (! is_dir($path)) {
-            mkdir($path, 0755, true);
+        if (! is_dir($path) && ! @mkdir($path, 0755, true) && ! is_dir($path)) {
+            throw ExportWriteException::directoryCreationFailed($path);
         }
 
         $entriesPath = $path.'/entries.ndjson';

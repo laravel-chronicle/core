@@ -39,75 +39,70 @@ class IntegrityVerifier
 
         $result = new VerificationResult;
 
-        Entry::query()
-            ->orderBy('recorded_at')
-            ->chunk(500, function ($entries) use (&$previousChain, &$count, $result) {
-                /** @var Entry $entry */
-                foreach ($entries as $entry) {
-                    // Payload verification
-                    $canonical = $this->serializer->serialize(
-                        $entry->payload
+        /** @var Entry $entry */
+        foreach (Entry::query()->orderBy('created_at')->orderBy('id')->cursor() as $entry) {
+            // Payload verification
+            $canonical = $this->serializer->serialize(
+                $entry->payload
+            );
+
+            $payloadHash = hash('sha256', $canonical);
+
+            if ($payloadHash !== $entry->payload_hash) {
+                $result->fail(
+                    'payload_hash_mismatch',
+                    $entry->id
+                );
+
+                return $result;
+            }
+
+            // Chain verification
+            $expectedChain = $this->chainHasher->hash(
+                $previousChain,
+                $payloadHash
+            );
+
+            if ($expectedChain !== $entry->chain_hash) {
+                $result->fail(
+                    'chain_hash_mismatch',
+                    $entry->id
+                );
+
+                return $result;
+            }
+
+            // Checkpoint verification
+            if ($entry->checkpoint_id) {
+                $checkpoint = Checkpoint::find($entry->checkpoint_id);
+
+                if (! $checkpoint) {
+                    $result->fail(
+                        'checkpoint_missing',
+                        $entry->id
                     );
 
-                    $payloadHash = hash('sha256', $canonical);
-
-                    if ($payloadHash !== $entry->payload_hash) {
-                        $result->fail(
-                            'payload_hash_mismatch',
-                            $entry->id
-                        );
-
-                        return false;
-                    }
-
-                    // Chain verification
-                    $expectedChain = $this->chainHasher->hash(
-                        $previousChain,
-                        $payloadHash
-                    );
-
-                    if ($expectedChain !== $entry->chain_hash) {
-                        $result->fail(
-                            'chain_hash_mismatch',
-                            $entry->id
-                        );
-
-                        return false;
-                    }
-
-                    // Checkpoint verification
-                    if ($entry->checkpoint_id) {
-                        $checkpoint = Checkpoint::find($entry->checkpoint_id);
-
-                        if (! $checkpoint) {
-                            $result->fail(
-                                'checkpoint_missing',
-                                $entry->id
-                            );
-
-                            return false;
-                        }
-
-                        $valid = $this->signer->verify(
-                            $checkpoint->chain_hash,
-                            $checkpoint->signature,
-                        );
-
-                        if (! $valid) {
-                            $result->fail(
-                                'checkpoint_signature_invalid',
-                                $entry->id
-                            );
-
-                            return false;
-                        }
-                    }
-
-                    $previousChain = $entry->chain_hash;
-
-                    $count++;
+                    return $result;
                 }
-            });
+
+                $valid = $this->signer->verify(
+                    $checkpoint->chain_hash,
+                    $checkpoint->signature,
+                );
+
+                if (! $valid) {
+                    $result->fail(
+                        'checkpoint_signature_invalid',
+                        $entry->id
+                    );
+
+                    return $result;
+                }
+            }
+
+            $previousChain = $entry->chain_hash;
+            $count++;
+        }
 
         $result->success($count);
 

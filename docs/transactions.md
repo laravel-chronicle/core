@@ -1,15 +1,43 @@
-# Transactions and Correlation IDs
+# Transactions And Correlation IDs
 
-Chronicle supports grouping entries using correlation IDs.
+Chronicle groups related entries with `correlation_id` values.
 
-Example:
+## Closure API
 
-Chronicle::transaction()->start();
+```php
+use Chronicle\Facades\Chronicle;
 
-All entries inside the transaction share the same correlation ID.
+Chronicle::transaction(function () {
+    Chronicle::record()
+        ->actor('system')
+        ->action('job.started')
+        ->subject('ledger')
+        ->commit();
 
-This allows grouping events from:
+    Chronicle::record()
+        ->actor('system')
+        ->action('job.finished')
+        ->subject('ledger')
+        ->commit();
+});
+```
 
-- HTTP requests
-- background jobs
-- batch processes
+## Transaction Object API
+
+```php
+$tx = Chronicle::transaction();
+
+$tx->entry()
+    ->actor('system')
+    ->action('sync.started')
+    ->subject('ledger')
+    ->commit();
+
+$tx->entry()
+    ->actor('system')
+    ->action('sync.finished')
+    ->subject('ledger')
+    ->commit();
+
+$correlationId = $tx->id();
+```

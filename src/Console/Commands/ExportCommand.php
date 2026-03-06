@@ -4,6 +4,7 @@ namespace Chronicle\Console\Commands;
 
 use Chronicle\Export\ExportManager;
 use Illuminate\Console\Command;
+use Throwable;
 
 /**
  * Export Chronicle entries to a verifiable dataset.
@@ -32,14 +33,21 @@ class ExportCommand extends Command
         $this->info('Exporting Chronicle dataset...');
         $this->newLine();
 
-        $result = $exports->export($path);
+        try {
+            $result = $exports->export($path);
+        } catch (Throwable $e) {
+            $this->error('Export failed.');
+            $this->error($e->getMessage());
+
+            return self::FAILURE;
+        }
 
         $this->info('Export completed successfully.');
         $this->newLine();
 
         $this->line("Entries exported: <info>$result->entryCount</info>");
-        $this->line("Dataset hash: <commenct>$result->datasetHash</commenct>");
-        $this->line("Chain head: <commenct>$result->chainHead</commenct>");
+        $this->line("Dataset hash: <comment>$result->datasetHash</comment>");
+        $this->line("Chain head: <comment>$result->chainHead</comment>");
 
         return self::SUCCESS;
     }

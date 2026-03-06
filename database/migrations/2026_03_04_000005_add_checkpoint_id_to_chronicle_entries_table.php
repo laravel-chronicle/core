@@ -46,7 +46,7 @@ return new class extends Migration
         $table = config('chronicle.tables.entries', 'chronicle_entries');
 
         Schema::connection($this->getConnection())->table($table, function (Blueprint $table) {
-            $table->dropForeign('checkpoint_id');
+            $table->dropForeign(['checkpoint_id']);
             $table->dropColumn('checkpoint_id');
         });
     }

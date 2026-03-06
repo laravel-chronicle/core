@@ -3,6 +3,8 @@
 namespace Chronicle\Export;
 
 use Chronicle\Contracts\SigningProvider;
+use Chronicle\Exceptions\ExportWriteException;
+use JsonException;
 
 /**
  * Signs Chronicle export datasets.
@@ -39,11 +41,17 @@ class ExportSigner
      */
     public function write(string $path, array $signature): void
     {
-        $json = json_encode(
-            $signature,
-            JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES
-        );
+        try {
+            $json = json_encode(
+                $signature,
+                JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR
+            );
+        } catch (JsonException) {
+            throw ExportWriteException::encodeFailed('signature');
+        }
 
-        file_put_contents($path, $json);
+        if (@file_put_contents($path, $json) === false) {
+            throw ExportWriteException::writeFailed($path);
+        }
     }
 }

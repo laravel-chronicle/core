@@ -23,3 +23,9 @@ Chronicle assumes an attacker may have:
 - filesystem access
 
 Integrity verification ensures tampering is detectable.
+
+## Signing Provider Behavior
+
+Checkpoint and export artifacts persist `algorithm` and `key_id` metadata.
+Current verification uses the configured active `SigningProvider` instance; it
+does not dynamically resolve historical providers by `key_id`.

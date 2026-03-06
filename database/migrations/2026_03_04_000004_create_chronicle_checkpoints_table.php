@@ -30,9 +30,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        $table = config('chronicle.tables.checkpoints', 'chronicle_checkpoints');
+        $tableName = config('chronicle.tables.checkpoints', 'chronicle_checkpoints');
 
-        Schema::connection($this->getConnection())->create($table, function (Blueprint $table) {
+        Schema::connection($this->getConnection())->create($tableName, function (Blueprint $table) use ($tableName) {
             $table->ulid('id')->primary();
 
             /**
@@ -75,7 +75,7 @@ return new class extends Migration
              */
             $table->timestamp('created_at');
 
-            $table->index('chain_hash');
+            $table->index('chain_hash', "{$tableName}_chain_hash_index");
         });
     }
 
