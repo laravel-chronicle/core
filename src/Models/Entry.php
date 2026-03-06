@@ -2,12 +2,15 @@
 
 namespace Chronicle\Models;
 
+use Carbon\CarbonInterface;
 use Chronicle\Exceptions\ImmutabilityViolationException;
+use Illuminate\Contracts\Pagination\CursorPaginator;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\LazyCollection;
 
 /**
  * The Chronicle audit entry.
@@ -168,11 +171,180 @@ class Entry extends Model
     }
 
     /**
+     * Scope entries for a specific actor.
+     *
+     * @param  Builder<$this>  $query
+     * @return Builder<$this>
+     */
+    public function scopeForActor(Builder $query, Model $actor): Builder
+    {
+        return $query
+            ->where('actor_type', get_class($actor))
+            ->where('actor_id', $actor->getKey());
+    }
+
+    /**
+     * Scope entries for a specific subject.
+     *
+     * @param  Builder<$this>  $query
+     * @return Builder<$this>
+     */
+    public function scopeForSubject(Builder $query, Model $subject): Builder
+    {
+        return $query
+            ->where('subject_type', get_class($subject))
+            ->where('subject_id', $subject->getKey());
+    }
+
+    /**
+     * Scope entries by action name.
+     *
+     * @param  Builder<$this>  $query
+     * @return Builder<$this>
+     */
+    public function scopeAction(Builder $query, string $action): Builder
+    {
+        return $query->where('action', $action);
+    }
+
+    /**
+     * Scope entries for correlation identifier.
+     *
      * @param  Builder<$this>  $query
      * @return Builder<$this>
      */
     public function scopeCorrelation(Builder $query, string $id): Builder
     {
         return $query->where('correlation_id', $id);
+    }
+
+    /**
+     * Scope entries belonging to a workflow tree.
+     *
+     * @param  Builder<$this>  $query
+     * @return Builder<$this>
+     */
+    public function scopeWorkflow(Builder $query, string $rootCorrelation): Builder
+    {
+        return $query->where('correlation_id', 'like', $rootCorrelation.'%');
+    }
+
+    /**
+     * Scope entries containing a tag.
+     *
+     * @param  Builder<$this>  $query
+     * @return Builder<$this>
+     */
+    public function scopeWithTag(Builder $query, string $tag): Builder
+    {
+        return $query->whereJsonContains('tags', $tag);
+    }
+
+    /**
+     * Scope entries containing multiple tags.
+     *
+     * @param  Builder<$this>  $query
+     * @param  list<string>  $tags
+     * @return Builder<$this>
+     */
+    public function scopeWithTags(Builder $query, array $tags): Builder
+    {
+        foreach ($tags as $tag) {
+            $query->whereJsonContains('tags', $tag);
+        }
+
+        return $query;
+    }
+
+    /**
+     * Scope entries within a time range.
+     *
+     * @param  Builder<$this>  $query
+     * @return Builder<$this>
+     */
+    public function scopeBetween(Builder $query, CarbonInterface $start, CarbonInterface $end): Builder
+    {
+        return $query->whereBetween('created_at', [$start, $end]);
+    }
+
+    /**
+     * Scope entries in reverse chronological order.
+     *
+     * @param  Builder<$this>  $query
+     * @return Builder<$this>
+     */
+    public function scopeLatestFirst(Builder $query): Builder
+    {
+        return $query->orderByDesc('created_at');
+    }
+
+    /**
+     * Cursor paginate entries in ledger order.
+     *
+     * This ensures stable pagination for large ledgers
+     * without using expensive OFFSET queries.
+     *
+     * @param  Builder<$this>  $query
+     * @return CursorPaginator<int, $this>
+     */
+    public function scopeCursorPaginateLedger(
+        Builder $query,
+        int $perPage = 50,
+        ?string $cursor = null
+    ): CursorPaginator {
+        return $query
+            ->orderBy('id')
+            ->cursorPaginate(
+                perPage: $perPage,
+                cursor: $cursor,
+            );
+    }
+
+    /**
+     * Cursor paginate entries in reverse order.
+     *
+     * @param  Builder<$this>  $query
+     * @return CursorPaginator<int, $this>
+     */
+    public function scopeCursorPaginateLatest(
+        Builder $query,
+        int $perPage = 50,
+        ?string $cursor = null
+    ): CursorPaginator {
+        return $query
+            ->orderByDesc('id')
+            ->cursorPaginate(
+                perPage: $perPage,
+                cursor: $cursor,
+            );
+    }
+
+    /**
+     * Stream entries in ledger order.
+     *
+     * This allows processing large audit datasets
+     * without loading them fully into memory.
+     *
+     * @param  Builder<$this>  $query
+     * @return LazyCollection<int, $this>
+     */
+    public function scopeStream(Builder $query): LazyCollection
+    {
+        return $query
+            ->orderBy('id')
+            ->cursor();
+    }
+
+    /**
+     * Stream entries in reverse ledger order.
+     *
+     * @param  Builder<$this>  $query
+     * @return LazyCollection<int, $this>
+     */
+    public function scopeStreamLatest(Builder $query): LazyCollection
+    {
+        return $query
+            ->orderByDesc('id')
+            ->cursor();
     }
 }

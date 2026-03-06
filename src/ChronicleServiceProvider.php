@@ -16,6 +16,7 @@ use Chronicle\Export\ExportManager;
 use Chronicle\Export\ExportManifestBuilder;
 use Chronicle\Export\ExportSigner;
 use Chronicle\Export\ExportVerifier;
+use Chronicle\LedgerReader as EloquentLedgerReader;
 use Chronicle\Pipeline\CanonicalizePayload;
 use Chronicle\Pipeline\ChainHashEntry;
 use Chronicle\Pipeline\EntryPipeline;
@@ -81,6 +82,8 @@ class ChronicleServiceProvider extends ServiceProvider
                 keyId: $config['key_id'],
             );
         });
+
+        $this->app->singleton(LedgerReader::class, EloquentLedgerReader::class);
     }
 
     /**

@@ -104,6 +104,11 @@ class ChronicleManager
         }
     }
 
+    public function reader(): LedgerReader
+    {
+        return app(LedgerReader::class);
+    }
+
     /**
      * Get the current active transaction.
      */
