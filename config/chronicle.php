@@ -48,6 +48,6 @@ return [
         'key_id' => env('CHRONICLE_KEY_ID', 'chronicle-dev-key'),
         'private_key' => env('CHRONICLE_PRIVATE_KEY'),
         'public_key' => env('CHRONICLE_PUBLIC_KEY'),
-        'enforce_on_boot' => env('CHRONICLE_SIGNING_ENFORCE_ON_BOOT', true),
+        'enforce_on_boot' => env('CHRONICLE_SIGNING_ENFORCE_ON_BOOT', false),
     ],
 ];
