@@ -3,6 +3,7 @@
 namespace Chronicle\Console\Commands;
 
 use Chronicle\Integrity\IntegrityVerifier;
+use Chronicle\Models\Entry;
 use Illuminate\Console\Command;
 
 /**
@@ -22,8 +23,19 @@ class VerifyEntryCommand extends Command
     public function handle(IntegrityVerifier $verifier): int
     {
         $this->info('Verifying Chronicle ledger...');
+        $this->newLine();
+        $this->line('Verifying entries');
 
-        $result = $verifier->verify();
+        $total = Entry::query()->count();
+        $bar = $this->output->createProgressBar($total);
+        $bar->start();
+
+        $result = $verifier->verify(function (int $processed) use ($bar): void {
+            $bar->setProgress($processed);
+        });
+
+        $bar->finish();
+        $this->newLine();
 
         if ($result->hasFailed()) {
             $this->newLine();

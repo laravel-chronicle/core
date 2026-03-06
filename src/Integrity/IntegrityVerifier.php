@@ -32,10 +32,11 @@ class IntegrityVerifier
     /**
      * Verify the entire ledger.
      */
-    public function verify(): VerificationResult
+    public function verify(?callable $onProgress = null): VerificationResult
     {
         $previousChain = '0';
         $count = 0;
+        $total = Entry::query()->count();
 
         $result = new VerificationResult;
 
@@ -102,6 +103,10 @@ class IntegrityVerifier
 
             $previousChain = $entry->chain_hash;
             $count++;
+
+            if ($onProgress) {
+                $onProgress($count, $total);
+            }
         }
 
         $result->success($count);
