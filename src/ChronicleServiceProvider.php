@@ -2,11 +2,20 @@
 
 namespace Chronicle;
 
-use Chronicle\Console\CreateCheckpointCommand;
-use Chronicle\Console\VerifyEntryCommand;
+use Chronicle\Console\Commands\CreateCheckpointCommand;
+use Chronicle\Console\Commands\ExportCommand;
+use Chronicle\Console\Commands\VerifyEntryCommand;
+use Chronicle\Console\Commands\VerifyExportCommand;
 use Chronicle\Contracts\ReferenceResolver;
 use Chronicle\Contracts\SigningProvider;
 use Chronicle\Contracts\StorageDriver;
+use Chronicle\Export\EntryExporter;
+use Chronicle\Export\ExportChainVerifier;
+use Chronicle\Export\ExportHasher;
+use Chronicle\Export\ExportManager;
+use Chronicle\Export\ExportManifestBuilder;
+use Chronicle\Export\ExportSigner;
+use Chronicle\Export\ExportVerifier;
 use Chronicle\Pipeline\CanonicalizePayload;
 use Chronicle\Pipeline\ChainHashEntry;
 use Chronicle\Pipeline\EntryPipeline;
@@ -59,6 +68,8 @@ class ChronicleServiceProvider extends ServiceProvider
 
         $this->registerContracts();
 
+        $this->registerExports();
+
         $this->registerChronicleManager();
 
         $this->app->singleton(SigningProvider::class, function ($app) {
@@ -89,6 +100,8 @@ class ChronicleServiceProvider extends ServiceProvider
             $this->commands([
                 VerifyEntryCommand::class,
                 CreateCheckpointCommand::class,
+                ExportCommand::class,
+                VerifyExportCommand::class,
             ]);
         }
     }
@@ -130,6 +143,30 @@ class ChronicleServiceProvider extends ServiceProvider
             return new ChronicleManager(
                 resolver: $app->make(ReferenceResolver::class),
                 pipeline: $app->make(EntryPipeline::class),
+            );
+        });
+    }
+
+    protected function registerExports(): void
+    {
+        $this->app->singleton(EntryExporter::class);
+
+        $this->app->singleton(ExportHasher::class);
+
+        $this->app->singleton(ExportManifestBuilder::class);
+
+        $this->app->singleton(ExportSigner::class);
+
+        $this->app->singleton(ExportVerifier::class);
+
+        $this->app->singleton(ExportChainVerifier::class);
+
+        $this->app->singleton(ExportManager::class, function ($app) {
+            return new ExportManager(
+                $app->make(EntryExporter::class),
+                $app->make(ExportHasher::class),
+                $app->make(ExportManifestBuilder::class),
+                $app->make(ExportSigner::class),
             );
         });
     }

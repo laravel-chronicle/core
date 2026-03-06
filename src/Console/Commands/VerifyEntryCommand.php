@@ -1,6 +1,6 @@
 <?php
 
-namespace Chronicle\Console;
+namespace Chronicle\Console\Commands;
 
 use Chronicle\Integrity\IntegrityVerifier;
 use Illuminate\Console\Command;
