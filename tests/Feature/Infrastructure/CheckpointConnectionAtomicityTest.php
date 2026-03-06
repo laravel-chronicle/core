@@ -55,4 +55,3 @@ it('rolls back checkpoint creation on non-default chronicle connection when a po
 
     expect(Checkpoint::query()->count())->toBe(0);
 });
-
