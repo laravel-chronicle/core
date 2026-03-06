@@ -12,5 +12,6 @@ it('verifies ledger successfully', function () {
     Artisan::call('chronicle:verify');
 
     expect(Artisan::output())
+        ->toContain('Verifying entries')
         ->toContain('Chronicle entries verified successfully');
 });
