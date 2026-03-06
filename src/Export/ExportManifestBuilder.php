@@ -3,6 +3,8 @@
 namespace Chronicle\Export;
 
 use Chronicle\Contracts\SigningProvider;
+use Chronicle\Exceptions\ExportWriteException;
+use JsonException;
 
 /**
  * Builds the Chronicle export manifest.
@@ -47,8 +49,17 @@ class ExportManifestBuilder
      */
     public function write(string $path, array $manifest): void
     {
-        $json = json_encode($manifest, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
+        try {
+            $json = json_encode(
+                $manifest,
+                JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR
+            );
+        } catch (JsonException) {
+            throw ExportWriteException::encodeFailed('manifest');
+        }
 
-        file_put_contents($path, $json);
+        if (@file_put_contents($path, $json) === false) {
+            throw ExportWriteException::writeFailed($path);
+        }
     }
 }

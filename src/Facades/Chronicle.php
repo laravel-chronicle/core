@@ -23,6 +23,7 @@ use Illuminate\Support\Facades\Facade;
  * from Laravel's service container.
  *
  * @method static EntryBuilder record()
+ * @method static void extendDriver(string $name, callable $factory)
  */
 class Chronicle extends Facade
 {

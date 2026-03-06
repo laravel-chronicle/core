@@ -1,189 +1,131 @@
 # Laravel Chronicle
 
+![Packagist Version](https://img.shields.io/packagist/v/laravel-chronicle/core)
+[![Tests](https://github.com/laravel-chronicle/core/actions/workflows/run-tests.yml/badge.svg)](https://github.com/laravel-chronicle/core/actions)
+[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/laravel-chronicle/core/badge)](https://scorecard.dev/viewer/?uri=github.com/laravel-chronicle/core)
 
-Chronicle is a **tamper-evident audit ledger for Laravel applications**.
+Chronicle is a tamper-evident audit ledger for Laravel applications.
 
-Unlike traditional activity logs, Chronicle provides:
-
-- Append-only audit entries
-- Deterministic payload hashing
-- Hash chaining for tamper detection
-- Signed checkpoints
-- Signed exports
-- Explicit actor/action/subject model
-- Transport-agnostic logging
-- Deterministic export format
-
-Chronicle is designed for applications that require **strong audit guarantees**, such as:
-
-- SaaS platforms
-- fintech systems
-- healthcare software
-- compliance-sensitive systems
-
----
-
-# Key Principles
-
-Chronicle follows several strict design principles.
-
-### Append-Only
-
-Entries are immutable once recorded.  
-There is no update or delete API.
-
-Corrections must be recorded as **new entries**.
-
----
-
-### Explicit Intent
-
-Every entry must define:
-
-- actor
-- action
-- subject
-
-Chronicle never records ambiguous events.
-
----
-
-### Stable Contracts
-
-Exports are **versioned and deterministic**.  
-Consumers can rely on export formats indefinitely.
-
----
-
-### Low Magic
-
-Chronicle intentionally avoids:
-
-- model observers
-- auto-logging traits
-- implicit hooks
-
-Every audit entry is a deliberate developer action.
-
----
-
-### Transport-Agnostic
-
-Chronicle works in:
-
-- HTTP requests
-- queue workers
-- CLI commands
-- scheduled jobs
-- event listeners
-
----
-
-# Installation
+## Installation
 
 ```bash
 composer require laravel-chronicle/core
-```
-
-Publish configuration and migrations:
-
-```bash
 php artisan vendor:publish --tag=chronicle-config
 php artisan vendor:publish --tag=chronicle-migrations
 php artisan migrate
 ```
 
----
+## Signing Keys
 
-# Basic Usage
+Chronicle requires explicit signing keys. Configure them in your environment:
 
-```php
-Chronicle::record(
-    actor: $user,
-    action: 'invoice.created',
-    subject: $invoice,
-    metadata: [
-        'total' => 1000
-    ],
-    tags: ['billing']
-);
+```dotenv
+CHRONICLE_PRIVATE_KEY=base64-ed25519-secret-key
+CHRONICLE_PUBLIC_KEY=base64-ed25519-public-key
+CHRONICLE_KEY_ID=your-key-id
+CHRONICLE_SIGNING_ENFORCE_ON_BOOT=true
 ```
 
----
+`CHRONICLE_SIGNING_ENFORCE_ON_BOOT` controls boot-time signer sanity checks in non-testing environments.
 
-# Diff Example
-
-```php
-Chronicle::record(
-    actor: $admin,
-    action: 'invoice.amount_changed',
-    subject: $invoice,
-    diff: Chronicle::diff(
-        old: ['amount' => 1000],
-        new: ['amount' => 500]
-    )
-);
-```
-
----
-
-# Correlation Example
+## Record Entries
 
 ```php
-Chronicle::transport()->start();
+use Chronicle\Facades\Chronicle;
 
-Chronicle::record(...);
-Chronicle::record(...);
-Chronicle::record(...);
+Chronicle::record()
+    ->actor($user)
+    ->action('invoice.created')
+    ->subject($invoice)
+    ->metadata(['total' => 1000])
+    ->context(['request_id' => (string) Str::uuid()])
+    ->tags(['billing'])
+    ->commit();
 ```
 
-All entries share the same `correlation_id`.
+## Record Diffs
 
----
+```php
+Chronicle::record()
+    ->actor($admin)
+    ->action('invoice.amount_changed')
+    ->subject($invoice)
+    ->diff([
+        'amount' => ['old' => 1000, 'new' => 500],
+    ])
+    ->commit();
+```
 
-# Integrity Verification
+## Correlation And Transactions
 
-Verify ledger integrity:
+Closure form:
+
+```php
+Chronicle::transaction(function () {
+    Chronicle::record()
+        ->actor('system')
+        ->action('batch.started')
+        ->subject('ledger')
+        ->commit();
+
+    Chronicle::record()
+        ->actor('system')
+        ->action('batch.finished')
+        ->subject('ledger')
+        ->commit();
+});
+```
+
+Transaction object form:
+
+```php
+$tx = Chronicle::transaction();
+
+$tx->entry()
+    ->actor('system')
+    ->action('import.started')
+    ->subject('ledger')
+    ->commit();
+
+$tx->entry()
+    ->actor('system')
+    ->action('import.finished')
+    ->subject('ledger')
+    ->commit();
+```
+
+## Verify Ledger Integrity
 
 ```bash
 php artisan chronicle:verify
 ```
 
----
+## Storage Drivers
 
-# Export Ledger
+Built-in drivers:
+
+- `eloquent` (default)
+- `array` (testing/in-memory)
+- `null` (testing/dev black-hole)
+
+Custom drivers can be registered via `Chronicle::extendDriver(...)`.
+
+## Export And Verify Dataset
 
 ```bash
-php artisan chronicle:export
+php artisan chronicle:export /absolute/path/to/export-dir
+php artisan chronicle:verify-export /absolute/path/to/export-dir
 ```
 
-Signed export:
+## Documentation
 
-```bash
-php artisan chronicle:export --sign
-```
+See `docs/` for detailed documentation.
 
----
+## Security
 
-# Documentation 
+See [SECURITY.md](SECURITY.md).
 
-See the `docs` directory for detailed documentation.
-
----
-
-# Contributing
-
-Please read [CONTRIBUTING](CONTRIBUTING.md)
-
----
-
-# Security
-
-Please report vulnerabilities through the process described in [SECURITY](SECURITY.md)
-
----
-
-# License
+## License
 
 [MIT](LICENSE.md)

@@ -110,7 +110,7 @@ it('supports nested transactions with hierarchical correlation', function () {
 
     });
 
-    $entries = Entry::orderBy('recorded_at')->get();
+    $entries = Entry::orderBy('created_at')->orderBy('id')->get();
 
     expect($entries)->toHaveCount(2);
 

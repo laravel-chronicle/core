@@ -2,17 +2,16 @@
 
 namespace Chronicle;
 
+use Chronicle\Contracts\LedgerReader as LedgerReaderContract;
 use Chronicle\Contracts\ReferenceResolver;
 use Chronicle\Contracts\StorageDriver;
 use Chronicle\Entry\EntryBuilder;
 use Chronicle\Entry\PendingEntry;
 use Chronicle\Pipeline\EntryPipeline;
-use Chronicle\Storage\ArrayDriver;
-use Chronicle\Storage\EloquentDriver;
-use Chronicle\Storage\NullDriver;
+use Chronicle\Storage\DriverResolver;
 use Chronicle\Transaction\ChronicleTransaction;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
-use InvalidArgumentException;
 
 /**
  * Class ChronicleManager
@@ -40,6 +39,10 @@ class ChronicleManager
      */
     protected EntryPipeline $pipeline;
 
+    protected LedgerReaderContract $reader;
+
+    protected DriverResolver $drivers;
+
     private ?StorageDriver $resolvedDriver = null;
 
     /**
@@ -54,10 +57,14 @@ class ChronicleManager
      */
     public function __construct(
         ReferenceResolver $resolver,
-        EntryPipeline $pipeline
+        EntryPipeline $pipeline,
+        LedgerReaderContract $reader,
+        DriverResolver $drivers,
     ) {
         $this->resolver = $resolver;
         $this->pipeline = $pipeline;
+        $this->reader = $reader;
+        $this->drivers = $drivers;
     }
 
     /**
@@ -104,9 +111,9 @@ class ChronicleManager
         }
     }
 
-    public function reader(): LedgerReader
+    public function reader(): LedgerReaderContract
     {
-        return app(LedgerReader::class);
+        return $this->reader;
     }
 
     /**
@@ -160,14 +167,24 @@ class ChronicleManager
      */
     public function commit(array $payload): void
     {
-        $entry = new PendingEntry($payload);
+        /** @var string|null $connection */
+        $connection = config('chronicle.connection');
 
-        $this->pipeline->process($entry);
+        DB::connection($connection)->transaction(function () use ($payload) {
+            $entry = new PendingEntry($payload);
+
+            $this->pipeline->process($entry);
+        });
     }
 
     public function driver(string $name): StorageDriver
     {
-        return $this->resolveDriver($name);
+        return $this->drivers->resolve($name);
+    }
+
+    public function extendDriver(string $name, callable $factory): void
+    {
+        $this->drivers->extend($name, $factory);
     }
 
     public function getActiveDriver(): StorageDriver
@@ -176,7 +193,7 @@ class ChronicleManager
             /** @var string $driver */
             $driver = config('chronicle.driver', 'eloquent');
 
-            $this->resolvedDriver = $this->resolveDriver($driver);
+            $this->resolvedDriver = $this->drivers->resolve($driver);
         }
 
         return $this->resolvedDriver;
@@ -188,19 +205,5 @@ class ChronicleManager
     public function swapDriver(StorageDriver $driver): void
     {
         $this->resolvedDriver = $driver;
-        //        $this->fake = null;
-    }
-
-    private function resolveDriver(string $name): StorageDriver
-    {
-        return match ($name) {
-            'null' => new NullDriver,
-            'array' => new ArrayDriver,
-            'eloquent' => new EloquentDriver,
-            default => throw new InvalidArgumentException(
-                "Chronicle driver [$name] is not defined. "
-                ."Register it via Chronicle::extend('$name', fn () => new YourDriver)."
-            )
-        };
     }
 }

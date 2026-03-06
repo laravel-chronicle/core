@@ -1,21 +1,17 @@
 # Performance
 
-Chronicle is designed for high-volume audit logs.
+Chronicle is designed for high-volume append-only audit writes.
 
 Recommended indexes:
 
-action
-actor
-subject
-correlation_id
-recorded_at
+- `action`
+- `(actor_type, actor_id)`
+- `(subject_type, subject_id)`
+- `correlation_id`
+- `created_at`
 
----
+Large-ledger patterns:
 
-# Large Ledger Handling
-
-Use:
-
-- pagination
+- cursor pagination
 - streaming exports
-- chunked verification
+- chunk/cursor based verification

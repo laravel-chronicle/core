@@ -21,27 +21,27 @@ return new class extends Migration
      */
     public function up(): void
     {
-        $table = config('chronicle.tables.entries', 'chronicle_entries');
+        $tableName = config('chronicle.tables.entries', 'chronicle_entries');
 
-        Schema::connection($this->getConnection())->table($table, function (Blueprint $table) {
-            $table->index(['actor_type', 'actor_id']);
-            $table->index(['subject_type', 'subject_id']);
-            $table->index('correlation_id');
-            $table->index('action');
-            $table->index(['created_at']);
+        Schema::connection($this->getConnection())->table($tableName, function (Blueprint $table) use ($tableName) {
+            $table->index(['actor_type', 'actor_id'], "{$tableName}_actor_type_actor_id_index");
+            $table->index(['subject_type', 'subject_id'], "{$tableName}_subject_type_subject_id_index");
+            $table->index('correlation_id', "{$tableName}_correlation_id_index");
+            $table->index('action', "{$tableName}_action_index");
+            $table->index('created_at', "{$tableName}_created_at_index");
         });
     }
 
     public function down(): void
     {
-        $table = config('chronicle.tables.entries', 'chronicle_entries');
+        $tableName = config('chronicle.tables.entries', 'chronicle_entries');
 
-        Schema::connection($this->getConnection())->table($table, function (Blueprint $table) {
-            $table->dropIndex(['actor_type', 'actor_id']);
-            $table->dropIndex(['subject_type', 'subject_id']);
-            $table->dropIndex('correlation_id');
-            $table->dropIndex('action');
-            $table->dropIndex('created_at');
+        Schema::connection($this->getConnection())->table($tableName, function (Blueprint $table) use ($tableName) {
+            $table->dropIndex("{$tableName}_actor_type_actor_id_index");
+            $table->dropIndex("{$tableName}_subject_type_subject_id_index");
+            $table->dropIndex("{$tableName}_correlation_id_index");
+            $table->dropIndex("{$tableName}_action_index");
+            $table->dropIndex("{$tableName}_created_at_index");
         });
     }
 };

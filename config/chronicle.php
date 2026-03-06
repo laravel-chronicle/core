@@ -9,7 +9,6 @@ return [
     | The driver Chronicle uses to persist audit entries. Built-in drivers:
     |
     |   'eloquent' — Synchronous write via Laravel's database layer. Default.
-    |   'queue'    — Dispatches a queued job. Opt-in async path.
     |   'array'    — In-memory. For testing only.
     |   'null'     — Discards all entries silently. For testing or local dev.
     |
@@ -47,7 +46,8 @@ return [
     'signing' => [
         'provider' => \Chronicle\Signing\Ed25519SigningProvider::class,
         'key_id' => env('CHRONICLE_KEY_ID', 'chronicle-dev-key'),
-        'private_key' => env('CHRONICLE_PRIVATE_KEY', 'RcSfC2MuYTPnkrL/MIA4/l/sAjirGXXIFXZEPokdwh1Lcz+SvNE7bjvgCsDotjnlHfJyZ4XW/kUXemtoyaa92Q=='),
-        'public_key' => env('CHRONICLE_PUBLIC_KEY', 'S3M/krzRO2474ArA6LY55R3ycmeF1v5FF3praMmmvdk='),
+        'private_key' => env('CHRONICLE_PRIVATE_KEY'),
+        'public_key' => env('CHRONICLE_PUBLIC_KEY'),
+        'enforce_on_boot' => env('CHRONICLE_SIGNING_ENFORCE_ON_BOOT', false),
     ],
 ];

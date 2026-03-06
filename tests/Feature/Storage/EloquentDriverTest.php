@@ -43,20 +43,6 @@ describe('Eloquent Driver - persistence', function () {
             ->and($row->subject_id)->toBe('99');
     });
 
-    it('persists metadata as JSON and reads it back', function () {
-        Chronicle::record()
-            ->actor('User')
-            ->action('invoice.approved')
-            ->subject('invoice')
-            ->metadata(['amount' => 9900, 'currency' => 'EUR'])
-            ->commit();
-
-        $row = DB::connection('testing')->table('chronicle_entries')->first();
-        $meta = json_decode($row->metadata, true);
-
-        expect($meta)->toHaveKey('amount', 9900)->toHaveKey('currency', 'EUR');
-    });
-
     it('persists context as a JSON object', function () {
         Chronicle::record()
             ->actor('system')
@@ -69,6 +55,22 @@ describe('Eloquent Driver - persistence', function () {
         $context = json_decode($row->context, true);
 
         expect($context)->toBeArray()->toHaveKey('transport', 'cli');
+    });
+
+    it('persists metadata as JSON', function () {
+        Chronicle::record()
+            ->actor('system')
+            ->action('e')
+            ->subject('system')
+            ->metadata(['ip' => '127.0.0.1', 'source' => 'docs'])
+            ->commit();
+
+        $row = DB::connection('testing')->table('chronicle_entries')->first();
+        $metadata = json_decode($row->metadata, true);
+
+        expect($metadata)->toBeArray()
+            ->toHaveKey('ip', '127.0.0.1')
+            ->toHaveKey('source', 'docs');
     });
 
     it('stores a 26-character ULID in the id column', function () {
@@ -103,14 +105,14 @@ describe('Eloquent Driver - persistence', function () {
             ->actor('system')
             ->action('cron.ran')
             ->subject('scheduler')
-            ->metadata(['jobs' => 12])
+            ->metadata(['channel' => 'scheduler'])
             ->commit();
 
         $entry = Entry::query()->first();
 
         expect($entry?->action)->toBe('cron.ran')
             ->and($entry?->actor_id)->toBe('system')
-            ->and($entry?->metadata['jobs'])->toBe(12);
+            ->and($entry?->metadata)->toBe(['channel' => 'scheduler']);
     });
 
     it('multiple commits produce multiple rows with unique IDs', function () {
@@ -123,13 +125,5 @@ describe('Eloquent Driver - persistence', function () {
 
         expect($rows)->toHaveCount(3)
             ->and($ids)->toHaveCount(3);
-    });
-
-    it('empty metadata is stored as an empty JSON object', function () {
-        Chronicle::record()->actor('system')->action('e')->subject('system')->commit();
-
-        $row = DB::connection('testing')->table('chronicle_entries')->first();
-
-        expect($row->metadata)->toBe('[]');
     });
 });

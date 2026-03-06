@@ -29,6 +29,9 @@ jobs:
   test:
     runs-on: ${{ matrix.os }}
     timeout-minutes: 5
+    env:
+      CHRONICLE_PRIVATE_KEY: 'RcSfC2MuYTPnkrL/MIA4/l/sAjirGXXIFXZEPokdwh1Lcz+SvNE7bjvgCsDotjnlHfJyZ4XW/kUXemtoyaa92Q=='
+      CHRONICLE_PUBLIC_KEY: 'S3M/krzRO2474ArA6LY55R3ycmeF1v5FF3praMmmvdk='
     strategy:
       fail-fast: true
       matrix:

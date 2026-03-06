@@ -58,7 +58,7 @@ class EloquentDriver implements StorageDriver
             'payload' => json_encode($entry['payload']),
             'payload_hash' => $entry['payload_hash'],
             'chain_hash' => $entry['chain_hash'],
-            'metadata' => json_encode(['metadata']),
+            'metadata' => json_encode($entry['metadata']),
             'context' => json_encode($entry['context']),
             'tags' => json_encode($entry['tags']),
             'diff' => json_encode($entry['diff']),

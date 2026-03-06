@@ -6,6 +6,7 @@ use Chronicle\Console\Commands\CreateCheckpointCommand;
 use Chronicle\Console\Commands\ExportCommand;
 use Chronicle\Console\Commands\VerifyEntryCommand;
 use Chronicle\Console\Commands\VerifyExportCommand;
+use Chronicle\Contracts\LedgerReader as LedgerReaderContract;
 use Chronicle\Contracts\ReferenceResolver;
 use Chronicle\Contracts\SigningProvider;
 use Chronicle\Contracts\StorageDriver;
@@ -23,80 +24,31 @@ use Chronicle\Pipeline\EntryPipeline;
 use Chronicle\Pipeline\HashPayload;
 use Chronicle\Pipeline\PersistEntry;
 use Chronicle\Serialization\CanonicalPayloadSerializer;
-use Chronicle\Storage\ArrayDriver;
-use Chronicle\Storage\EloquentDriver;
-use Chronicle\Storage\NullDriver;
+use Chronicle\Storage\DriverResolver;
 use Chronicle\Support\DefaultReferenceResolver;
 use Illuminate\Support\ServiceProvider;
-use InvalidArgumentException;
+use RuntimeException;
+use Throwable;
 
-/**
- * Class ChronicleServiceProvider
- *
- * Registers Chronicle services within Laravel service container.
- *
- * Responsibilities:
- *
- *  - Bind Chronicle core services
- *  - Register default implementations for contracts
- *  - Publish configuration and migrations
- *  - Register Artisan commands
- *
- * The provider is automatically discovered via Composer.
- */
 class ChronicleServiceProvider extends ServiceProvider
 {
-    /**
-     * Register Chronicle services in the container.
-     *
-     * This method binds Chronicle's core components
-     * so they can be resolved via dependency injection.
-     */
     public function register(): void
     {
         $this->mergeConfigFrom(__DIR__.'/../config/chronicle.php', 'chronicle');
 
-        $this->app->singleton(CanonicalPayloadSerializer::class);
-
-        $this->app->singleton(EntryPipeline::class, function ($app) {
-            return new EntryPipeline([
-                $app->make(CanonicalizePayload::class),
-                $app->make(HashPayload::class),
-                $app->make(ChainHashEntry::class),
-                $app->make(PersistEntry::class),
-            ]);
-        });
-
+        $this->registerCore();
         $this->registerContracts();
-
+        $this->registerManager();
+        $this->registerSigning();
+        $this->registerLedgerReader();
         $this->registerExports();
-
-        $this->registerChronicleManager();
-
-        $this->app->singleton(SigningProvider::class, function ($app) {
-            $config = $app['config']['chronicle.signing'];
-
-            return new $config['provider'](
-                privateKey: $config['private_key'],
-                publicKey: $config['public_key'],
-                keyId: $config['key_id'],
-            );
-        });
-
-        $this->app->singleton(LedgerReader::class, EloquentLedgerReader::class);
     }
 
-    /**
-     * Bootstrap Chronicle services
-     *
-     * This method handles tasks that require the application
-     * to be fully booted, such as publishing configuration
-     * and migrations.
-     */
     public function boot(): void
     {
-        $this->publishConfiguration();
+        $this->assertSigningConfiguration();
 
+        $this->publishConfiguration();
         $this->publishMigrations();
 
         if ($this->app->runningInConsole()) {
@@ -109,59 +61,72 @@ class ChronicleServiceProvider extends ServiceProvider
         }
     }
 
-    /**
-     * Register Chronicle contract implementations.
-     *
-     * These bindings define the default behavior of Chronicle
-     * while still allowing users to override implementations.
-     */
-    protected function registerContracts(): void
+    protected function registerCore(): void
     {
-        $this->app->singleton(StorageDriver::class, function ($app) {
-            $configuredDriver = config('chronicle.driver');
-            $driver = is_string($configuredDriver) ? $configuredDriver : 'eloquent';
+        $this->app->singleton(CanonicalPayloadSerializer::class);
 
-            return match ($driver) {
-                'eloquent' => $app->make(EloquentDriver::class),
-                'array' => $app->make(ArrayDriver::class),
-                'null' => $app->make(NullDriver::class),
-                default => throw new InvalidArgumentException(
-                    sprintf('Unsupported Chronicle driver [%s].', $driver)
-                ),
-            };
+        $this->app->singleton(EntryPipeline::class, function ($app) {
+            return new EntryPipeline([
+                $app->make(CanonicalizePayload::class),
+                $app->make(HashPayload::class),
+                $app->make(ChainHashEntry::class),
+                $app->make(PersistEntry::class),
+            ]);
         });
-
-        $this->app->singleton(ReferenceResolver::class, DefaultReferenceResolver::class);
     }
 
-    /**
-     * Register the Chronicle manager.
-     *
-     * The manager is the primary entry point used by
-     * the Chronicle facade and application code.
-     */
-    protected function registerChronicleManager(): void
+    protected function registerContracts(): void
+    {
+        $this->app->singleton(DriverResolver::class);
+        $this->app->singleton(ReferenceResolver::class, DefaultReferenceResolver::class);
+
+        $this->app->singleton(StorageDriver::class, function ($app) {
+            $configured = config('chronicle.driver', 'eloquent');
+            $driver = is_string($configured) ? $configured : 'eloquent';
+
+            return $app->make(DriverResolver::class)->resolve($driver);
+        });
+    }
+
+    protected function registerManager(): void
     {
         $this->app->singleton('chronicle', function ($app) {
             return new ChronicleManager(
                 resolver: $app->make(ReferenceResolver::class),
                 pipeline: $app->make(EntryPipeline::class),
+                reader: $app->make(LedgerReaderContract::class),
+                drivers: $app->make(DriverResolver::class),
             );
         });
+    }
+
+    protected function registerSigning(): void
+    {
+        $this->app->singleton(SigningProvider::class, function ($app) {
+            /** @var array{provider: class-string, private_key: ?string, public_key: ?string, key_id: string} $config */
+            $config = $app['config']->get('chronicle.signing', []);
+
+            return new $config['provider'](
+                privateKey: $config['private_key'],
+                publicKey: $config['public_key'],
+                keyId: $config['key_id'],
+            );
+        });
+    }
+
+    protected function registerLedgerReader(): void
+    {
+        $this->app->singleton(LedgerReaderContract::class, EloquentLedgerReader::class);
+        $this->app->singleton(LedgerReader::class, EloquentLedgerReader::class);
     }
 
     protected function registerExports(): void
     {
         $this->app->singleton(EntryExporter::class);
-
         $this->app->singleton(ExportHasher::class);
-
         $this->app->singleton(ExportManifestBuilder::class);
-
         $this->app->singleton(ExportSigner::class);
-
         $this->app->singleton(ExportVerifier::class);
-
         $this->app->singleton(ExportChainVerifier::class);
 
         $this->app->singleton(ExportManager::class, function ($app) {
@@ -174,11 +139,6 @@ class ChronicleServiceProvider extends ServiceProvider
         });
     }
 
-    /**
-     * Publish Chronicle configuration file.
-     *
-     * Allows developers to customize Chronicle behavior.
-     */
     protected function publishConfiguration(): void
     {
         $this->publishes([
@@ -186,15 +146,31 @@ class ChronicleServiceProvider extends ServiceProvider
         ], 'chronicle-config');
     }
 
-    /**
-     * Publish Chronicle database migrations.
-     *
-     * The migrations create the Chronicle ledger tables.
-     */
     protected function publishMigrations(): void
     {
         $this->publishes([
             __DIR__.'/../database/migrations' => database_path('migrations'),
         ], 'chronicle-migrations');
+    }
+
+    protected function assertSigningConfiguration(): void
+    {
+        if (! (bool) config('chronicle.signing.enforce_on_boot', true)) {
+            return;
+        }
+
+        if ($this->app->environment('testing')) {
+            return;
+        }
+
+        try {
+            $this->app->make(SigningProvider::class);
+        } catch (Throwable $e) {
+            throw new RuntimeException(
+                'Invalid Chronicle signing configuration. Configure CHRONICLE_PRIVATE_KEY and CHRONICLE_PUBLIC_KEY (or a valid custom signing provider).',
+                0,
+                $e
+            );
+        }
     }
 }

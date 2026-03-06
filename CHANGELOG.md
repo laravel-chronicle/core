@@ -10,6 +10,128 @@ breaking changes between any two versions — see upgrade notes per version.
 
 ---
 
+## [1.0.0] - 2026-03-06
+
+### Added
+
+#### Driver Extension API Hardening
+
+- Added collision safeguards for custom driver registration.
+- Reserved built-in drivers (`eloquent`, `array`, `null`) can no longer be overridden.
+- Duplicate custom driver registration now fails explicitly.
+
+---
+
+#### Export Write-Path Contracts
+
+- Added `Chronicle\Exceptions\ExportWriteException`.
+- Export write flow now enforces explicit failure contracts for:
+  - export directory creation
+  - entries NDJSON open/encode/write
+  - manifest encode/write
+  - signature encode/write
+
+---
+
+#### Boot-Time Signing Enforcement Toggle
+
+- Added `chronicle.signing.enforce_on_boot` (`CHRONICLE_SIGNING_ENFORCE_ON_BOOT`).
+- Default remains `true`.
+- Allows controlled opt-out of signer sanity checks in non-testing environments.
+
+---
+
+#### Multi-Database Migration Rollback CI Coverage
+
+- Added migration rollback semantics test coverage and CI matrix execution for:
+  - sqlite
+  - mysql
+  - pgsql
+
+---
+
+### Changed
+
+#### Export Command Failure Handling
+
+- `chronicle:export` now consistently surfaces command-level failures with:
+  - `Export failed.`
+  - underlying exception message
+  - non-zero exit code (`1`)
+
+---
+
+#### Deterministic Export Verification IO Behavior
+
+- `ExportChainVerifier` and `ExportVerifier` now handle missing/unreadable paths deterministically.
+- Removed warning-driven behavior in verifier file access paths.
+
+---
+
+#### Checkpoint Transaction Connection Semantics
+
+- `CheckpointCreator` now executes transactions on `chronicle.connection` instead of implicitly using the default DB connection.
+- Ensures checkpoint creation atomicity matches Chronicle storage connection semantics.
+
+---
+
+#### Migration Index Naming
+
+- Added explicit index names in Chronicle migrations.
+- Rollback paths now drop indexes by explicit names for deterministic schema operations.
+
+---
+
+### Fixed
+
+- Fixed stale `recorded_at` assumptions in tests/docs by aligning behavior to `created_at`.
+- Fixed export-chain failure-path assertions to match stable command output contracts.
+- Fixed export verifier unreadable-file handling across manifest/signature/entries paths.
+- Fixed entry export handling to fail on short writes and encode failures.
+
+---
+
+### Security
+
+- Removed default signing key material from package behavior assumptions; key configuration is now explicit and validated.
+- Added signer boot-time sanity checks in non-testing environments (config-toggleable).
+- Hardened filesystem failure-path handling for export generation and verification.
+
+---
+
+### Documentation
+
+- Aligned README and docs with implemented API and behavior.
+- Corrected storage driver documentation to reflect supported built-ins (`eloquent`, `array`, `null`).
+- Corrected checkpoint field documentation to match the persisted checkpoint model.
+- Updated export verification step ordering to match implementation.
+- Added explicit note on current signing-provider behavior during verification.
+
+---
+
+### Testing
+
+- Refactored test suite structure into clearer unit/feature domains.
+- Added regression coverage for documentation examples.
+- Added filesystem failure-path tests for export flows.
+- Added non-default `chronicle.connection` integration test proving checkpoint atomic rollback behavior.
+- Added export verifier unreadable-file failure-path tests.
+- Expanded core coverage across ledger reader, export pipeline, command failure contracts, and connection semantics.
+
+---
+
+### CI
+
+- Added DB-matrix CI coverage for migration rollback semantics.
+- Kept full test + static analysis gates green for release.
+
+---
+
+### Notes
+
+- Stable SemVer guarantees begin at `1.0.0`.
+- `algorithm` / `key_id` metadata is persisted for checkpoints/exports; verification currently uses the active configured signing provider.
+
 ## [0.9.0] - 2026-03-06
 
 ### Added

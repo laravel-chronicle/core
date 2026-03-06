@@ -47,7 +47,7 @@ Generates SHA-256 payload hashes.
 ChainHasher  
 Links entries together using hash chaining.
 
-CheckpointManager  
+CheckpointCreator  
 Creates signed checkpoints.
 
 ExportManager  
@@ -56,5 +56,5 @@ Produces deterministic exports.
 IntegrityVerifier  
 Verifies ledger integrity.
 
-TransactionManager  
-Handles correlation context.
+ChronicleManager  
+Coordinates entry recording, driver resolution, and transaction correlation context.

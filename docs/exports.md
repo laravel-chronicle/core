@@ -1,29 +1,23 @@
 # Exports
 
-Chronicle exports allow the ledger to be archived or shared.
+Chronicle exports a deterministic dataset that can be verified independently.
 
-Exports are deterministic and versioned.
+## Export
 
----
-
-# Export Command
-
-php artisan chronicle:export
-
----
-
-# Signed Export
-
-php artisan chronicle:export --sign
-
----
-
-# Export Format
-
-```yaml
-{
-  "schema": "chronicle.export.v1",
-  "generated_at": "...",
-  "entries": [...]
-}
+```bash
+php artisan chronicle:export /absolute/path/to/export-dir
 ```
+
+## Verify Export
+
+```bash
+php artisan chronicle:verify-export /absolute/path/to/export-dir
+```
+
+## Output Files
+
+An export directory contains:
+
+- `entries.ndjson`
+- `manifest.json`
+- `signature.json`

@@ -32,9 +32,13 @@ class CheckpointCreator
      */
     public function create(): Checkpoint
     {
-        return DB::transaction(function () {
+        /** @var string|null $connection */
+        $connection = config('chronicle.connection');
+
+        return DB::connection($connection)->transaction(function () {
             $chainHash = Entry::query()
                 ->orderByDesc('created_at')
+                ->orderByDesc('id')
                 ->value('chain_hash');
 
             if (! $chainHash) {
