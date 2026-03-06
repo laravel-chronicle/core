@@ -10,6 +10,35 @@ breaking changes between any two versions — see upgrade notes per version.
 
 ---
 
+## [Unreleased]
+
+### Added
+
+- Added new `chronicle:install` Artisan command to streamline package setup in host applications.
+- `chronicle:install` now publishes both package assets:
+  - `chronicle-config`
+  - `chronicle-migrations`
+- Added interactive install prompts to optionally:
+  - run migrations immediately
+  - open the Chronicle GitHub repository for starring
+
+---
+
+### Changed
+
+- Updated README installation instructions to use the single install command flow (`php artisan chronicle:install --migrate`).
+
+---
+
+### Testing
+
+- Added and updated feature coverage for `chronicle:install`, including:
+  - command registration assertion
+  - interactive prompt handling (skip path and run-migrations path)
+  - publish output side effects (config and migration files)
+
+---
+
 ## [1.0.2] - 2026-03-06
 
 ### Fixed
