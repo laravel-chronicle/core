@@ -144,7 +144,7 @@ jobs:
           CHRONICLE_TEST_DB_CONNECTION: ${{ matrix.database }}
           CHRONICLE_TEST_DB_HOST: 127.0.0.1
           CHRONICLE_TEST_DB_PORT: ${{ matrix.database == 'mysql' && '3306' || matrix.database == 'pgsql' && '5432' || '' }}
-          CHRONICLE_TEST_DB_DATABASE: ${{ matrix.database == 'sqlite' && ':memory:' || 'chronicle_test' }}
+          CHRONICLE_TEST_DB_DATABASE: ${{ matrix.database == 'sqlite' && ':memory:' || 'chronicle_entries' }}
           CHRONICLE_TEST_DB_USERNAME: ${{ matrix.database == 'mysql' && 'root' || matrix.database == 'pgsql' && 'postgres' || '' }}
           CHRONICLE_TEST_DB_PASSWORD: ${{ matrix.database == 'mysql' && 'root' || matrix.database == 'pgsql' && 'postgres' || '' }}
         run: vendor/bin/pest tests/Feature/Infrastructure/MigrationRollbackSemanticsTest.php --ci
