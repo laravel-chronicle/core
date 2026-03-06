@@ -19,20 +19,11 @@ class VerifyEntryCommand extends Command
 
     protected $description = 'Verify the integrity of the Chronicle ledger';
 
-    protected IntegrityVerifier $verifier;
-
-    public function __construct(IntegrityVerifier $verifier)
-    {
-        parent::__construct();
-
-        $this->verifier = $verifier;
-    }
-
-    public function handle(): int
+    public function handle(IntegrityVerifier $verifier): int
     {
         $this->info('Verifying Chronicle ledger...');
 
-        $result = $this->verifier->verify();
+        $result = $verifier->verify();
 
         if ($result->hasFailed()) {
             $this->newLine();
