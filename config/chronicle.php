@@ -47,7 +47,7 @@ return [
     'signing' => [
         'provider' => \Chronicle\Signing\Ed25519SigningProvider::class,
         'key_id' => env('CHRONICLE_KEY_ID', 'chronicle-dev-key'),
-        'private_key' => env('CHRONICLE_PRIVATE_KEY', 'YF2y2+F7j3lYF6V+4bA2e8v+7IhV3zQjX9D3a1B9Wl6mXh5L2M6z9F9Gm7cC3g4FQk9Tn4wWq+Z1pT2qg6x1BQ=='),
-        'public_key' => env('CHRONICLE_PUBLIC_KEY', 'Z0kzL1Aq7l+5j3g0fPq8jF+7v9LkM8nC1Vt4qP3W9Q8='),
+        'private_key' => env('CHRONICLE_PRIVATE_KEY', 'RcSfC2MuYTPnkrL/MIA4/l/sAjirGXXIFXZEPokdwh1Lcz+SvNE7bjvgCsDotjnlHfJyZ4XW/kUXemtoyaa92Q=='),
+        'public_key' => env('CHRONICLE_PUBLIC_KEY', 'S3M/krzRO2474ArA6LY55R3ycmeF1v5FF3praMmmvdk='),
     ],
 ];

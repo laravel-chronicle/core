@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Carbon;
 
 /**
  * The Chronicle audit entry.
@@ -19,6 +20,12 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * directly in application code.
  * Use Chronicle::record()->...->commit() exclusively.
  *
+ * @property string $id
+ * @property string $actor_type
+ * @property string $actor_id
+ * @property string $action
+ * @property string $subject_type
+ * @property string $subject_id
  * @property array<string,mixed> $payload
  * @property string $payload_hash
  * @property string $chain_hash
@@ -26,6 +33,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property string[] $tags
  * @property string $correlation_id
  * @property string[]|null $diff
+ * @property Carbon $created_at
  */
 class Entry extends Model
 {

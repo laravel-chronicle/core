@@ -10,6 +10,230 @@ breaking changes between any two versions — see upgrade notes per version.
 
 ---
 
+## [0.8.0] - 2026-03-06
+
+### Added
+
+#### Verifiable Dataset Exports
+
+Chronicle can now export the ledger as a portable, cryptographically verifiable dataset.
+
+Exports contain three files:
+
+chronicle-export/
+├─ entries.ndjson
+├─ manifest.json
+└─ signature.json
+
+entries.ndjson  
+Contains the serialized ledger entries in deterministic NDJSON format.
+
+manifest.json  
+Describes the exported dataset and includes:
+
+- export format version
+- export timestamp
+- entry count
+- first entry identifier
+- last entry identifier
+- chain head
+- dataset hash
+- signing algorithm
+
+signature.json  
+Contains the cryptographic signature of the dataset hash.
+
+This allows Chronicle datasets to be shared and verified independently
+of the originating application.
+
+---
+
+#### ExportManager
+
+Added an export orchestration service responsible for coordinating
+the Chronicle export pipeline.
+
+The export process includes:
+
+1. streaming entries from the ledger
+2. computing the dataset hash
+3. generating the export manifest
+4. signing the dataset
+
+The manager returns an `ExportResult` value object describing the
+export outcome.
+
+---
+
+#### EntryExporter
+
+Added a streaming exporter responsible for writing Chronicle entries
+to NDJSON format.
+
+Features:
+
+- deterministic export ordering
+- stable serialization
+- chunked database streaming
+- constant memory usage
+
+The exporter returns an `EntryExportResult` describing the exported
+dataset boundaries and entry count.
+
+---
+
+#### ExportHasher
+
+Added a streaming SHA-256 hasher used to compute the dataset fingerprint
+for exported datasets.
+
+The hash is computed directly from `entries.ndjson` to guarantee dataset
+integrity without loading the dataset into memory.
+
+---
+
+#### ExportManifestBuilder
+
+Added a builder responsible for producing the `manifest.json` document.
+
+The manifest provides a stable export contract and includes:
+
+- export format version
+- export timestamp
+- entry count
+- first entry identifier
+- last entry identifier
+- chain head
+- dataset hash
+- signing algorithm
+
+---
+
+#### ExportSigner
+
+Added a dataset signing service that signs the dataset hash using the
+configured `SigningProvider`.
+
+The resulting signature is written to `signature.json`.
+
+This allows exported datasets to be verified independently of the
+original Chronicle installation.
+
+---
+
+#### ExportVerifier
+
+Added a verification service capable of validating Chronicle export
+datasets.
+
+Verification performs the following checks:
+
+1. dataset integrity (SHA-256 hash verification)
+2. signature authenticity
+3. hash chain integrity
+4. dataset boundary validation
+
+Verification results are returned via an `ExportVerificationResult`
+value object.
+
+---
+
+#### Export Chain Verification
+
+Added a streaming chain verifier capable of validating the integrity
+of the entire ledger chain within exported datasets.
+
+The verifier recomputes every chain hash sequentially using the
+exported entries.
+
+This ensures that:
+
+- entries cannot be reordered
+- entries cannot be removed
+- entries cannot be modified
+
+without detection.
+
+---
+
+#### Dataset Boundary Protection
+
+Exports now include `first_entry_id` and `last_entry_id` anchors in
+the manifest to prevent dataset truncation attacks.
+
+During verification Chronicle ensures that:
+
+- the exported entry count matches the manifest
+- the first entry identifier matches the manifest
+- the last entry identifier matches the manifest
+
+This guarantees the exported dataset represents the exact ledger
+state at the moment of export.
+
+---
+
+#### Artisan Commands
+
+Added new console commands for exporting and verifying Chronicle datasets.
+
+chronicle:export
+
+Exports the Chronicle ledger to a verifiable dataset.
+
+Example:
+
+php artisan chronicle:export storage/chronicle-export
+
+chronicle:verify-export
+
+Verifies the integrity and authenticity of an exported dataset.
+
+Example:
+
+php artisan chronicle:verify-export storage/chronicle-export
+
+These commands allow Chronicle datasets to be exported and verified
+without direct database access.
+
+---
+
+### Internal
+
+- Added export pipeline services:
+    - `ExportManager`
+    - `EntryExporter`
+    - `ExportHasher`
+    - `ExportManifestBuilder`
+    - `ExportSigner`
+    - `ExportVerifier`
+    - `ExportChainVerifier`
+- Added export result value objects:
+    - `ExportResult`
+    - `EntryExportResult`
+    - `ExportVerificationResult`
+- Added deterministic NDJSON export serialization
+- Added streaming dataset hashing
+- Added streaming export chain verification
+- Added dataset boundary validation
+- Added console commands for exporting and verifying Chronicle datasets
+- Added tests covering export and verification workflows
+
+---
+
+### Notes
+
+This release introduces portable, cryptographically verifiable Chronicle
+datasets.
+
+Exported datasets can now be independently verified by external systems,
+auditors, or automated tooling while preserving strong integrity guarantees.
+
+With dataset hashing, digital signatures, chain verification, and
+boundary validation, Chronicle exports now provide full audit-grade
+verification of ledger history.
+
+---
+
 ## [0.7.0] - 2026-03-05
 
 ### Added

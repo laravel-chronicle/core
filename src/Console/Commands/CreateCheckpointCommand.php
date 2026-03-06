@@ -1,6 +1,6 @@
 <?php
 
-namespace Chronicle\Console;
+namespace Chronicle\Console\Commands;
 
 use Chronicle\Checkpoint\CheckpointCreator;
 use Illuminate\Console\Command;
