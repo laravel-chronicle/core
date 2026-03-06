@@ -155,7 +155,7 @@ class ChronicleServiceProvider extends ServiceProvider
 
     protected function assertSigningConfiguration(): void
     {
-        if (! (bool) config('chronicle.signing.enforce_on_boot', true)) {
+        if (! (bool) config('chronicle.signing.enforce_on_boot', false)) {
             return;
         }
 
