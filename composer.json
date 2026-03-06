@@ -5,11 +5,14 @@
     "license": "MIT",
     "keywords": [
         "laravel",
-        "audit",
-        "audit-log",
-        "activity-log",
-        "compliance",
+        "audit log",
+        "audit trail",
+        "append-only log",
+        "event log",
+        "ledger",
         "security",
+        "hash chain",
+        "compliance",
         "chronicle"
     ],
     "homepage": "https://github.com/laravel-chronicle/core",
