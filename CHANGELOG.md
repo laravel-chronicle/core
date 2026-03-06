@@ -14,11 +14,30 @@ breaking changes between any two versions — see upgrade notes per version.
 
 ### Added
 
+- Added new `chronicle:install` Artisan command to streamline package setup in host applications.
+- `chronicle:install` now publishes both package assets:
+  - `chronicle-config`
+  - `chronicle-migrations`
+- Added interactive install prompts to optionally:
+  - run migrations immediately
+  - open the Chronicle GitHub repository for starring
 - Added a progress bar phase (`Verifying entries`) to `chronicle:verify` for better visibility during long ledger verification runs.
+
+---
 
 ### Changed
 
+- Updated README installation instructions to use the single install command flow (`php artisan chronicle:install --migrate`).
 - Improved `chronicle:verify` CLI output with clearer verification steps and final status messaging.
+
+---
+
+### Testing
+
+- Added and updated feature coverage for `chronicle:install`, including:
+  - command registration assertion
+  - interactive prompt handling (skip path and run-migrations path)
+  - publish output side effects (config and migration files)
 
 ---
 

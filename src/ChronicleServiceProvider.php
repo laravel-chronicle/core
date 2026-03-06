@@ -4,6 +4,7 @@ namespace Chronicle;
 
 use Chronicle\Console\Commands\CreateCheckpointCommand;
 use Chronicle\Console\Commands\ExportCommand;
+use Chronicle\Console\Commands\InstallCommand;
 use Chronicle\Console\Commands\VerifyEntryCommand;
 use Chronicle\Console\Commands\VerifyExportCommand;
 use Chronicle\Contracts\LedgerReader as LedgerReaderContract;
@@ -57,6 +58,7 @@ class ChronicleServiceProvider extends ServiceProvider
                 CreateCheckpointCommand::class,
                 ExportCommand::class,
                 VerifyExportCommand::class,
+                InstallCommand::class,
             ]);
         }
     }

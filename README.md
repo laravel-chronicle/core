@@ -73,9 +73,7 @@ This makes Chronicle logs **tamper-detectable**.
 
 ```bash
 composer require laravel-chronicle/core
-php artisan vendor:publish --tag=chronicle-config
-php artisan vendor:publish --tag=chronicle-migrations
-php artisan migrate
+php artisan chronicle:install
 ```
 
 ---
