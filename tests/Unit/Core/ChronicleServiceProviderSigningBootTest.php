@@ -3,6 +3,10 @@
 use Chronicle\ChronicleServiceProvider;
 use Chronicle\Contracts\SigningProvider;
 
+beforeEach(function () {
+    config()->set('chronicle.signing.enforce_on_boot', true);
+});
+
 it('throws in non-testing environments when signing provider cannot be resolved', function () {
     $app = Mockery::mock();
     $app->shouldReceive('environment')->once()->with('testing')->andReturn(false);
