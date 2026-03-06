@@ -10,6 +10,165 @@ breaking changes between any two versions — see upgrade notes per version.
 
 ---
 
+## [0.9.0] - 2026-03-06
+
+### Added
+
+#### Query API
+
+Chronicle now provides a fluent query API for retrieving ledger entries.
+
+The `Entry` model now includes query scopes designed for common
+audit-log access patterns.
+
+Available scopes:
+
+- `forActor($actor)`
+- `forSubject($subject)`
+- `action(string $action)`
+- `correlation(string $correlationId)`
+- `workflow(string $rootCorrelation)`
+- `withTag(string $tag)`
+- `withTags(array $tags)`
+- `between($start, $end)`
+- `latestFirst()`
+
+These scopes provide a readable and expressive interface for querying
+the Chronicle ledger.
+
+Example:
+```php
+Entry::forSubject($order)
+    ->action('order.updated')
+    ->latestFirst()
+    ->limit(20)
+    ->get();
+```
+
+---
+
+#### Cursor Pagination
+
+Chronicle now supports cursor-based pagination for efficient traversal
+of large ledgers.
+
+Cursor pagination avoids the performance issues associated with
+offset-based pagination and enables scalable browsing of large
+audit datasets.
+
+Example:
+```php
+Entry::cursorPaginateLedger(50);
+```
+
+Reverse pagination is also available:
+```php
+Entry::cursorPaginateLatest(50);
+```
+
+Cursor pagination uses the entry identifier as a stable ordering key,
+ensuring deterministic ledger traversal.
+
+---
+
+#### Ledger Streaming
+
+Chronicle entries can now be streamed using database cursors.
+
+Streaming allows processing extremely large ledgers while maintaining
+constant memory usage.
+
+Example:
+```php
+Entry::stream()->each(function ($entry) {
+    // process entry
+});
+```
+
+Reverse streaming is also supported:
+```php
+Entry::streamLatest();
+```
+
+Streaming operations rely on primary-key ordering to provide efficient
+sequential access to ledger entries.
+
+---
+
+#### LedgerReader Abstraction
+
+Chronicle now includes a `LedgerReader` abstraction that provides
+a stable read API for accessing the ledger.
+
+The reader exposes common read operations without requiring direct
+interaction with the underlying Eloquent model.
+
+Example:
+```php
+Chronicle::reader()->paginate(50);
+Chronicle::reader()->forSubject($order);
+Chronicle::reader()->stream();
+```
+
+This abstraction allows external packages such as UI dashboards
+or cloud services to interact with Chronicle without coupling to
+internal implementation details.
+
+---
+
+### Performance
+
+#### Database Indexes
+
+Additional database indexes have been added to optimize common
+ledger queries.
+
+Indexes now include:
+
+- `(actor_type, actor_id)`
+- `(subject_type, subject_id)`
+- `correlation_id`
+- `action`
+- `recorded_at`
+
+These indexes significantly improve performance for actor history,
+entity timelines, and correlation-based queries.
+
+---
+
+#### Primary-Key Ledger Ordering
+
+Streaming and cursor pagination now rely on primary-key ordering
+to optimize sequential ledger access.
+
+This allows databases to perform efficient index scans when
+processing large datasets.
+
+---
+
+### Internal
+
+- Added query scopes to the `Entry` model
+- Added cursor pagination helpers
+- Added streaming helpers for ledger traversal
+- Introduced `LedgerReader` read abstraction
+- Added database indexes for common query patterns
+- Added test coverage for query scopes, pagination, and streaming
+
+---
+
+### Notes
+
+This release focuses on improving Chronicle's read-side capabilities
+and performance characteristics.
+
+With the addition of streaming queries, cursor pagination, and
+a stable read abstraction, Chronicle is now capable of efficiently
+handling very large audit ledgers.
+
+Version `0.9.0` represents the final feature release before the
+Chronicle `1.0.0` stable release.
+
 ## [0.8.0] - 2026-03-06
 
 ### Added
