@@ -9,8 +9,12 @@ it('verifies ledger successfully', function () {
         ->subject('ledger')
         ->commit();
 
-    Artisan::call('chronicle:verify');
-
-    expect(Artisan::output())
-        ->toContain('Chronicle entries verified successfully');
+    $this->artisan('chronicle:verify')
+        ->expectsOutput('Verifying Chronicle ledger...')
+        ->expectsOutput('Verifying entries')
+        ->expectsOutput('✓ Chain integrity verified')
+        ->expectsOutput('✓ Entry count validated')
+        ->expectsOutput('✓ Dataset boundaries verified')
+        ->expectsOutput('Ledger integrity OK')
+        ->assertExitCode(0);
 });
