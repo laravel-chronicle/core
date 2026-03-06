@@ -102,7 +102,7 @@ jobs:
         image: mysql:8.4
         env:
           MYSQL_ROOT_PASSWORD: root
-          MYSQL_DATABASE: chronicle_test
+          MYSQL_DATABASE: chronicle_entries
         ports:
           - 3306:3306
         options: >-
