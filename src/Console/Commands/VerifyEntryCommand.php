@@ -48,7 +48,13 @@ class VerifyEntryCommand extends Command
             return self::FAILURE;
         }
 
-        $this->info("Chronicle entries verified successfully ({$result->checked()} entries checked)");
+        $this->newLine();
+        $this->line('✓ Chain integrity verified');
+        $this->line('✓ Entry count validated');
+        $this->line('✓ Dataset boundaries verified');
+        $this->newLine();
+        $this->line("Entries checked: {$result->checked()}");
+        $this->info('Ledger integrity OK');
 
         return self::SUCCESS;
     }
