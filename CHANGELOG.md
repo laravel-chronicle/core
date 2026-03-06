@@ -10,6 +10,23 @@ breaking changes between any two versions — see upgrade notes per version.
 
 ---
 
+## [1.0.1] - 2026-03-06
+
+### Fixed
+
+- Fixed fresh Laravel install boot failures caused by eager signing validation when `chronicle.signing.enforce_on_boot` was absent at runtime config resolution.
+- `ChronicleServiceProvider::assertSigningConfiguration()` now defaults enforcement fallback to `false` when the config key is missing, matching package defaults and preventing `Missing CHRONICLE_PRIVATE_KEY` during install-time package discovery.
+- Added regression test coverage for the missing `chronicle.signing.enforce_on_boot` configuration path.
+
+---
+
+### CI
+
+- Updated `run-tests` workflow to inject deterministic base64 test signing keys (`CHRONICLE_PRIVATE_KEY`, `CHRONICLE_PUBLIC_KEY`) at job scope.
+- Prevents install-stage failures in CI during Composer package discovery before test runtime config overrides are applied.
+
+---
+
 ## [1.0.0] - 2026-03-06
 
 ### Added
