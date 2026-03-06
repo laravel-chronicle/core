@@ -16,6 +16,10 @@ breaking changes between any two versions — see upgrade notes per version.
 
 - Added a progress bar phase (`Verifying entries`) to `chronicle:verify` for better visibility during long ledger verification runs.
 
+### Changed
+
+- Improved `chronicle:verify` CLI output with clearer verification steps and final status messaging.
+
 ---
 
 ## [1.0.2] - 2026-03-06
