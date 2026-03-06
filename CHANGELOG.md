@@ -10,6 +10,22 @@ breaking changes between any two versions — see upgrade notes per version.
 
 ---
 
+## [1.0.2] - 2026-03-06
+
+### Fixed
+
+- Fixed install/Artisan bootstrap failure where `InvalidArgumentException: Missing CHRONICLE_PRIVATE_KEY` could still be thrown on fresh apps.
+- Root cause: `chronicle:verify` command used constructor injection for `IntegrityVerifier`, which forced early `SigningProvider` resolution during command registration.
+- `VerifyEntryCommand` now uses lazy method injection (`handle(IntegrityVerifier $verifier)`) so signer resolution only happens when the verify command is actually executed.
+
+---
+
+### Notes
+
+- If you were blocked on `1.0.1`, this patch removes the remaining early-resolution path.
+
+---
+
 ## [1.0.1] - 2026-03-06
 
 ### Fixed
