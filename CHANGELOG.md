@@ -12,8 +12,24 @@ breaking changes between any two versions — see upgrade notes per version.
 
 ## [Unreleased]
 
+---
+
+## [1.1.0] - 2026-03-09
+
 ### Added
 
+- Added a typed entry extension pipeline with deterministic stage ordering via `ExtensionStage`:
+  - `VALIDATE`
+  - `RESOLVE_CONTEXT`
+  - `POLICY`
+  - `PROCESS`
+- Added extension contracts for third-party integration:
+  - `Chronicle\Contracts\EntryExtension`
+  - `Chronicle\Contracts\PrioritizedEntryExtension`
+- Added `EntryExtensionRegistry` with deterministic ordering (`stage`, `priority`, class name, registration index).
+- Added `RunExtensions` pipeline processor, executed before canonicalization/hashing/persistence.
+- Added runtime extension registration API via `ChronicleManager::extendEntry(...)` and facade support.
+- Added `chronicle.extensions` configuration for declarative extension registration.
 - Added new `chronicle:install` Artisan command to streamline package setup in host applications.
 - `chronicle:install` now publishes both package assets:
   - `chronicle-config`
@@ -27,6 +43,7 @@ breaking changes between any two versions — see upgrade notes per version.
 
 ### Changed
 
+- Entry processing flow now supports optional extension hooks with zero behavioral impact when no extensions are registered.
 - Updated README installation instructions to use the single install command flow (`php artisan chronicle:install --migrate`).
 - Improved `chronicle:verify` CLI output with clearer verification steps and final status messaging.
 
@@ -34,6 +51,8 @@ breaking changes between any two versions — see upgrade notes per version.
 
 ### Testing
 
+- Added unit coverage for extension pipeline ordering and no-op behavior when registry is empty.
+- Added and updated coverage for extension registration via service container/facade/manager.
 - Added and updated feature coverage for `chronicle:install`, including:
   - command registration assertion
   - interactive prompt handling (skip path and run-migrations path)

@@ -1,8 +1,12 @@
 <?php
 
+use Chronicle\Contracts\EntryExtension;
 use Chronicle\Contracts\ReferenceResolver;
 use Chronicle\Contracts\StorageDriver;
+use Chronicle\Entry\PendingEntry;
+use Chronicle\Extensions\ExtensionStage;
 use Chronicle\Facades\Chronicle;
+use Chronicle\Pipeline\EntryExtensionRegistry;
 use Chronicle\Storage\ArrayDriver;
 use Chronicle\Storage\DriverResolver;
 use Chronicle\Storage\EloquentDriver;
@@ -38,7 +42,7 @@ it('throws for unsupported driver', function () {
     config()->set('chronicle.driver', 'unsupported-driver');
 
     app(StorageDriver::class);
-})->throws(\InvalidArgumentException::class);
+})->throws(InvalidArgumentException::class);
 
 it('resolves custom extended driver', function () {
     app(DriverResolver::class)->extend('custom', fn (): NullDriver => new NullDriver);
@@ -52,4 +56,24 @@ it('allows extending drivers through the facade', function () {
     Chronicle::extendDriver('custom-facade', fn (): NullDriver => new NullDriver);
 
     expect(app('chronicle')->driver('custom-facade'))->toBeInstanceOf(NullDriver::class);
+});
+
+it('allows registering entry extensions through the facade', function () {
+    $extension = new class implements EntryExtension
+    {
+        public function stage(): ExtensionStage
+        {
+            return ExtensionStage::PROCESS;
+        }
+
+        public function process(PendingEntry $entry): PendingEntry
+        {
+            return $entry;
+        }
+    };
+
+    Chronicle::extendEntry($extension);
+
+    expect(app(EntryExtensionRegistry::class)->ordered())
+        ->toContain($extension);
 });

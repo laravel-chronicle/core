@@ -13,17 +13,18 @@ use Illuminate\Support\Facades\Facade;
  *
  * Example usage:
  *
- * Chronicle::entry()
+ * Chronicle::record()
  *      ->actor($user)
  *      ->action('invoice.sent')
  *      ->subject($invoice)
- *      ->record()
+ *      ->commit()
  *
  * The facade resolves the underlying ChronicleManager
  * from Laravel's service container.
  *
  * @method static EntryBuilder record()
  * @method static void extendDriver(string $name, callable $factory)
+ * @method static void extendEntry(\Chronicle\Contracts\EntryExtension|string $extension)
  */
 class Chronicle extends Facade
 {

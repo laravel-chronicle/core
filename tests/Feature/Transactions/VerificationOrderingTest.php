@@ -24,5 +24,5 @@ it('verifies ledger deterministically when entries share created_at timestamps',
     Artisan::call('chronicle:verify');
 
     expect(Artisan::output())
-        ->toContain('Chronicle entries verified successfully');
+        ->toContain('Chain integrity verified');
 });

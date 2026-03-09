@@ -1,0 +1,26 @@
+<?php
+
+namespace Chronicle\Pipeline;
+
+use Chronicle\Contracts\EntryProcessor;
+use Chronicle\Entry\PendingEntry;
+
+class RunExtensions implements EntryProcessor
+{
+    public function __construct(
+        protected EntryExtensionRegistry $extensions
+    ) {}
+
+    public function process(PendingEntry $entry): PendingEntry
+    {
+        if ($this->extensions->isEmpty()) {
+            return $entry;
+        }
+
+        foreach ($this->extensions->ordered() as $extension) {
+            $entry = $extension->process($entry);
+        }
+
+        return $entry;
+    }
+}

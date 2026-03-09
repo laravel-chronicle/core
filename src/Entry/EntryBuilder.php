@@ -29,7 +29,7 @@ use Illuminate\Support\Str;
  *
  * Example usage:
  *
- * Chronicle::entry()
+ * Chronicle::record()
  *      ->actor($user)
  *      ->action('invoice.sent')
  *      ->subject($invoice)

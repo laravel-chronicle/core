@@ -61,6 +61,22 @@ class PendingEntry
     }
 
     /**
+     * Get a single attribute.
+     */
+    public function attribute(string $key, mixed $default = null): mixed
+    {
+        return $this->attributes[$key] ?? $default;
+    }
+
+    /**
+     * Set a single attribute.
+     */
+    public function setAttribute(string $key, mixed $value): void
+    {
+        $this->attributes[$key] = $value;
+    }
+
+    /**
      * Set canonical payload.
      *
      * @param  array<string, mixed>  $payload
