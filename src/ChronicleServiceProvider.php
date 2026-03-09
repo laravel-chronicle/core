@@ -7,6 +7,7 @@ use Chronicle\Console\Commands\ExportCommand;
 use Chronicle\Console\Commands\InstallCommand;
 use Chronicle\Console\Commands\VerifyEntryCommand;
 use Chronicle\Console\Commands\VerifyExportCommand;
+use Chronicle\Contracts\EntryExtension;
 use Chronicle\Contracts\LedgerReader as LedgerReaderContract;
 use Chronicle\Contracts\ReferenceResolver;
 use Chronicle\Contracts\SigningProvider;
@@ -21,13 +22,16 @@ use Chronicle\Export\ExportVerifier;
 use Chronicle\LedgerReader as EloquentLedgerReader;
 use Chronicle\Pipeline\CanonicalizePayload;
 use Chronicle\Pipeline\ChainHashEntry;
+use Chronicle\Pipeline\EntryExtensionRegistry;
 use Chronicle\Pipeline\EntryPipeline;
 use Chronicle\Pipeline\HashPayload;
 use Chronicle\Pipeline\PersistEntry;
+use Chronicle\Pipeline\RunExtensions;
 use Chronicle\Serialization\CanonicalPayloadSerializer;
 use Chronicle\Storage\DriverResolver;
 use Chronicle\Support\DefaultReferenceResolver;
 use Illuminate\Support\ServiceProvider;
+use InvalidArgumentException;
 use RuntimeException;
 use Throwable;
 
@@ -66,9 +70,29 @@ class ChronicleServiceProvider extends ServiceProvider
     protected function registerCore(): void
     {
         $this->app->singleton(CanonicalPayloadSerializer::class);
+        $this->app->singleton(EntryExtensionRegistry::class, function ($app) {
+            $registry = new EntryExtensionRegistry($app);
+            $configured = config('chronicle.extensions', []);
+
+            if (! is_array($configured)) {
+                throw new InvalidArgumentException('Chronicle extensions configuration must be an array.');
+            }
+
+            foreach ($configured as $extension) {
+                if (! is_string($extension) && ! $extension instanceof EntryExtension) {
+                    throw new InvalidArgumentException('Chronicle extensions must be class names implementing '.EntryExtension::class.'.');
+                }
+
+                /** @var EntryExtension|class-string<EntryExtension> $extension */
+                $registry->register($extension);
+            }
+
+            return $registry;
+        });
 
         $this->app->singleton(EntryPipeline::class, function ($app) {
             return new EntryPipeline([
+                $app->make(RunExtensions::class),
                 $app->make(CanonicalizePayload::class),
                 $app->make(HashPayload::class),
                 $app->make(ChainHashEntry::class),
@@ -98,6 +122,7 @@ class ChronicleServiceProvider extends ServiceProvider
                 pipeline: $app->make(EntryPipeline::class),
                 reader: $app->make(LedgerReaderContract::class),
                 drivers: $app->make(DriverResolver::class),
+                extensions: $app->make(EntryExtensionRegistry::class),
             );
         });
     }

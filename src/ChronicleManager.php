@@ -2,16 +2,20 @@
 
 namespace Chronicle;
 
+use Chronicle\Contracts\EntryExtension;
 use Chronicle\Contracts\LedgerReader as LedgerReaderContract;
 use Chronicle\Contracts\ReferenceResolver;
 use Chronicle\Contracts\StorageDriver;
 use Chronicle\Entry\EntryBuilder;
 use Chronicle\Entry\PendingEntry;
+use Chronicle\Pipeline\EntryExtensionRegistry;
 use Chronicle\Pipeline\EntryPipeline;
 use Chronicle\Storage\DriverResolver;
 use Chronicle\Transaction\ChronicleTransaction;
+use Illuminate\Contracts\Container\BindingResolutionException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Throwable;
 
 /**
  * Class ChronicleManager
@@ -43,6 +47,8 @@ class ChronicleManager
 
     protected DriverResolver $drivers;
 
+    protected EntryExtensionRegistry $extensions;
+
     private ?StorageDriver $resolvedDriver = null;
 
     /**
@@ -60,11 +66,13 @@ class ChronicleManager
         EntryPipeline $pipeline,
         LedgerReaderContract $reader,
         DriverResolver $drivers,
+        EntryExtensionRegistry $extensions,
     ) {
         $this->resolver = $resolver;
         $this->pipeline = $pipeline;
         $this->reader = $reader;
         $this->drivers = $drivers;
+        $this->extensions = $extensions;
     }
 
     /**
@@ -164,6 +172,8 @@ class ChronicleManager
      * before being persisted.
      *
      * @param  array<string, mixed>  $payload
+     *
+     * @throws Throwable
      */
     public function commit(array $payload): void
     {
@@ -185,6 +195,16 @@ class ChronicleManager
     public function extendDriver(string $name, callable $factory): void
     {
         $this->drivers->extend($name, $factory);
+    }
+
+    /**
+     * @param  EntryExtension|class-string<EntryExtension>  $extension
+     *
+     * @throws BindingResolutionException
+     */
+    public function extendEntry(EntryExtension|string $extension): void
+    {
+        $this->extensions->register($extension);
     }
 
     public function getActiveDriver(): StorageDriver

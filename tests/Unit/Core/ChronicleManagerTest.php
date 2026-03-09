@@ -1,10 +1,13 @@
 <?php
 
 use Chronicle\ChronicleManager;
+use Chronicle\Contracts\EntryExtension;
 use Chronicle\Contracts\LedgerReader;
 use Chronicle\Contracts\ReferenceResolver;
 use Chronicle\Entry\EntryBuilder;
 use Chronicle\Entry\PendingEntry;
+use Chronicle\Extensions\ExtensionStage;
+use Chronicle\Pipeline\EntryExtensionRegistry;
 use Chronicle\Pipeline\EntryPipeline;
 use Chronicle\Storage\ArrayDriver;
 use Chronicle\Storage\DriverResolver;
@@ -21,6 +24,7 @@ it('creates entry builder', function () {
         pipeline: $pipeline,
         reader: $reader,
         drivers: app(DriverResolver::class),
+        extensions: app(EntryExtensionRegistry::class),
     );
 
     expect($manager->record())->toBeInstanceOf(EntryBuilder::class);
@@ -56,6 +60,7 @@ it('delegates recording to the pipeline', function () {
         pipeline: $pipeline,
         reader: $reader,
         drivers: app(DriverResolver::class),
+        extensions: app(EntryExtensionRegistry::class),
     );
 
     $manager->commit($payload);
@@ -73,6 +78,7 @@ it('resolves configured active driver', function () {
         pipeline: $pipeline,
         reader: $reader,
         drivers: app(DriverResolver::class),
+        extensions: app(EntryExtensionRegistry::class),
     );
 
     expect($manager->getActiveDriver())->toBeInstanceOf(ArrayDriver::class);
@@ -88,6 +94,7 @@ it('can swap the active driver', function () {
         pipeline: $pipeline,
         reader: $reader,
         drivers: app(DriverResolver::class),
+        extensions: app(EntryExtensionRegistry::class),
     );
 
     $driver = new NullDriver;
@@ -106,6 +113,7 @@ it('resolves driver by name', function () {
         pipeline: $pipeline,
         reader: $reader,
         drivers: app(DriverResolver::class),
+        extensions: app(EntryExtensionRegistry::class),
     );
 
     expect($manager->driver('null'))->toBeInstanceOf(NullDriver::class)
@@ -123,6 +131,7 @@ it('throws for unknown driver names', function () {
         pipeline: $pipeline,
         reader: $reader,
         drivers: app(DriverResolver::class),
+        extensions: app(EntryExtensionRegistry::class),
     );
 
     $manager->driver('unknown');
@@ -138,6 +147,7 @@ it('can register and resolve custom drivers', function () {
         pipeline: $pipeline,
         reader: $reader,
         drivers: app(DriverResolver::class),
+        extensions: app(EntryExtensionRegistry::class),
     );
 
     $manager->extendDriver('custom', fn (): NullDriver => new NullDriver);
@@ -155,6 +165,7 @@ it('throws when attempting to override reserved driver names', function () {
         pipeline: $pipeline,
         reader: $reader,
         drivers: app(DriverResolver::class),
+        extensions: app(EntryExtensionRegistry::class),
     );
 
     $manager->extendDriver('eloquent', fn (): NullDriver => new NullDriver);
@@ -170,6 +181,7 @@ it('throws when attempting to register the same custom driver twice', function (
         pipeline: $pipeline,
         reader: $reader,
         drivers: app(DriverResolver::class),
+        extensions: app(EntryExtensionRegistry::class),
     );
 
     $manager->extendDriver('duplicate-custom', fn (): NullDriver => new NullDriver);
@@ -186,6 +198,7 @@ it('throws when custom driver factory returns invalid type', function () {
         pipeline: $pipeline,
         reader: $reader,
         drivers: app(DriverResolver::class),
+        extensions: app(EntryExtensionRegistry::class),
     );
 
     $manager->extendDriver('invalid', fn (): \stdClass => new \stdClass);
@@ -202,7 +215,40 @@ it('returns injected ledger reader instance', function () {
         pipeline: $pipeline,
         reader: $reader,
         drivers: app(DriverResolver::class),
+        extensions: app(EntryExtensionRegistry::class),
     );
 
     expect($manager->reader())->toBe($reader);
+});
+
+it('registers entry extensions', function () {
+    $resolver = mock(ReferenceResolver::class);
+    $pipeline = mock(EntryPipeline::class);
+    $reader = mock(LedgerReader::class);
+    $registry = new EntryExtensionRegistry(app());
+
+    $manager = new ChronicleManager(
+        resolver: $resolver,
+        pipeline: $pipeline,
+        reader: $reader,
+        drivers: app(DriverResolver::class),
+        extensions: $registry,
+    );
+
+    $extension = new class implements EntryExtension
+    {
+        public function stage(): ExtensionStage
+        {
+            return ExtensionStage::PROCESS;
+        }
+
+        public function process(PendingEntry $entry): PendingEntry
+        {
+            return $entry;
+        }
+    };
+
+    $manager->extendEntry($extension);
+
+    expect($registry->ordered())->toHaveCount(1);
 });

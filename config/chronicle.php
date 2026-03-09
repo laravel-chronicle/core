@@ -50,4 +50,17 @@ return [
         'public_key' => env('CHRONICLE_PUBLIC_KEY'),
         'enforce_on_boot' => env('CHRONICLE_SIGNING_ENFORCE_ON_BOOT', false),
     ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Entry Extensions
+    |--------------------------------------------------------------------------
+    |
+    | Optional extension classes that execute before Chronicle's built-in
+    | canonicalize/hash/chain/persist processors.
+    |
+    | Extensions must implement Chronicle\Contracts\EntryExtension.
+    |
+    */
+    'extensions' => [],
 ];

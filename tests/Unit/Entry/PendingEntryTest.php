@@ -35,6 +35,17 @@ it('stores and exposes payload data', function () {
     expect($entry->payload())->toBe($payload);
 });
 
+it('allows reading and updating individual attributes', function () {
+    $entry = new PendingEntry(makePendingAttributes());
+
+    expect($entry->attribute('action'))->toBe('test.event')
+        ->and($entry->attribute('missing', 'fallback'))->toBe('fallback');
+
+    $entry->setAttribute('context', ['request_id' => 'req-123']);
+
+    expect($entry->attribute('context'))->toBe(['request_id' => 'req-123']);
+});
+
 it('exposes hashes and checkpoint id', function () {
     $entry = new PendingEntry(makePendingAttributes());
 
