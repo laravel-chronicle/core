@@ -9,13 +9,13 @@ use Illuminate\Support\Str;
 it('verifies chain integrity of exported dataset', function () {
     Chronicle::record()
         ->actor('system')
-        ->action('a')
+        ->action('chain.first')
         ->subject('ledger')
         ->commit();
 
     Chronicle::record()
         ->actor('system')
-        ->action('b')
+        ->action('chain.second')
         ->subject('ledger')
         ->commit();
 

@@ -15,7 +15,7 @@ it('returns current transaction inside transaction block', function () {
 
         $tx->entry()
             ->actor('system')
-            ->action('test')
+            ->action('test.current')
             ->subject('ledger')
             ->commit();
     });
@@ -28,13 +28,13 @@ it('uses same correlation for current transaction', function () {
 
         Chronicle::record()
             ->actor('system')
-            ->action('a')
+            ->action('tx.first')
             ->subject('ledger')
             ->commit();
 
         Chronicle::currentTransaction()?->entry()
             ->actor('system')
-            ->action('b')
+            ->action('tx.second')
             ->subject('ledger')
             ->commit();
     });

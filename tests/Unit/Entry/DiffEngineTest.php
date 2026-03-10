@@ -6,7 +6,7 @@ use Chronicle\Models\Entry;
 it('records explicit diff', function () {
     Chronicle::record()
         ->actor('system')
-        ->action('test')
+        ->action('diff.recorded')
         ->subject('ledger')
         ->diff([
             'amount' => [
@@ -24,7 +24,7 @@ it('records explicit diff', function () {
 it('supports change helper', function () {
     Chronicle::record()
         ->actor('system')
-        ->action('test')
+        ->action('diff.changed')
         ->subject('ledger')
         ->change('status', 'draft', 'paid')
         ->commit();
@@ -37,7 +37,7 @@ it('supports change helper', function () {
 it('sorts diff keys deterministically', function () {
     $entry = Chronicle::record()
         ->actor('system')
-        ->action('test')
+        ->action('diff.sorted')
         ->subject('ledger')
         ->diff([
             'b' => ['old' => 1, 'new' => 2],

@@ -51,6 +51,10 @@ return [
         'enforce_on_boot' => env('CHRONICLE_SIGNING_ENFORCE_ON_BOOT', false),
     ],
 
+    'validation' => [
+        'action_max_length' => env('CHRONICLE_ACTION_MAX_LENGTH', 255),
+    ],
+
     /*
     |--------------------------------------------------------------------------
     | Entry Extensions
@@ -62,5 +66,7 @@ return [
     | Extensions must implement Chronicle\Contracts\EntryExtension.
     |
     */
-    'extensions' => [],
+    'extensions' => [
+        \Chronicle\Extensions\ActionValidator::class,
+    ],
 ];
