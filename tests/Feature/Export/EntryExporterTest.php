@@ -6,7 +6,7 @@ use Chronicle\Facades\Chronicle;
 it('exports entries to ndjson', function () {
     Chronicle::record()
         ->actor('system')
-        ->action('test')
+        ->action('export.test')
         ->subject('ledger')
         ->commit();
 

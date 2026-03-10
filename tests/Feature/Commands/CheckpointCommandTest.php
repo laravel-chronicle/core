@@ -6,7 +6,7 @@ use Chronicle\Models\Checkpoint;
 it('creates a checkpoint', function () {
     Chronicle::record()
         ->actor('system')
-        ->action('test')
+        ->action('checkpoint.test')
         ->subject('ledger')
         ->commit();
 

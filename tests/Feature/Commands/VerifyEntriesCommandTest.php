@@ -5,7 +5,7 @@ use Chronicle\Facades\Chronicle;
 it('verifies ledger successfully', function () {
     Chronicle::record()
         ->actor('system')
-        ->action('test')
+        ->action('verify.entries')
         ->subject('ledger')
         ->commit();
 

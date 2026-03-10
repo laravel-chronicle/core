@@ -6,7 +6,7 @@ use Chronicle\Facades\Chronicle;
 it('exports chronicle dataset via artisan command', function () {
     Chronicle::record()
         ->actor('system')
-        ->action('test')
+        ->action('export.command')
         ->subject('ledger')
         ->commit();
 

@@ -46,7 +46,7 @@ describe('Eloquent Driver - persistence', function () {
     it('persists context as a JSON object', function () {
         Chronicle::record()
             ->actor('system')
-            ->action('e')
+            ->action('event.context')
             ->subject('system')
             ->context(['transport' => 'cli'])
             ->commit();
@@ -60,7 +60,7 @@ describe('Eloquent Driver - persistence', function () {
     it('persists metadata as JSON', function () {
         Chronicle::record()
             ->actor('system')
-            ->action('e')
+            ->action('event.metadata')
             ->subject('system')
             ->metadata(['ip' => '127.0.0.1', 'source' => 'docs'])
             ->commit();
@@ -74,7 +74,7 @@ describe('Eloquent Driver - persistence', function () {
     });
 
     it('stores a 26-character ULID in the id column', function () {
-        Chronicle::record()->actor('system')->action('e')->subject('system')->commit();
+        Chronicle::record()->actor('system')->action('event.ulid')->subject('system')->commit();
 
         $row = DB::connection('testing')->table('chronicle_entries')->first();
 
@@ -82,7 +82,7 @@ describe('Eloquent Driver - persistence', function () {
     });
 
     it('populates created_at and leaves updated_at absent', function () {
-        Chronicle::record()->actor('system')->action('e')->subject('system')->commit();
+        Chronicle::record()->actor('system')->action('event.created')->subject('system')->commit();
 
         $row = DB::connection('testing')->table('chronicle_entries')->first();
         $columns = array_keys((array) $row);
@@ -92,7 +92,7 @@ describe('Eloquent Driver - persistence', function () {
     });
 
     it('persists rows that are returned as Entry records', function () {
-        Chronicle::record()->actor('system')->action('e')->subject('system')->commit();
+        Chronicle::record()->actor('system')->action('event.persisted')->subject('system')->commit();
 
         $entry = Entry::query()->first();
 
@@ -116,9 +116,9 @@ describe('Eloquent Driver - persistence', function () {
     });
 
     it('multiple commits produce multiple rows with unique IDs', function () {
-        Chronicle::record()->actor('system')->action('a')->subject('job')->commit();
-        Chronicle::record()->actor('system')->action('b')->subject('job')->commit();
-        Chronicle::record()->actor('system')->action('c')->subject('job')->commit();
+        Chronicle::record()->actor('system')->action('job.first')->subject('job')->commit();
+        Chronicle::record()->actor('system')->action('job.second')->subject('job')->commit();
+        Chronicle::record()->actor('system')->action('job.third')->subject('job')->commit();
 
         $rows = DB::connection('testing')->table('chronicle_entries')->get();
         $ids = $rows->pluck('id')->unique();

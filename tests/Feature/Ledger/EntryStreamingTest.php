@@ -24,7 +24,7 @@ it('streams entries in ledger order', function () {
 it('streams entries in reverse order', function () {
     Chronicle::record()
         ->actor('system')
-        ->action('first')
+        ->action('stream.first')
         ->subject('ledger')
         ->commit();
 
@@ -32,7 +32,7 @@ it('streams entries in reverse order', function () {
 
     Chronicle::record()
         ->actor('system')
-        ->action('second')
+        ->action('stream.second')
         ->subject('ledger')
         ->commit();
 
@@ -41,5 +41,5 @@ it('streams entries in reverse order', function () {
         ->pluck('action')
         ->values();
 
-    expect($actions->first())->toBe('second');
+    expect($actions->first())->toBe('stream.second');
 });

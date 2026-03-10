@@ -4,9 +4,12 @@ use Chronicle\Contracts\EntryExtension;
 use Chronicle\Contracts\ReferenceResolver;
 use Chronicle\Contracts\StorageDriver;
 use Chronicle\Entry\PendingEntry;
+use Chronicle\Exceptions\InvalidActionException;
+use Chronicle\Extensions\ActionValidator;
 use Chronicle\Extensions\ExtensionStage;
 use Chronicle\Facades\Chronicle;
 use Chronicle\Pipeline\EntryExtensionRegistry;
+use Chronicle\Pipeline\EntryPipeline;
 use Chronicle\Storage\ArrayDriver;
 use Chronicle\Storage\DriverResolver;
 use Chronicle\Storage\EloquentDriver;
@@ -77,3 +80,25 @@ it('allows registering entry extensions through the facade', function () {
     expect(app(EntryExtensionRegistry::class)->ordered())
         ->toContain($extension);
 });
+
+it('registers the action validator from config', function () {
+    config()->set('chronicle.extensions', [ActionValidator::class]);
+    app()->forgetInstance(EntryExtensionRegistry::class);
+
+    expect(collect(app(EntryExtensionRegistry::class)->ordered())
+        ->contains(fn ($extension): bool => $extension instanceof ActionValidator))
+        ->toBeTrue();
+});
+
+it('rejects persisted actions without dot notation', function () {
+    config()->set('chronicle.extensions', [ActionValidator::class]);
+    app()->forgetInstance(EntryExtensionRegistry::class);
+    app()->forgetInstance(EntryPipeline::class);
+    app()->forgetInstance('chronicle');
+
+    Chronicle::record()
+        ->actor('system')
+        ->action('invalid')
+        ->subject('ledger')
+        ->commit();
+})->throws(InvalidActionException::class);

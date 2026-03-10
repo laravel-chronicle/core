@@ -86,7 +86,7 @@ it('filters entries by correlation id', function () {
 
         Chronicle::record()
             ->actor('system')
-            ->action('a')
+            ->action('corr.first')
             ->subject('ledger')
             ->commit();
 
@@ -94,7 +94,7 @@ it('filters entries by correlation id', function () {
 
     Chronicle::record()
         ->actor('system')
-        ->action('b')
+        ->action('corr.second')
         ->subject('ledger')
         ->commit();
 
@@ -110,7 +110,7 @@ it('filters workflow entries using hierarchical correlation', function () {
 
         Chronicle::record()
             ->actor('system')
-            ->action('root')
+            ->action('workflow.root')
             ->subject('ledger')
             ->commit();
 
@@ -118,7 +118,7 @@ it('filters workflow entries using hierarchical correlation', function () {
 
             Chronicle::record()
                 ->actor('system')
-                ->action('child')
+                ->action('workflow.child')
                 ->subject('ledger')
                 ->commit();
 
@@ -136,14 +136,14 @@ it('filters workflow entries using hierarchical correlation', function () {
 it('filters entries by tag', function () {
     Chronicle::record()
         ->actor('system')
-        ->action('tagged')
+        ->action('tagged.event')
         ->subject('ledger')
         ->tags(['security'])
         ->commit();
 
     Chronicle::record()
         ->actor('system')
-        ->action('untagged')
+        ->action('untagged.event')
         ->subject('ledger')
         ->commit();
 
@@ -155,14 +155,14 @@ it('filters entries by tag', function () {
 it('filters entries by multiple tags', function () {
     Chronicle::record()
         ->actor('system')
-        ->action('tagged')
+        ->action('tagged.event')
         ->subject('ledger')
         ->tags(['orders', 'checkout'])
         ->commit();
 
     Chronicle::record()
         ->actor('system')
-        ->action('tagged')
+        ->action('tagged.event')
         ->subject('ledger')
         ->tags(['orders'])
         ->commit();
@@ -175,7 +175,7 @@ it('filters entries by multiple tags', function () {
 it('filters entries within a time range', function () {
     Chronicle::record()
         ->actor('system')
-        ->action('old')
+        ->action('time.old')
         ->subject('ledger')
         ->commit();
 
@@ -190,7 +190,7 @@ it('filters entries within a time range', function () {
 it('orders entries using latestFirst scope', function () {
     Chronicle::record()
         ->actor('system')
-        ->action('first')
+        ->action('order.first')
         ->subject('ledger')
         ->commit();
 
@@ -198,11 +198,11 @@ it('orders entries using latestFirst scope', function () {
 
     Chronicle::record()
         ->actor('system')
-        ->action('second')
+        ->action('order.second')
         ->subject('ledger')
         ->commit();
 
     $entries = Entry::latestFirst()->get();
 
-    expect($entries->first()->action)->toBe('second');
+    expect($entries->first()->action)->toBe('order.second');
 });

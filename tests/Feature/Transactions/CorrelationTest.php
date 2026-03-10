@@ -94,7 +94,7 @@ it('supports nested transactions with hierarchical correlation', function () {
 
         Chronicle::record()
             ->actor('system')
-            ->action('outer')
+            ->action('tx.outer')
             ->subject('ledger')
             ->commit();
 
@@ -102,7 +102,7 @@ it('supports nested transactions with hierarchical correlation', function () {
 
             Chronicle::record()
                 ->actor('system')
-                ->action('inner')
+                ->action('tx.inner')
                 ->subject('ledger')
                 ->commit();
 
@@ -126,13 +126,13 @@ it('allows querying entries by correlation id', function () {
 
     $tx->entry()
         ->actor('system')
-        ->action('first')
+        ->action('corr.first')
         ->subject('ledger')
         ->commit();
 
     $tx->entry()
         ->actor('system')
-        ->action('second')
+        ->action('corr.second')
         ->subject('ledger')
         ->commit();
 

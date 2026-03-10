@@ -7,7 +7,7 @@ use Illuminate\Support\Str;
 it('verifies an exported chronicle dataset', function () {
     Chronicle::record()
         ->actor('system')
-        ->action('test')
+        ->action('export.verify')
         ->subject('ledger')
         ->commit();
 

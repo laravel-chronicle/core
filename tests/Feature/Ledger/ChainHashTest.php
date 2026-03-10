@@ -6,13 +6,13 @@ use Chronicle\Models\Entry;
 it('creates a valid chain of entries', function () {
     Chronicle::record()
         ->actor('system')
-        ->action('a')
+        ->action('chain.first')
         ->subject('test')
         ->commit();
 
     Chronicle::record()
         ->actor('system')
-        ->action('b')
+        ->action('chain.second')
         ->subject('test')
         ->commit();
 

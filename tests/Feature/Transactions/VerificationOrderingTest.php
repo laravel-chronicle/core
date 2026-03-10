@@ -7,13 +7,13 @@ use Illuminate\Support\Facades\Artisan;
 it('verifies ledger deterministically when entries share created_at timestamps', function () {
     Chronicle::record()
         ->actor('system')
-        ->action('verify.order.one')
+        ->action('verify.one')
         ->subject('ledger')
         ->commit();
 
     Chronicle::record()
         ->actor('system')
-        ->action('verify.order.two')
+        ->action('verify.two')
         ->subject('ledger')
         ->commit();
 

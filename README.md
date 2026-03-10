@@ -313,9 +313,10 @@ before submitting pull requests.
 <!-- markdownlint-restore -->
 <!-- prettier-ignore-end -->
 
-<!-- ALL-CONTRIBUTORS-LIST:END -->---
+<!-- ALL-CONTRIBUTORS-LIST:END -->
 
 ---
+
 # Security
 
 If you discover a security vulnerability, please report it responsibly.

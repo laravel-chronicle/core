@@ -7,7 +7,7 @@ it('cursor paginates ledger entries', function () {
     for ($i = 0; $i < 5; $i++) {
         Chronicle::record()
             ->actor('system')
-            ->action('test')
+            ->action('cursor.test')
             ->subject('ledger')
             ->commit();
     }
@@ -20,7 +20,7 @@ it('cursor paginates ledger entries', function () {
 it('cursor paginates entries in reverse order', function () {
     Chronicle::record()
         ->actor('system')
-        ->action('first')
+        ->action('cursor.first')
         ->subject('ledger')
         ->commit();
 
@@ -28,11 +28,11 @@ it('cursor paginates entries in reverse order', function () {
 
     Chronicle::record()
         ->actor('system')
-        ->action('second')
+        ->action('cursor.second')
         ->subject('ledger')
         ->commit();
 
     $page = Entry::cursorPaginateLatest(1);
 
-    expect($page->first()->action)->toBe('second');
+    expect($page->first()->action)->toBe('cursor.second');
 });

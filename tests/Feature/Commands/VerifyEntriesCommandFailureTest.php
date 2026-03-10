@@ -8,7 +8,7 @@ use Illuminate\Support\Str;
 it('fails verify command when payload hash is tampered', function () {
     Chronicle::record()
         ->actor('system')
-        ->action('verify.tamper.payload')
+        ->action('verify.payload')
         ->subject('ledger')
         ->commit();
 
@@ -27,7 +27,7 @@ it('fails verify command when payload hash is tampered', function () {
 it('fails verify command when chain hash is tampered', function () {
     Chronicle::record()
         ->actor('system')
-        ->action('verify.tamper.chain')
+        ->action('verify.chain')
         ->subject('ledger')
         ->commit();
 
@@ -46,7 +46,7 @@ it('fails verify command when chain hash is tampered', function () {
 it('fails verify command when checkpoint signature is invalid', function () {
     Chronicle::record()
         ->actor('system')
-        ->action('verify.checkpoint.invalid-signature')
+        ->action('checkpoint.signature')
         ->subject('ledger')
         ->commit();
 
