@@ -12,6 +12,17 @@ breaking changes between any two versions — see upgrade notes per version.
 
 ## [Unreleased]
 
+### Added
+
+- Added `ActorPresenceValidator` to enforce that persisted entries always include both `actor_type` and `actor_id`.
+- Added validation coverage for missing, blank, and `system` actor references as part of PR #74.
+
+---
+
+### Changed
+
+- `EntryBuilder::actor('system')` now normalizes to `actor_type=system` and `actor_id=system` so system-generated entries are stored consistently.
+
 ---
 
 ## [1.1.0] - 2026-03-09
