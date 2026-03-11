@@ -6,6 +6,7 @@ use Chronicle\Contracts\StorageDriver;
 use Chronicle\Entry\PendingEntry;
 use Chronicle\Exceptions\InvalidActionException;
 use Chronicle\Extensions\ActionValidator;
+use Chronicle\Extensions\ActorPresenceValidator;
 use Chronicle\Extensions\ExtensionStage;
 use Chronicle\Facades\Chronicle;
 use Chronicle\Pipeline\EntryExtensionRegistry;
@@ -82,11 +83,14 @@ it('allows registering entry extensions through the facade', function () {
 });
 
 it('registers the action validator from config', function () {
-    config()->set('chronicle.extensions', [ActionValidator::class]);
+    config()->set('chronicle.extensions', [ActorPresenceValidator::class, ActionValidator::class]);
     app()->forgetInstance(EntryExtensionRegistry::class);
 
     expect(collect(app(EntryExtensionRegistry::class)->ordered())
-        ->contains(fn ($extension): bool => $extension instanceof ActionValidator))
+        ->contains(fn ($extension): bool => $extension instanceof ActorPresenceValidator))
+        ->toBeTrue()
+        ->and(collect(app(EntryExtensionRegistry::class)->ordered())
+            ->contains(fn ($extension): bool => $extension instanceof ActionValidator))
         ->toBeTrue();
 });
 

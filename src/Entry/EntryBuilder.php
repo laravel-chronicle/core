@@ -332,7 +332,7 @@ class EntryBuilder
     {
         $this->validate();
 
-        $actor = $this->resolver->resolve($this->actor);
+        $actor = $this->resolveActor();
         $subject = $this->resolver->resolve($this->subject);
 
         if (! $this->correlationId) {
@@ -353,6 +353,15 @@ class EntryBuilder
             'correlation_id' => $this->correlationId,
             'created_at' => Carbon::now('UTC'),
         ];
+    }
+
+    protected function resolveActor(): \Chronicle\Reference
+    {
+        if ($this->actor === 'system') {
+            return new \Chronicle\Reference('system', 'system');
+        }
+
+        return $this->resolver->resolve($this->actor);
     }
 
     /**

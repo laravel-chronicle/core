@@ -67,6 +67,7 @@ return [
     |
     */
     'extensions' => [
+        \Chronicle\Extensions\ActorPresenceValidator::class,
         \Chronicle\Extensions\ActionValidator::class,
     ],
 ];

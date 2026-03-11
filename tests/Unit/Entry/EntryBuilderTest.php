@@ -153,6 +153,32 @@ it('accepts action set to string zero', function () {
     expect($entry['action'])->toBe('0');
 });
 
+it('normalizes the system actor without using the resolver', function () {
+    $resolver = mock(ReferenceResolver::class);
+
+    $resolver
+        ->shouldReceive('resolve')
+        ->once()
+        ->andReturn(new Reference('invoice', '10'));
+
+    $manager = mock(ChronicleManager::class);
+    $manager
+        ->shouldReceive('currentCorrelation')
+        ->andReturn(null)
+        ->byDefault();
+
+    $builder = new EntryBuilder($resolver, $manager);
+
+    $entry = $builder
+        ->actor('system')
+        ->action('invoice.created')
+        ->subject('invoice:10')
+        ->build();
+
+    expect($entry['actor_type'])->toBe('system')
+        ->and($entry['actor_id'])->toBe('system');
+});
+
 it('throws exception when action is blank whitespace', function () {
     $resolver = mock(ReferenceResolver::class);
 
