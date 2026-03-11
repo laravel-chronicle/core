@@ -3,7 +3,7 @@
 use Chronicle\Contracts\EntryExtension;
 use Chronicle\Contracts\PrioritizedEntryExtension;
 use Chronicle\Entry\PendingEntry;
-use Chronicle\Extensions\ExtensionStage;
+use Chronicle\Pipeline\ExtensionStage;
 use Chronicle\Pipeline\EntryExtensionRegistry;
 use Chronicle\Pipeline\RunExtensions;
 use Illuminate\Support\Carbon;

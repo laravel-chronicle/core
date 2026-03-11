@@ -1,8 +1,8 @@
 <?php
 
-use Chronicle\Export\ExportChainVerifier;
-use Chronicle\Export\ExportManager;
-use Chronicle\Export\ExportVerifier;
+use Chronicle\Exports\ExportManager;
+use Chronicle\Verification\ExportChainVerifier;
+use Chronicle\Verification\ExportVerifier;
 use Chronicle\Facades\Chronicle;
 use Illuminate\Support\Str;
 

@@ -2,7 +2,7 @@
 
 namespace Chronicle\Console\Commands;
 
-use Chronicle\Export\ExportVerifier;
+use Chronicle\Verification\ExportVerifier;
 use Illuminate\Console\Command;
 
 /**

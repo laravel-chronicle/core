@@ -1,7 +1,8 @@
 <?php
 
-namespace Chronicle\Models;
+namespace Chronicle\Checkpoints;
 
+use Chronicle\Entry\Entry;
 use Chronicle\Exceptions\ImmutabilityViolationException;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;

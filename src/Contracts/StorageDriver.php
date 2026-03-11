@@ -2,8 +2,7 @@
 
 namespace Chronicle\Contracts;
 
-use Chronicle\Entry\PendingEntry;
-use Chronicle\Models\Entry;
+use Chronicle\Entry\Entry;
 
 /**
  * Contract for all Chronicle storage backends.

@@ -1,6 +1,6 @@
 <?php
 
-use Chronicle\Export\ExportHasher;
+use Chronicle\Exports\ExportHasher;
 
 it('computes a sha256 hash for a file', function () {
     $path = storage_path('test-hash.txt');

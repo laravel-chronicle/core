@@ -1,7 +1,7 @@
 <?php
 
+use Chronicle\Checkpoints\Checkpoint;
 use Chronicle\Facades\Chronicle;
-use Chronicle\Models\Checkpoint;
 
 it('creates a checkpoint', function () {
     Chronicle::record()

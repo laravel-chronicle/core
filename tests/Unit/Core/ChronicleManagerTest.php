@@ -6,7 +6,7 @@ use Chronicle\Contracts\LedgerReader;
 use Chronicle\Contracts\ReferenceResolver;
 use Chronicle\Entry\EntryBuilder;
 use Chronicle\Entry\PendingEntry;
-use Chronicle\Extensions\ExtensionStage;
+use Chronicle\Pipeline\ExtensionStage;
 use Chronicle\Pipeline\EntryExtensionRegistry;
 use Chronicle\Pipeline\EntryPipeline;
 use Chronicle\Storage\ArrayDriver;

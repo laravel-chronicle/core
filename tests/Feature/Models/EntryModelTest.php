@@ -1,7 +1,7 @@
 <?php
 
+use Chronicle\Entry\Entry;
 use Chronicle\Exceptions\ImmutabilityViolationException;
-use Chronicle\Models\Entry;
 
 it('can create a chronicle entry', function () {
 

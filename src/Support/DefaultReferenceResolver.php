@@ -3,7 +3,7 @@
 namespace Chronicle\Support;
 
 use Chronicle\Contracts\ReferenceResolver;
-use Chronicle\Reference;
+use Chronicle\Support\Reference;
 use Illuminate\Database\Eloquent\Model;
 use InvalidArgumentException;
 

@@ -2,7 +2,7 @@
 
 namespace Chronicle\Repositories;
 
-use Chronicle\Models\Entry;
+use Chronicle\Entry\Entry;
 
 /**
  * Provides read operations for Chronicle entries.

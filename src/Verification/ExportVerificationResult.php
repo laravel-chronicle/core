@@ -1,6 +1,6 @@
 <?php
 
-namespace Chronicle\Export;
+namespace Chronicle\Verification;
 
 /**
  * Result of verifying a Chronicle export dataset.

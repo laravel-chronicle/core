@@ -1,7 +1,7 @@
 <?php
 
-use Chronicle\Export\ExportManager;
-use Chronicle\Export\ExportVerifier;
+use Chronicle\Exports\ExportManager;
+use Chronicle\Verification\ExportVerifier;
 use Chronicle\Facades\Chronicle;
 use Illuminate\Support\Str;
 

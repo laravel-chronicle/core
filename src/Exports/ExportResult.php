@@ -1,6 +1,6 @@
 <?php
 
-namespace Chronicle\Export;
+namespace Chronicle\Exports;
 
 /**
  * Represents the result of a Chronicle dataset export.

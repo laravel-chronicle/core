@@ -1,7 +1,7 @@
 <?php
 
+use Chronicle\Entry\Entry;
 use Chronicle\Facades\Chronicle;
-use Chronicle\Models\Entry;
 
 it('creates a valid chain of entries', function () {
     Chronicle::record()

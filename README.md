@@ -118,7 +118,7 @@ If any entry is modified or removed, the chain becomes invalid.
 Chronicle provides expressive query scopes:
 
 ```php
-use Chronicle\Models\Entry;
+use Chronicle\Entry\Entry;
 
 Entry::forActor($user);
 Entry::forSubect($order);
@@ -137,7 +137,7 @@ Chronicle supports streaming entries using database cursors.
 This allows processing very large ledgers with constant memory usage.
 
 ```php
-use Chronicle\Models\Entry;
+use Chronicle\Entry\Entry;
 
 Entry::stream()->each(function ($entry) {
     // process entry
@@ -151,7 +151,7 @@ Entry::stream()->each(function ($entry) {
 Chronicle includes cursor pagination for efficient browsing of large audit logs.
 
 ```php
-use Chronicle\Models\Entry;
+use Chronicle\Entry\Entry;
 
 Entry::cursorPaginateLedger(50);
 ```

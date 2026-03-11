@@ -1,9 +1,9 @@
 <?php
 
 use Chronicle\Exceptions\ExportWriteException;
-use Chronicle\Export\ExportManager;
-use Chronicle\Export\ExportManifestBuilder;
-use Chronicle\Export\ExportSigner;
+use Chronicle\Exports\ExportManager;
+use Chronicle\Exports\ExportManifestBuilder;
+use Chronicle\Exports\ExportSigner;
 use Chronicle\Facades\Chronicle;
 use Illuminate\Support\Str;
 

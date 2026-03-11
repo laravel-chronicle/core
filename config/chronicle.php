@@ -1,8 +1,8 @@
 <?php
 
-use Chronicle\Extensions\ActionValidator;
-use Chronicle\Extensions\ActorPresenceValidator;
 use Chronicle\Signing\Ed25519SigningProvider;
+use Chronicle\Validation\ActionValidator;
+use Chronicle\Validation\ActorPresenceValidator;
 
 return [
     /*

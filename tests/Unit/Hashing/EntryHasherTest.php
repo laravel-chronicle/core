@@ -2,7 +2,7 @@
 
 use Chronicle\Entry\PendingEntry;
 use Chronicle\Hashing\EntryHasher;
-use Chronicle\Serialization\CanonicalPayloadSerializer;
+use Chronicle\Support\CanonicalPayloadSerializer;
 
 it('generates deterministic payload hash', function () {
     $serializer = new CanonicalPayloadSerializer;

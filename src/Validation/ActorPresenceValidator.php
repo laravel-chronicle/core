@@ -1,11 +1,12 @@
 <?php
 
-namespace Chronicle\Extensions;
+namespace Chronicle\Validation;
 
 use Chronicle\Contracts\EntryExtension;
 use Chronicle\Contracts\PrioritizedEntryExtension;
 use Chronicle\Entry\PendingEntry;
 use Chronicle\Exceptions\MissingActorException;
+use Chronicle\Pipeline\ExtensionStage;
 
 class ActorPresenceValidator implements EntryExtension, PrioritizedEntryExtension
 {

@@ -2,7 +2,7 @@
 
 namespace Chronicle\Contracts;
 
-use Chronicle\Models\Entry;
+use Chronicle\Entry\Entry;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Pagination\CursorPaginator;
 use Illuminate\Support\Collection;

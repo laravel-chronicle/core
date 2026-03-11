@@ -1,6 +1,6 @@
 <?php
 
-use Chronicle\Serialization\CanonicalPayloadSerializer;
+use Chronicle\Support\CanonicalPayloadSerializer;
 
 it('produces deterministic json', function () {
     $serializer = new CanonicalPayloadSerializer;

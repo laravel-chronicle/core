@@ -4,7 +4,7 @@ namespace Chronicle\Pipeline;
 
 use Chronicle\Contracts\EntryProcessor;
 use Chronicle\Entry\PendingEntry;
-use Chronicle\Serialization\CanonicalPayloadSerializer;
+use Chronicle\Support\CanonicalPayloadSerializer;
 use JsonException;
 
 /**

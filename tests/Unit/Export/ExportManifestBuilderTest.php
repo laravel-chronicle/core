@@ -1,7 +1,7 @@
 <?php
 
 use Chronicle\Contracts\SigningProvider;
-use Chronicle\Export\ExportManifestBuilder;
+use Chronicle\Exports\ExportManifestBuilder;
 
 it('builds an export manifest', function () {
 

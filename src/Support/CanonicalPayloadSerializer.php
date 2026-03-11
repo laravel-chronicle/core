@@ -1,6 +1,6 @@
 <?php
 
-namespace Chronicle\Serialization;
+namespace Chronicle\Support;
 
 use DateTimeInterface;
 use JsonException;

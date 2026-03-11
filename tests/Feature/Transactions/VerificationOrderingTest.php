@@ -1,7 +1,7 @@
 <?php
 
+use Chronicle\Entry\Entry;
 use Chronicle\Facades\Chronicle;
-use Chronicle\Models\Entry;
 use Illuminate\Support\Facades\Artisan;
 
 it('verifies ledger deterministically when entries share created_at timestamps', function () {

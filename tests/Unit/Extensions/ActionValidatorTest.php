@@ -2,7 +2,7 @@
 
 use Chronicle\Entry\PendingEntry;
 use Chronicle\Exceptions\InvalidActionException;
-use Chronicle\Extensions\ActionValidator;
+use Chronicle\Validation\ActionValidator;
 use Illuminate\Support\Carbon;
 
 function makeActionValidatorPending(mixed $action = 'orders.created'): PendingEntry

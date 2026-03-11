@@ -1,12 +1,12 @@
 <?php
 
-namespace Chronicle\Integrity;
+namespace Chronicle\Verification;
 
+use Chronicle\Checkpoints\Checkpoint;
 use Chronicle\Contracts\SigningProvider;
+use Chronicle\Entry\Entry;
 use Chronicle\Hashing\ChainHasher;
-use Chronicle\Models\Checkpoint;
-use Chronicle\Models\Entry;
-use Chronicle\Serialization\CanonicalPayloadSerializer;
+use Chronicle\Support\CanonicalPayloadSerializer;
 
 /**
  * Performs full Chronicle entries integrity verification.

@@ -7,7 +7,7 @@ use Chronicle\Contracts\ReferenceResolver;
 use Chronicle\Exceptions\MissingActionException;
 use Chronicle\Exceptions\MissingActorException;
 use Chronicle\Exceptions\MissingSubjectException;
-use Chronicle\Reference;
+use Chronicle\Support\Reference;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;

@@ -3,7 +3,7 @@
 namespace Chronicle\Contracts;
 
 use Chronicle\Entry\PendingEntry;
-use Chronicle\Extensions\ExtensionStage;
+use Chronicle\Pipeline\ExtensionStage;
 
 interface EntryExtension
 {
