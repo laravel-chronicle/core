@@ -1,8 +1,9 @@
 <?php
 
-namespace Chronicle\Models;
+namespace Chronicle\Entry;
 
 use Carbon\CarbonInterface;
+use Chronicle\Checkpoints\Checkpoint;
 use Chronicle\Exceptions\ImmutabilityViolationException;
 use Illuminate\Contracts\Pagination\CursorPaginator;
 use Illuminate\Database\Eloquent\Builder;

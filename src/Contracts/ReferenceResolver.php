@@ -2,7 +2,7 @@
 
 namespace Chronicle\Contracts;
 
-use Chronicle\Reference;
+use Chronicle\Support\Reference;
 
 /**
  * Interface ReferenceResolver

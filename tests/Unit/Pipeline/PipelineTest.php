@@ -2,12 +2,12 @@
 
 use Chronicle\Contracts\EntryProcessor;
 use Chronicle\Contracts\StorageDriver;
+use Chronicle\Entry\Entry;
 use Chronicle\Entry\PendingEntry;
-use Chronicle\Models\Entry;
 use Chronicle\Pipeline\CanonicalizePayload;
 use Chronicle\Pipeline\EntryPipeline;
 use Chronicle\Pipeline\PersistEntry;
-use Chronicle\Serialization\CanonicalPayloadSerializer;
+use Chronicle\Support\CanonicalPayloadSerializer;
 use Illuminate\Support\Carbon;
 
 function makePipelinePending(array $overrides = []): PendingEntry

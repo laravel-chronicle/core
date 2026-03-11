@@ -1,6 +1,6 @@
 <?php
 
-use Chronicle\Export\ExportManager;
+use Chronicle\Exports\ExportManager;
 use Chronicle\Facades\Chronicle;
 use Illuminate\Support\Str;
 

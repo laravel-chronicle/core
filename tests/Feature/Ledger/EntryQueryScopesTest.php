@@ -1,7 +1,7 @@
 <?php
 
+use Chronicle\Entry\Entry;
 use Chronicle\Facades\Chronicle;
-use Chronicle\Models\Entry;
 use Chronicle\Tests\Fakes\FakeActor;
 use Chronicle\Tests\Fakes\FakeSubject;
 use Illuminate\Database\Schema\Blueprint;

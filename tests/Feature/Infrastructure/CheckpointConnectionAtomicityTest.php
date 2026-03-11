@@ -1,8 +1,8 @@
 <?php
 
-use Chronicle\Checkpoint\CheckpointCreator;
+use Chronicle\Checkpoints\Checkpoint;
+use Chronicle\Checkpoints\CheckpointCreator;
 use Chronicle\Facades\Chronicle;
-use Chronicle\Models\Checkpoint;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Str;

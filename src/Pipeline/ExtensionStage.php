@@ -1,6 +1,6 @@
 <?php
 
-namespace Chronicle\Extensions;
+namespace Chronicle\Pipeline;
 
 /**
  * Ordered extension stages executed before Chronicle core processing.

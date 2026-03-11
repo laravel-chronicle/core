@@ -1,6 +1,6 @@
 <?php
 
-use Chronicle\Export\EntryExporter;
+use Chronicle\Exports\EntryExporter;
 use Chronicle\Facades\Chronicle;
 
 it('exports entries to ndjson', function () {

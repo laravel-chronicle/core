@@ -6,7 +6,7 @@ use Chronicle\Entry\EntryBuilder;
 use Chronicle\Exceptions\MissingActionException;
 use Chronicle\Exceptions\MissingActorException;
 use Chronicle\Exceptions\MissingSubjectException;
-use Chronicle\Reference;
+use Chronicle\Support\Reference;
 
 it('builds a valid entry payload', function () {
     $resolver = mock(ReferenceResolver::class);

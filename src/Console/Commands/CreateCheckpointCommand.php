@@ -2,7 +2,7 @@
 
 namespace Chronicle\Console\Commands;
 
-use Chronicle\Checkpoint\CheckpointCreator;
+use Chronicle\Checkpoints\CheckpointCreator;
 use Illuminate\Console\Command;
 use Throwable;
 

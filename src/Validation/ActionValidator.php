@@ -1,11 +1,12 @@
 <?php
 
-namespace Chronicle\Extensions;
+namespace Chronicle\Validation;
 
 use Chronicle\Contracts\EntryExtension;
 use Chronicle\Contracts\PrioritizedEntryExtension;
 use Chronicle\Entry\PendingEntry;
 use Chronicle\Exceptions\InvalidActionException;
+use Chronicle\Pipeline\ExtensionStage;
 
 class ActionValidator implements EntryExtension, PrioritizedEntryExtension
 {

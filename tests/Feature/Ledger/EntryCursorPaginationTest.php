@@ -1,7 +1,7 @@
 <?php
 
+use Chronicle\Entry\Entry;
 use Chronicle\Facades\Chronicle;
-use Chronicle\Models\Entry;
 
 it('cursor paginates ledger entries', function () {
     for ($i = 0; $i < 5; $i++) {

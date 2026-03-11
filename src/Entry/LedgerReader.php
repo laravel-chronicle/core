@@ -1,9 +1,8 @@
 <?php
 
-namespace Chronicle;
+namespace Chronicle\Entry;
 
 use Chronicle\Contracts\LedgerReader as LedgerReaderContract;
-use Chronicle\Models\Entry;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Pagination\CursorPaginator;
 use Illuminate\Support\Collection;

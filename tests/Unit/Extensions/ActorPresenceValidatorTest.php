@@ -2,7 +2,7 @@
 
 use Chronicle\Entry\PendingEntry;
 use Chronicle\Exceptions\MissingActorException;
-use Chronicle\Extensions\ActorPresenceValidator;
+use Chronicle\Validation\ActorPresenceValidator;
 use Illuminate\Support\Carbon;
 
 function makeActorPresencePending(array $overrides = []): PendingEntry

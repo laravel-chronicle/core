@@ -1,6 +1,6 @@
 <?php
 
-namespace Chronicle\Export;
+namespace Chronicle\Verification;
 
 use JsonException;
 

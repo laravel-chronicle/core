@@ -3,8 +3,7 @@
 namespace Chronicle\Storage;
 
 use Chronicle\Contracts\StorageDriver;
-use Chronicle\Entry\PendingEntry;
-use Chronicle\Models\Entry;
+use Chronicle\Entry\Entry;
 use Illuminate\Support\Collection;
 
 /**

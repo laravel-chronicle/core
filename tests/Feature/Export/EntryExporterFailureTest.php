@@ -1,9 +1,9 @@
 <?php
 
+use Chronicle\Entry\Entry;
 use Chronicle\Exceptions\ExportWriteException;
-use Chronicle\Export\EntryExporter;
+use Chronicle\Exports\EntryExporter;
 use Chronicle\Facades\Chronicle;
-use Chronicle\Models\Entry;
 use Illuminate\Support\Str;
 
 if (! class_exists('ChronicleFailingWriteStream')) {

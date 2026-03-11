@@ -1,6 +1,6 @@
 <?php
 
-namespace Chronicle\Integrity;
+namespace Chronicle\Verification;
 
 /**
  * Represents the outcome of a Chronicle ledger

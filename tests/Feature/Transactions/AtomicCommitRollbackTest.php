@@ -1,8 +1,8 @@
 <?php
 
 use Chronicle\Contracts\StorageDriver;
+use Chronicle\Entry\Entry;
 use Chronicle\Facades\Chronicle;
-use Chronicle\Models\Entry;
 use Illuminate\Support\Facades\DB;
 
 it('rolls back chronicle commit when persistence fails after insert', function () {

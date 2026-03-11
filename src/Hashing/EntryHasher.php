@@ -3,7 +3,7 @@
 namespace Chronicle\Hashing;
 
 use Chronicle\Entry\PendingEntry;
-use Chronicle\Serialization\CanonicalPayloadSerializer;
+use Chronicle\Support\CanonicalPayloadSerializer;
 use JsonException;
 
 /**

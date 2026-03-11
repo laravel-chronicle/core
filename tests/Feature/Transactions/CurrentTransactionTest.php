@@ -1,7 +1,7 @@
 <?php
 
+use Chronicle\Entry\Entry;
 use Chronicle\Facades\Chronicle;
-use Chronicle\Models\Entry;
 
 it('returns null when no transaction exists', function () {
     expect(Chronicle::currentTransaction())->toBeNull();

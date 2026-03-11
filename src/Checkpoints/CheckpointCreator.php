@@ -1,10 +1,9 @@
 <?php
 
-namespace Chronicle\Checkpoint;
+namespace Chronicle\Checkpoints;
 
 use Chronicle\Contracts\SigningProvider;
-use Chronicle\Models\Checkpoint;
-use Chronicle\Models\Entry;
+use Chronicle\Entry\Entry;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use RuntimeException;

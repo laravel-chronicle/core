@@ -1,6 +1,6 @@
 <?php
 
-namespace Chronicle\Export;
+namespace Chronicle\Exports;
 
 use Chronicle\Contracts\SigningProvider;
 use Chronicle\Exceptions\ExportWriteException;

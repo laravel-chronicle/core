@@ -3,9 +3,9 @@
 namespace Chronicle\Pipeline;
 
 use Chronicle\Contracts\EntryProcessor;
+use Chronicle\Entry\Entry;
 use Chronicle\Entry\PendingEntry;
 use Chronicle\Hashing\ChainHasher;
-use Chronicle\Models\Entry;
 
 /**
  * Pipeline processor that attaches the entry chain hash.

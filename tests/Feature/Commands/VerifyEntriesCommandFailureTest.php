@@ -1,8 +1,8 @@
 <?php
 
+use Chronicle\Checkpoints\Checkpoint;
+use Chronicle\Entry\Entry;
 use Chronicle\Facades\Chronicle;
-use Chronicle\Models\Checkpoint;
-use Chronicle\Models\Entry;
 use Illuminate\Support\Str;
 
 it('fails verify command when payload hash is tampered', function () {

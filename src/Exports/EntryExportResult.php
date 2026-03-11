@@ -1,6 +1,6 @@
 <?php
 
-namespace Chronicle\Export;
+namespace Chronicle\Exports;
 
 /**
  * Value object representing the result of exporting Chronicle entries.

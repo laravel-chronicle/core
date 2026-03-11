@@ -2,7 +2,7 @@
 
 namespace Chronicle\Console\Commands;
 
-use Chronicle\Export\ExportManager;
+use Chronicle\Exports\ExportManager;
 use Illuminate\Console\Command;
 use Throwable;
 

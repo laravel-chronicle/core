@@ -3,7 +3,7 @@
 namespace Chronicle\Storage;
 
 use Chronicle\Contracts\StorageDriver;
-use Chronicle\Models\Entry;
+use Chronicle\Entry\Entry;
 use Illuminate\Support\Facades\DB;
 
 /**

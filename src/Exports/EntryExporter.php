@@ -1,9 +1,9 @@
 <?php
 
-namespace Chronicle\Export;
+namespace Chronicle\Exports;
 
+use Chronicle\Entry\Entry;
 use Chronicle\Exceptions\ExportWriteException;
-use Chronicle\Models\Entry;
 use JsonException;
 
 /**

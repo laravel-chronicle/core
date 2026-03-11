@@ -2,8 +2,8 @@
 
 namespace Chronicle\Console\Commands;
 
-use Chronicle\Integrity\IntegrityVerifier;
-use Chronicle\Models\Entry;
+use Chronicle\Entry\Entry;
+use Chronicle\Verification\IntegrityVerifier;
 use Illuminate\Console\Command;
 
 /**

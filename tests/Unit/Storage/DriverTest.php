@@ -1,6 +1,6 @@
 <?php
 
-use Chronicle\Models\Entry;
+use Chronicle\Entry\Entry;
 use Chronicle\Storage\ArrayDriver;
 use Chronicle\Storage\NullDriver;
 use Illuminate\Support\Carbon;
