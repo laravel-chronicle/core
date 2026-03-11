@@ -26,7 +26,7 @@ it('handles export manager exceptions at command level', function () {
     $exports = Mockery::mock(ExportManager::class);
     $exports->shouldReceive('export')
         ->once()
-        ->andThrow(new \RuntimeException('simulated export failure'));
+        ->andThrow(new RuntimeException('simulated export failure'));
 
     app()->instance(ExportManager::class, $exports);
 

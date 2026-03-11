@@ -144,7 +144,7 @@ class ChronicleServiceProvider extends ServiceProvider
     protected function registerLedgerReader(): void
     {
         $this->app->singleton(LedgerReaderContract::class, EloquentLedgerReader::class);
-        $this->app->singleton(LedgerReader::class, EloquentLedgerReader::class);
+        $this->app->singleton(EloquentLedgerReader::class, EloquentLedgerReader::class);
     }
 
     protected function registerExports(): void

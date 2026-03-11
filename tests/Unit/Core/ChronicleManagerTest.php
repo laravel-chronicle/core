@@ -201,7 +201,7 @@ it('throws when custom driver factory returns invalid type', function () {
         extensions: app(EntryExtensionRegistry::class),
     );
 
-    $manager->extendDriver('invalid', fn (): \stdClass => new \stdClass);
+    $manager->extendDriver('invalid', fn (): stdClass => new stdClass);
     $manager->driver('invalid');
 })->throws(InvalidArgumentException::class);
 

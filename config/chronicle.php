@@ -1,5 +1,9 @@
 <?php
 
+use Chronicle\Extensions\ActionValidator;
+use Chronicle\Extensions\ActorPresenceValidator;
+use Chronicle\Signing\Ed25519SigningProvider;
+
 return [
     /*
     |--------------------------------------------------------------------------
@@ -44,7 +48,7 @@ return [
     ],
 
     'signing' => [
-        'provider' => \Chronicle\Signing\Ed25519SigningProvider::class,
+        'provider' => Ed25519SigningProvider::class,
         'key_id' => env('CHRONICLE_KEY_ID', 'chronicle-dev-key'),
         'private_key' => env('CHRONICLE_PRIVATE_KEY'),
         'public_key' => env('CHRONICLE_PUBLIC_KEY'),
@@ -67,6 +71,7 @@ return [
     |
     */
     'extensions' => [
-        \Chronicle\Extensions\ActionValidator::class,
+        ActorPresenceValidator::class,
+        ActionValidator::class,
     ],
 ];
