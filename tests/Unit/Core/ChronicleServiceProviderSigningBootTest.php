@@ -21,7 +21,7 @@ it('throws in non-testing environments when signing provider cannot be resolved'
     };
 
     expect(fn () => $provider->runSigningSanityCheck())
-        ->toThrow(\RuntimeException::class, 'Invalid Chronicle signing configuration');
+        ->toThrow(RuntimeException::class, 'Invalid Chronicle signing configuration');
 });
 
 it('passes in non-testing environments when signing provider resolves', function () {

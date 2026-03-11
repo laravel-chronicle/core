@@ -7,6 +7,7 @@ use Chronicle\Contracts\ReferenceResolver;
 use Chronicle\Exceptions\MissingActionException;
 use Chronicle\Exceptions\MissingActorException;
 use Chronicle\Exceptions\MissingSubjectException;
+use Chronicle\Reference;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
@@ -355,10 +356,10 @@ class EntryBuilder
         ];
     }
 
-    protected function resolveActor(): \Chronicle\Reference
+    protected function resolveActor(): Reference
     {
         if ($this->actor === 'system') {
-            return new \Chronicle\Reference('system', 'system');
+            return new Reference('system', 'system');
         }
 
         return $this->resolver->resolve($this->actor);
