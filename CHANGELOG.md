@@ -16,12 +16,17 @@ breaking changes between any two versions — see upgrade notes per version.
 
 - Added `ActorPresenceValidator` to enforce that persisted entries always include both `actor_type` and `actor_id`.
 - Added validation coverage for missing, blank, and `system` actor references as part of PR #74.
+- Added `ActionValidator` as a built-in entry extension to enforce Chronicle action naming rules before persistence.
+- Added `InvalidActionException` for explicit failures when actions are not strings, exceed the configured maximum length, or do not use two-segment dot notation such as `domain.event`.
+- Added `chronicle.validation.action_max_length` configuration to control the maximum allowed action length.
 
 ---
 
 ### Changed
 
 - `EntryBuilder::actor('system')` now normalizes to `actor_type=system` and `actor_id=system` so system-generated entries are stored consistently.
+- Chronicle now registers `ActionValidator` by default through `chronicle.extensions`, so invalid action names are rejected during the validation stage.
+- Updated tests and examples to use valid dot-notation action names consistently.
 
 ---
 
