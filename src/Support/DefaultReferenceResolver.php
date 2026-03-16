@@ -3,7 +3,6 @@
 namespace Chronicle\Support;
 
 use Chronicle\Contracts\ReferenceResolver;
-use Chronicle\Support\Reference;
 use Illuminate\Database\Eloquent\Model;
 use InvalidArgumentException;
 
@@ -36,8 +35,7 @@ class DefaultReferenceResolver implements ReferenceResolver
         }
 
         if (is_object($value) && isset($value->id)) {
-            /** @var string $id */
-            $id = $value->id;
+            $id = (string) $value->id;
 
             return new Reference(
                 $value::class,
@@ -55,8 +53,10 @@ class DefaultReferenceResolver implements ReferenceResolver
      */
     protected function resolveModel(Model $model): Reference
     {
-        /** @var string $id */
-        $id = $model->getKey();
+        /** @var string $key */
+        $key = $model->getKey();
+
+        $id = (string) $key;
 
         return new Reference(
             $model::class,

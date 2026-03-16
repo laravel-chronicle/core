@@ -7,6 +7,7 @@ use Chronicle\Contracts\SigningProvider;
 use Chronicle\Entry\Entry;
 use Chronicle\Hashing\ChainHasher;
 use Chronicle\Support\CanonicalPayloadSerializer;
+use JsonException;
 
 /**
  * Performs full Chronicle entries integrity verification.
@@ -31,6 +32,10 @@ class IntegrityVerifier
 
     /**
      * Verify the entire ledger.
+     *
+     * @param  callable(int $processed, int $total): void|null  $onProgress
+     *
+     * @throws JsonException
      */
     public function verify(?callable $onProgress = null): VerificationResult
     {
@@ -39,6 +44,9 @@ class IntegrityVerifier
         $total = Entry::query()->count();
 
         $result = new VerificationResult;
+
+        /** @var array<string, bool> $verifiedCheckpoints */
+        $verifiedCheckpoints = [];
 
         /** @var Entry $entry */
         foreach (Entry::query()->orderBy('created_at')->orderBy('id')->cursor() as $entry) {
@@ -73,8 +81,8 @@ class IntegrityVerifier
                 return $result;
             }
 
-            // Checkpoint verification
-            if ($entry->checkpoint_id) {
+            // Checkpoint verification — each unique checkpoint is fetched and verified once
+            if ($entry->checkpoint_id && ! isset($verifiedCheckpoints[$entry->checkpoint_id])) {
                 $checkpoint = Checkpoint::find($entry->checkpoint_id);
 
                 if (! $checkpoint) {
@@ -99,6 +107,8 @@ class IntegrityVerifier
 
                     return $result;
                 }
+
+                $verifiedCheckpoints[$entry->checkpoint_id] = true;
             }
 
             $previousChain = $entry->chain_hash;

@@ -57,17 +57,17 @@ class InstallCommand extends Command
         }
 
         if ($this->confirm('Would you like to star our repo on GitHub?')) {
-            $repoUrl = 'https://github.com/laravel-chronicle/core';
+            $repoUrl = escapeshellarg('https://github.com/laravel-chronicle/core');
 
-            if (PHP_OS_FAMILY == 'Darwin') {
+            if (PHP_OS_FAMILY === 'Darwin') {
                 exec("open $repoUrl");
             }
 
-            if (PHP_OS_FAMILY == 'Windows') {
+            if (PHP_OS_FAMILY === 'Windows') {
                 exec("start $repoUrl");
             }
 
-            if (PHP_OS_FAMILY == 'Linux') {
+            if (PHP_OS_FAMILY === 'Linux') {
                 exec("xdg-open $repoUrl");
             }
         }

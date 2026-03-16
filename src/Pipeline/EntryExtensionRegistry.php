@@ -13,9 +13,9 @@ class EntryExtensionRegistry
     /**
      * Legacy extension class aliases kept for backward compatibility.
      *
-     * @var array<class-string, class-string>
+     * @var array<string, string>
      */
-    protected const LEGACY_CLASS_MAP = [
+    private static array $legacyClassMap = [
         'Chronicle\\Extensions\\ActorPresenceValidator' => 'Chronicle\\Validation\\ActorPresenceValidator',
         'Chronicle\\Extensions\\ActionValidator' => 'Chronicle\\Validation\\ActionValidator',
     ];
@@ -35,7 +35,7 @@ class EntryExtensionRegistry
     public function register(EntryExtension|string $extension): void
     {
         if (is_string($extension)) {
-            $extension = self::LEGACY_CLASS_MAP[$extension] ?? $extension;
+            $extension = self::$legacyClassMap[$extension] ?? $extension;
             $resolved = $this->container->make($extension);
 
             if (! $resolved instanceof EntryExtension) {

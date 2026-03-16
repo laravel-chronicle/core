@@ -4,9 +4,15 @@ namespace Chronicle\Exceptions;
 
 class ExportWriteException extends ChronicleException
 {
-    public static function directoryCreationFailed(string $path): self
+    public static function directoryCreationFailed(string $path, ?string $reason = null): self
     {
-        return new self("Unable to create export directory: {$path}");
+        $message = "Unable to create export directory: {$path}";
+
+        if ($reason !== null) {
+            $message .= " ({$reason})";
+        }
+
+        return new self($message);
     }
 
     public static function encodeFailed(string $target): self

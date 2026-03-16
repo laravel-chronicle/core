@@ -5,16 +5,16 @@ use Chronicle\Contracts\ReferenceResolver;
 use Chronicle\Contracts\StorageDriver;
 use Chronicle\Entry\PendingEntry;
 use Chronicle\Exceptions\InvalidActionException;
-use Chronicle\Pipeline\ExtensionStage;
-use Chronicle\Validation\ActionValidator;
-use Chronicle\Validation\ActorPresenceValidator;
 use Chronicle\Facades\Chronicle;
 use Chronicle\Pipeline\EntryExtensionRegistry;
 use Chronicle\Pipeline\EntryPipeline;
+use Chronicle\Pipeline\ExtensionStage;
 use Chronicle\Storage\ArrayDriver;
+use Chronicle\Storage\DatabaseDriver;
 use Chronicle\Storage\DriverResolver;
-use Chronicle\Storage\EloquentDriver;
 use Chronicle\Storage\NullDriver;
+use Chronicle\Validation\ActionValidator;
+use Chronicle\Validation\ActorPresenceValidator;
 
 it('binds entry store', function () {
     expect(app(StorageDriver::class))->not->toBeNull();
@@ -27,7 +27,7 @@ it('binds reference resolver', function () {
 it('resolves eloquent driver store', function () {
     config()->set('chronicle.driver', 'eloquent');
 
-    expect(app(StorageDriver::class))->toBeInstanceOf(EloquentDriver::class);
+    expect(app(StorageDriver::class))->toBeInstanceOf(DatabaseDriver::class);
 });
 
 it('resolves array driver store', function () {

@@ -38,6 +38,8 @@ use Illuminate\Support\LazyCollection;
  * @property string $correlation_id
  * @property string[]|null $diff
  * @property Carbon $created_at
+ * @property array<string,mixed> $metadata
+ * @property array<string,mixed> $context
  */
 class Entry extends Model
 {
@@ -180,7 +182,7 @@ class Entry extends Model
     public function scopeForActor(Builder $query, Model $actor): Builder
     {
         return $query
-            ->where('actor_type', get_class($actor))
+            ->where('actor_type', $actor::class)
             ->where('actor_id', $actor->getKey());
     }
 
@@ -193,7 +195,7 @@ class Entry extends Model
     public function scopeForSubject(Builder $query, Model $subject): Builder
     {
         return $query
-            ->where('subject_type', get_class($subject))
+            ->where('subject_type', $subject::class)
             ->where('subject_id', $subject->getKey());
     }
 
@@ -227,7 +229,9 @@ class Entry extends Model
      */
     public function scopeWorkflow(Builder $query, string $rootCorrelation): Builder
     {
-        return $query->where('correlation_id', 'like', $rootCorrelation.'%');
+        $escaped = str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $rootCorrelation);
+
+        return $query->where('correlation_id', 'like', $escaped.'%');
     }
 
     /**
@@ -276,7 +280,7 @@ class Entry extends Model
      */
     public function scopeLatestFirst(Builder $query): Builder
     {
-        return $query->orderByDesc('created_at');
+        return $query->orderByDesc('id');
     }
 
     /**

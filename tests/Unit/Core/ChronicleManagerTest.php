@@ -6,12 +6,12 @@ use Chronicle\Contracts\LedgerReader;
 use Chronicle\Contracts\ReferenceResolver;
 use Chronicle\Entry\EntryBuilder;
 use Chronicle\Entry\PendingEntry;
-use Chronicle\Pipeline\ExtensionStage;
 use Chronicle\Pipeline\EntryExtensionRegistry;
 use Chronicle\Pipeline\EntryPipeline;
+use Chronicle\Pipeline\ExtensionStage;
 use Chronicle\Storage\ArrayDriver;
+use Chronicle\Storage\DatabaseDriver;
 use Chronicle\Storage\DriverResolver;
-use Chronicle\Storage\EloquentDriver;
 use Chronicle\Storage\NullDriver;
 
 it('creates entry builder', function () {
@@ -118,7 +118,7 @@ it('resolves driver by name', function () {
 
     expect($manager->driver('null'))->toBeInstanceOf(NullDriver::class)
         ->and($manager->driver('array'))->toBeInstanceOf(ArrayDriver::class)
-        ->and($manager->driver('eloquent'))->toBeInstanceOf(EloquentDriver::class);
+        ->and($manager->driver('eloquent'))->toBeInstanceOf(DatabaseDriver::class);
 });
 
 it('throws for unknown driver names', function () {

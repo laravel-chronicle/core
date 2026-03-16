@@ -14,7 +14,7 @@ use Illuminate\Support\Facades\DB;
  *  - created_at is never touched by Eloquent timestamp machinery
  *  - The insert is a single, transparent DB operation
  */
-class EloquentDriver implements StorageDriver
+class DatabaseDriver implements StorageDriver
 {
     /**
      * @param  array<string, mixed>  $entry
@@ -27,7 +27,7 @@ class EloquentDriver implements StorageDriver
         /** @var string $connection */
         $connection = config('chronicle.connection');
 
-        DB::connection($connection)->table($table)->insert([
+        $attributes = [
             'id' => $entry['id'],
             'actor_type' => $entry['actor_type'],
             'actor_id' => $entry['actor_id'],
@@ -44,28 +44,13 @@ class EloquentDriver implements StorageDriver
             'correlation_id' => $entry['correlation_id'],
             'checkpoint_id' => $entry['checkpoint_id'],
             'created_at' => $entry['created_at'],
-        ]);
+        ];
+
+        DB::connection($connection)->table($table)->insert($attributes);
 
         $model = new Entry;
 
-        $model->forceFill([
-            'id' => $entry['id'],
-            'actor_type' => $entry['actor_type'],
-            'actor_id' => $entry['actor_id'],
-            'action' => $entry['action'],
-            'subject_type' => $entry['subject_type'],
-            'subject_id' => $entry['subject_id'],
-            'payload' => json_encode($entry['payload']),
-            'payload_hash' => $entry['payload_hash'],
-            'chain_hash' => $entry['chain_hash'],
-            'metadata' => json_encode($entry['metadata']),
-            'context' => json_encode($entry['context']),
-            'tags' => json_encode($entry['tags']),
-            'diff' => json_encode($entry['diff']),
-            'correlation_id' => $entry['correlation_id'],
-            'checkpoint_id' => $entry['checkpoint_id'],
-            'created_at' => $entry['created_at'],
-        ]);
+        $model->forceFill($attributes);
 
         $model->exists = true;
 

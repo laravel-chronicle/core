@@ -7,15 +7,15 @@ namespace Chronicle\Verification;
  */
 class ExportVerificationResult
 {
-    public bool $valid;
+    protected bool $valid;
 
-    public ?string $failure;
+    protected ?string $failure;
 
-    public ?int $entryCount;
+    protected ?int $entryCount;
 
-    public ?string $datasetHash;
+    protected ?string $datasetHash;
 
-    public ?string $chainHead;
+    protected ?string $chainHead;
 
     private function __construct(
         bool $valid,
@@ -53,5 +53,25 @@ class ExportVerificationResult
     public function isValid(): bool
     {
         return $this->valid;
+    }
+
+    public function failureCode(): ?string
+    {
+        return $this->failure;
+    }
+
+    public function entryCount(): ?int
+    {
+        return $this->entryCount;
+    }
+
+    public function datasetHash(): ?string
+    {
+        return $this->datasetHash;
+    }
+
+    public function chainHead(): ?string
+    {
+        return $this->chainHead;
     }
 }

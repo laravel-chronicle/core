@@ -11,7 +11,7 @@ use Illuminate\Support\LazyCollection;
 /**
  * Default Chronicle ledger reader implementation.
  */
-class LedgerReader implements LedgerReaderContract
+class EloquentLedgerReader implements LedgerReaderContract
 {
     /**
      * Cursor paginate entries.
@@ -73,6 +73,43 @@ class LedgerReader implements LedgerReaderContract
     public function correlation(string $id): Collection
     {
         return Entry::correlation($id)
+            ->latestFirst()
+            ->get();
+    }
+
+    /**
+     * Fetch entries by workflow.
+     *
+     * @return Collection<int, Entry>
+     */
+    public function workflow(string $rootCorrelation): Collection
+    {
+        return Entry::workflow($rootCorrelation)
+            ->latestFirst()
+            ->get();
+    }
+
+    /**
+     * Fetch entries by a single tag.
+     *
+     * @return Collection<int, Entry>
+     */
+    public function withTag(string $tag): Collection
+    {
+        return Entry::withTag($tag)
+            ->latestFirst()
+            ->get();
+    }
+
+    /**
+     * Fetch entries by multiple tags.
+     *
+     * @param  list<string>  $tags
+     * @return Collection<int, Entry>
+     */
+    public function withTags(array $tags): Collection
+    {
+        return Entry::withTags($tags)
             ->latestFirst()
             ->get();
     }

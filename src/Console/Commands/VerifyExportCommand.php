@@ -37,7 +37,7 @@ class VerifyExportCommand extends Command
         if (! $result->isValid()) {
             $this->error('Verification failed.');
 
-            $this->line("Reason: <comment>$result->failure</comment>");
+            $this->line('Reason: <comment>'.$result->failureCode().'</comment>');
 
             return self::FAILURE;
         }
@@ -45,9 +45,9 @@ class VerifyExportCommand extends Command
         $this->info('Export verified successfully.');
         $this->newLine();
 
-        $this->line("Entries: <info>$result->entryCount</info>");
-        $this->line("Dataset hash: <comment>$result->datasetHash</comment>");
-        $this->line("Chain head: <comment>$result->chainHead</comment>");
+        $this->line('Entries: <info>'.$result->entryCount().'</info>');
+        $this->line('Dataset hash: <comment>'.$result->datasetHash().'</comment>');
+        $this->line('Chain head: <comment>'.$result->chainHead().'</comment>');
 
         return self::SUCCESS;
     }

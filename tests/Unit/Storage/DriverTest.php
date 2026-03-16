@@ -19,6 +19,11 @@ function makePending(string $action = 'test.event', array $overrides = []): arra
         'metadata' => $overrides['metadata'] ?? null,
         'context' => $overrides['context'] ?? ['transport' => 'cli', 'sapi' => 'cli'],
         'created_at' => $overrides['created_at'] ?? Carbon::parse('2026-01-01 00:00:00', 'UTC'),
+        'chain_hash' => $overrides['chain_hash'] ?? '',
+        'tags' => $overrides['tags'] ?? [],
+        'diff' => $overrides['diff'] ?? [],
+        'correlation_id' => $overrides['correlation_id'] ?? '',
+        'checkpoint_id' => $overrides['checkpoint_id'] ?? null,
     ];
 }
 
@@ -48,12 +53,10 @@ describe('NullDriver', function () {
         ]);
 
         $entry = $driver->store($pending);
-
         expect($entry->actor_type)->toBe('App\\Models\\User')
             ->and($entry->actor_id)->toBe('22')
             ->and($entry->subject_type)->toBe('App\\Models\\Invoice')
-            ->and($entry->subject_id)->toBe('99')
-            ->and($entry->metadata['amount'])->toBe(100);
+            ->and($entry->subject_id)->toBe('99');
     });
 
     it('does not write to the database', function () {

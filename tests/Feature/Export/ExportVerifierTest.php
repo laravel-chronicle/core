@@ -1,8 +1,8 @@
 <?php
 
 use Chronicle\Exports\ExportManager;
-use Chronicle\Verification\ExportVerifier;
 use Chronicle\Facades\Chronicle;
+use Chronicle\Verification\ExportVerifier;
 use Illuminate\Support\Str;
 
 function minimalExportManifestForEmptyDataset(): array
@@ -52,7 +52,7 @@ it('fails when manifest json is invalid', function () {
     $result = app(ExportVerifier::class)->verify($path);
 
     expect($result->isValid())->toBeFalse()
-        ->and($result->failure)->toBe('manifest_invalid_json');
+        ->and($result->failureCode())->toBe('manifest_invalid_json');
 });
 
 it('fails when manifest shape is invalid', function () {
@@ -65,7 +65,7 @@ it('fails when manifest shape is invalid', function () {
     $result = app(ExportVerifier::class)->verify($path);
 
     expect($result->isValid())->toBeFalse()
-        ->and($result->failure)->toBe('manifest_invalid');
+        ->and($result->failureCode())->toBe('manifest_invalid');
 });
 
 it('fails when signature shape is invalid', function () {
@@ -78,7 +78,7 @@ it('fails when signature shape is invalid', function () {
     $result = app(ExportVerifier::class)->verify($path);
 
     expect($result->isValid())->toBeFalse()
-        ->and($result->failure)->toBe('signature_invalid_format');
+        ->and($result->failureCode())->toBe('signature_invalid_format');
 });
 
 it('fails when entries ndjson is malformed', function () {
@@ -91,7 +91,7 @@ it('fails when entries ndjson is malformed', function () {
     $result = app(ExportVerifier::class)->verify($path);
 
     expect($result->isValid())->toBeFalse()
-        ->and($result->failure)->toBe('entries_invalid_json');
+        ->and($result->failureCode())->toBe('entries_invalid_json');
 });
 
 it('fails when entries ndjson has invalid entry shape', function () {
@@ -104,7 +104,7 @@ it('fails when entries ndjson has invalid entry shape', function () {
     $result = app(ExportVerifier::class)->verify($path);
 
     expect($result->isValid())->toBeFalse()
-        ->and($result->failure)->toBe('entries_invalid_format');
+        ->and($result->failureCode())->toBe('entries_invalid_format');
 });
 
 it('fails when chain in entries ndjson is invalid', function () {
@@ -127,7 +127,7 @@ it('fails when chain in entries ndjson is invalid', function () {
     $result = app(ExportVerifier::class)->verify($path);
 
     expect($result->isValid())->toBeFalse()
-        ->and($result->failure)->toBe('chain_invalid');
+        ->and($result->failureCode())->toBe('chain_invalid');
 });
 
 it('fails when manifest chain head does not match entries', function () {
@@ -145,7 +145,7 @@ it('fails when manifest chain head does not match entries', function () {
     $result = app(ExportVerifier::class)->verify($path);
 
     expect($result->isValid())->toBeFalse()
-        ->and($result->failure)->toBe('chain_head_mismatch');
+        ->and($result->failureCode())->toBe('chain_head_mismatch');
 });
 
 it('fails when entries file is missing', function () {
@@ -157,7 +157,7 @@ it('fails when entries file is missing', function () {
     $result = app(ExportVerifier::class)->verify($path);
 
     expect($result->isValid())->toBeFalse()
-        ->and($result->failure)->toBe('entries_missing');
+        ->and($result->failureCode())->toBe('entries_missing');
 });
 
 it('fails when manifest file is missing', function () {
@@ -169,7 +169,7 @@ it('fails when manifest file is missing', function () {
     $result = app(ExportVerifier::class)->verify($path);
 
     expect($result->isValid())->toBeFalse()
-        ->and($result->failure)->toBe('manifest_missing');
+        ->and($result->failureCode())->toBe('manifest_missing');
 });
 
 it('fails when signature file is missing', function () {
@@ -181,7 +181,7 @@ it('fails when signature file is missing', function () {
     $result = app(ExportVerifier::class)->verify($path);
 
     expect($result->isValid())->toBeFalse()
-        ->and($result->failure)->toBe('signature_missing');
+        ->and($result->failureCode())->toBe('signature_missing');
 });
 
 it('fails when manifest file is unreadable', function () {
@@ -194,7 +194,7 @@ it('fails when manifest file is unreadable', function () {
     $result = app(ExportVerifier::class)->verify($path);
 
     expect($result->isValid())->toBeFalse()
-        ->and($result->failure)->toBe('manifest_unreadable');
+        ->and($result->failureCode())->toBe('manifest_unreadable');
 });
 
 it('fails when signature file is unreadable', function () {
@@ -207,7 +207,7 @@ it('fails when signature file is unreadable', function () {
     $result = app(ExportVerifier::class)->verify($path);
 
     expect($result->isValid())->toBeFalse()
-        ->and($result->failure)->toBe('signature_unreadable');
+        ->and($result->failureCode())->toBe('signature_unreadable');
 });
 
 it('fails when entries file is unreadable', function () {
@@ -220,7 +220,7 @@ it('fails when entries file is unreadable', function () {
     $result = app(ExportVerifier::class)->verify($path);
 
     expect($result->isValid())->toBeFalse()
-        ->and($result->failure)->toBe('entries_unreadable');
+        ->and($result->failureCode())->toBe('entries_unreadable');
 });
 
 it('fails when dataset hash mismatches manifest', function () {
@@ -242,7 +242,7 @@ it('fails when dataset hash mismatches manifest', function () {
     $result = app(ExportVerifier::class)->verify($path);
 
     expect($result->isValid())->toBeFalse()
-        ->and($result->failure)->toBe('dataset_hash_mismatch');
+        ->and($result->failureCode())->toBe('dataset_hash_mismatch');
 });
 
 it('fails when signature verification is invalid', function () {
@@ -260,7 +260,7 @@ it('fails when signature verification is invalid', function () {
     $result = app(ExportVerifier::class)->verify($path);
 
     expect($result->isValid())->toBeFalse()
-        ->and($result->failure)->toBe('signature_invalid');
+        ->and($result->failureCode())->toBe('signature_invalid');
 });
 
 it('fails when manifest entry count mismatches dataset', function () {
@@ -278,7 +278,7 @@ it('fails when manifest entry count mismatches dataset', function () {
     $result = app(ExportVerifier::class)->verify($path);
 
     expect($result->isValid())->toBeFalse()
-        ->and($result->failure)->toBe('entry_count_mismatch');
+        ->and($result->failureCode())->toBe('entry_count_mismatch');
 });
 
 it('fails when manifest first entry id mismatches dataset', function () {
@@ -296,7 +296,7 @@ it('fails when manifest first entry id mismatches dataset', function () {
     $result = app(ExportVerifier::class)->verify($path);
 
     expect($result->isValid())->toBeFalse()
-        ->and($result->failure)->toBe('first_entry_mismatch');
+        ->and($result->failureCode())->toBe('first_entry_mismatch');
 });
 
 it('fails when manifest last entry id mismatches dataset', function () {
@@ -314,5 +314,5 @@ it('fails when manifest last entry id mismatches dataset', function () {
     $result = app(ExportVerifier::class)->verify($path);
 
     expect($result->isValid())->toBeFalse()
-        ->and($result->failure)->toBe('last_entry_mismatch');
+        ->and($result->failureCode())->toBe('last_entry_mismatch');
 });

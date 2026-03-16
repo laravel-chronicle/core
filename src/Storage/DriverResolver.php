@@ -58,7 +58,7 @@ class DriverResolver
         }
 
         return match ($driver) {
-            'eloquent' => $this->container->make(EloquentDriver::class),
+            'eloquent' => $this->container->make(DatabaseDriver::class),
             'array' => $this->container->make(ArrayDriver::class),
             'null' => $this->container->make(NullDriver::class),
             default => throw new InvalidArgumentException(
