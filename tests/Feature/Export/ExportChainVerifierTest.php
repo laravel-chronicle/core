@@ -1,9 +1,9 @@
 <?php
 
 use Chronicle\Exports\ExportManager;
+use Chronicle\Facades\Chronicle;
 use Chronicle\Verification\ExportChainVerifier;
 use Chronicle\Verification\ExportVerifier;
-use Chronicle\Facades\Chronicle;
 use Illuminate\Support\Str;
 
 it('verifies chain integrity of exported dataset', function () {

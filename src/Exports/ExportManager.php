@@ -35,7 +35,9 @@ class ExportManager
     public function export(string $path): ExportResult
     {
         if (! is_dir($path) && ! @mkdir($path, 0755, true) && ! is_dir($path)) {
-            throw ExportWriteException::directoryCreationFailed($path);
+            $error = error_get_last();
+
+            throw ExportWriteException::directoryCreationFailed($path, $error['message'] ?? null);
         }
 
         $entriesPath = $path.'/entries.ndjson';

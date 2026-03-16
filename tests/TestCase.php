@@ -3,7 +3,7 @@
 namespace Chronicle\Tests;
 
 use Chronicle\ChronicleServiceProvider;
-use Chronicle\Storage\EloquentDriver;
+use Chronicle\Storage\DatabaseDriver;
 use Orchestra\Testbench\TestCase as Orchestra;
 
 abstract class TestCase extends Orchestra
@@ -74,7 +74,7 @@ abstract class TestCase extends Orchestra
     {
         config(['chronicle.driver' => 'eloquent']);
         app('chronicle')->swapDriver(
-            new EloquentDriver
+            new DatabaseDriver
         );
     }
 }

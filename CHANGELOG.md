@@ -19,6 +19,10 @@ breaking changes between any two versions — see upgrade notes per version.
 - Added `ActionValidator` as a built-in entry extension to enforce Chronicle action naming rules before persistence.
 - Added `InvalidActionException` for explicit failures when actions are not strings, exceed the configured maximum length, or do not use two-segment dot notation such as `domain.event`.
 - Added `chronicle.validation.action_max_length` configuration to control the maximum allowed action length.
+- Added `SubjectValidator` as a built-in entry extension to enforce that persisted entries always carry a valid `subject_type` and `subject_id`.
+- `SubjectValidator` allows entries produced by system actors (`actor_type=system`) to omit the subject, supporting system-level events that do not act on a specific entity.
+- Added `workflow()`, `withTag()`, and `withTags()` methods to `EloquentLedgerReader`, surfacing the corresponding `Entry` query scopes through the `LedgerReader` abstraction.
+- Added `failureCode()`, `entryCount()`, `datasetHash()`, and `chainHead()` accessor methods to `ExportVerificationResult`.
 
 ---
 
@@ -27,6 +31,23 @@ breaking changes between any two versions — see upgrade notes per version.
 - `EntryBuilder::actor('system')` now normalizes to `actor_type=system` and `actor_id=system` so system-generated entries are stored consistently.
 - Chronicle now registers `ActionValidator` by default through `chronicle.extensions`, so invalid action names are rejected during the validation stage.
 - Updated tests and examples to use valid dot-notation action names consistently.
+- `ExportVerificationResult` properties are now `protected` with accessor methods, matching the encapsulation pattern established by `VerificationResult`. Direct property access (`$result->failure`, `$result->entryCount`, etc.) has been replaced by `$result->failureCode()`, `$result->entryCount()`, `$result->datasetHash()`, and `$result->chainHead()`.
+- `ChronicleManager::transaction()` now pushes the correlation ID to the stack for both callback-style and manual-style transactions. Manual transactions must call `$tx->end()` to pop from the stack when complete.
+- `IntegrityVerifier` now caches verified checkpoints in memory during a single verification run, reducing checkpoint queries from one per entry to one per unique checkpoint.
+- `ExportWriteException::directoryCreationFailed()` now accepts an optional `$reason` parameter and appends the OS-level error message to the exception when available.
+- `ExportManager` no longer suppresses the `mkdir` error with `@`; the OS failure reason is captured via `error_get_last()` and included in `ExportWriteException`.
+- `ArrayDriver` now `json_encode`s all JSON columns (`payload`, `metadata`, `context`, `tags`, `diff`) and fully populates the returned `Entry` model (`chain_hash`, `checkpoint_id`, `correlation_id`, `diff`, `tags`), matching `EloquentDriver` behaviour.
+- `EntryExtensionRegistry::LEGACY_CLASS_MAP` converted from a constant to a `private static array` property with an explicit `@var array<string, string>` annotation to satisfy PHPStan level 9 type checking.
+
+### Fixed
+
+- Fixed `ArrayDriver` incorrectly storing raw PHP arrays in Eloquent cast columns, which caused `json_decode()` on an array to silently return `null` on attribute access.
+- Fixed `ArrayDriver` returning incomplete `Entry` models with `tags`, `chain_hash`, `checkpoint_id`, `correlation_id`, and `diff` missing (commented out with wrong legacy key names).
+
+### Testing
+
+- Added `SubjectValidatorTest` with 18 assertions covering: stage and priority ordering, valid subject acceptance, system-actor bypass (null, empty, and blank subjects), rejection of missing/blank/non-string `subject_type` and `subject_id`, rejection when both fields are absent, and case-sensitivity of the system-actor bypass.
+- Updated `ExportVerifierTest` and `EntryExporterTest` to use `ExportVerificationResult` accessor methods.
 
 ---
 

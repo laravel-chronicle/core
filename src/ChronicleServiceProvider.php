@@ -12,7 +12,7 @@ use Chronicle\Contracts\LedgerReader as LedgerReaderContract;
 use Chronicle\Contracts\ReferenceResolver;
 use Chronicle\Contracts\SigningProvider;
 use Chronicle\Contracts\StorageDriver;
-use Chronicle\Entry\LedgerReader as EloquentLedgerReader;
+use Chronicle\Entry\EloquentLedgerReader;
 use Chronicle\Exports\EntryExporter;
 use Chronicle\Exports\ExportHasher;
 use Chronicle\Exports\ExportManager;
@@ -144,7 +144,6 @@ class ChronicleServiceProvider extends ServiceProvider
     protected function registerLedgerReader(): void
     {
         $this->app->singleton(LedgerReaderContract::class, EloquentLedgerReader::class);
-        $this->app->singleton(EloquentLedgerReader::class, EloquentLedgerReader::class);
     }
 
     protected function registerExports(): void

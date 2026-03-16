@@ -29,3 +29,6 @@ phpunit.xml
 phpstan.neon
 testbench.yaml
 /coverage
+
+CLAUDE.md
+.claude

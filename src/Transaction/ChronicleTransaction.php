@@ -40,4 +40,20 @@ class ChronicleTransaction
     {
         return $this->correlationId;
     }
+
+    /**
+     * End the transaction and remove it from the correlation stack.
+     *
+     * Only required when using the manual transaction style:
+     *
+     *   $tx = Chronicle::transaction();
+     *   $tx->entry()->...->commit();
+     *   $tx->end();
+     *
+     * Callback-style transactions are ended automatically.
+     */
+    public function end(): void
+    {
+        $this->manager->endTransaction();
+    }
 }

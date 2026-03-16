@@ -22,14 +22,16 @@ class ActionValidator implements EntryExtension, PrioritizedEntryExtension
 
     public function process(PendingEntry $entry): PendingEntry
     {
+        $maxLength = $this->maxLength();
+
         $action = $entry->attribute('action');
 
         if (! is_string($action)) {
             throw InvalidActionException::mustBeString($action);
         }
 
-        if (strlen($action) > $this->maxLength()) {
-            throw InvalidActionException::exceedsMaxLength($action, $this->maxLength());
+        if (strlen($action) > $maxLength) {
+            throw InvalidActionException::exceedsMaxLength($action, $maxLength);
         }
 
         if (! preg_match('/^[^\s.]+\.[^\s.]+$/', $action)) {

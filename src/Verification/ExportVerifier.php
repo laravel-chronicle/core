@@ -128,9 +128,6 @@ class ExportVerifier
      * Verify dataset boundaries to prevent truncation attacks.
      *
      * @param  array<string, mixed>  $manifest
-     */
-    /**
-     * @param  array<string, mixed>  $manifest
      * @return array{dataset_hash: string}|string
      */
     protected function inspectEntries(

@@ -106,17 +106,29 @@ class ChronicleManager
             correlationId: $correlationId,
         );
 
+        $this->transactions[] = $correlationId;
+
         if (! $callback) {
             return $transaction;
         }
 
-        $this->transactions[] = $correlationId;
-
         try {
             return $callback($transaction);
         } finally {
-            array_pop($this->transactions);
+            $this->endTransaction();
         }
+    }
+
+    /**
+     * Pop the most recent transaction from the correlation stack.
+     *
+     * Called automatically at the end of callback-style transactions.
+     * Must be called manually via ChronicleTransaction::end() when
+     * using the manual transaction style.
+     */
+    public function endTransaction(): void
+    {
+        array_pop($this->transactions);
     }
 
     public function reader(): LedgerReaderContract
