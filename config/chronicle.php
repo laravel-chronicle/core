@@ -6,6 +6,7 @@ use Chronicle\Validation\ActorPresenceValidator;
 use Chronicle\Validation\CorrelationValidator;
 use Chronicle\Validation\DiffStructureValidator;
 use Chronicle\Validation\PayloadSerializableValidator;
+use Chronicle\Validation\PayloadSizeValidator;
 use Chronicle\Validation\SubjectValidator;
 use Chronicle\Validation\TagLimitValidator;
 use Chronicle\Validation\TagsValidator;
@@ -66,6 +67,7 @@ return [
         'tag_max_length' => env('CHRONICLE_TAG_MAX_LENGTH', 50),
         'tag_limit' => env('CHRONICLE_TAG_LIMIT', 10),
         'correlation_id_max_length' => env('CHRONICLE_CORRELATION_ID_MAX_LENGTH', 255),
+        'max_payload_size' => env('CHRONICLE_MAX_PAYLOAD_SIZE', 65536),
     ],
 
     /*
@@ -88,5 +90,6 @@ return [
         TagsValidator::class,
         DiffStructureValidator::class,
         PayloadSerializableValidator::class,
+        PayloadSizeValidator::class,
     ],
 ];
