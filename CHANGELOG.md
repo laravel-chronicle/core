@@ -27,6 +27,8 @@ breaking changes between any two versions — see upgrade notes per version.
 - Added `InvalidTagsException` with named constructors `mustBeArray()`, `mustContainOnlyStrings()`, `mustNotBeEmpty()`, `mustBeUnique()`, and `tagExceedsMaxLength()` for precise failure reporting.
 - Added `TagLimitValidator` as a built-in entry extension to cap the number of tags per entry. Rejects entries whose `tags` array exceeds the configurable `chronicle.validation.tag_limit` (default 10, env `CHRONICLE_TAG_LIMIT`).
 - Added `InvalidTagsException::exceedsTagLimit()` factory method for precise tag-count failure reporting.
+- Added `CorrelationValidator` as a built-in entry extension to validate the optional `correlation_id` field. Accepts `null` (no correlation); when present, enforces that the value is a non-blank string within the configurable `chronicle.validation.correlation_id_max_length` limit (default 255 characters, env `CHRONICLE_CORRELATION_ID_MAX_LENGTH`).
+- Added `InvalidCorrelationIdException` with named constructors `mustBeString()`, `mustNotBeBlank()`, and `exceedsMaxLength()` for precise failure reporting.
 - Added `workflow()`, `withTag()`, and `withTags()` methods to `EloquentLedgerReader`, surfacing the corresponding `Entry` query scopes through the `LedgerReader` abstraction.
 - Added `failureCode()`, `entryCount()`, `datasetHash()`, and `chainHead()` accessor methods to `ExportVerificationResult`.
 
@@ -56,6 +58,7 @@ breaking changes between any two versions — see upgrade notes per version.
 - Added `PayloadSerializableValidatorTest` with 27 assertions covering: stage and priority ordering; acceptance of empty, scalar, and nested-array payloads; rejection of closures, resources, and objects (including `JsonSerializable`) in `metadata`, `context`, and `diff`; and rejection of `INF`/`NAN` via the `json_encode` catch-all.
 - Added `TagsValidatorTest` with assertions covering: stage and priority ordering, acceptance of empty/single/multiple valid tag arrays, rejection of non-array tag values, rejection of non-string elements (integer, null, boolean, array, object) with offending index in a message, rejection of empty and whitespace-only tags, rejection of duplicates with tag value in a message, case-sensitive uniqueness, and max-length enforcement (boundary and over-limit).
 - Added `TagLimitValidatorTest` with assertions covering: stage and priority ordering, acceptance of empty and at-limit tag arrays, silent pass-through of non-array tag values (type enforcement is `TagsValidator`'s concern), rejection when count exceeds the limit (one over and many over), count and limit values present in the exception message, and config-driven limit reading.
+- Added `CorrelationValidatorTest` with assertions covering: stage and priority ordering, acceptance of null and valid string values (including UUID-style and at-boundary-length), rejection of non-string non-null values with type name in message, rejection of blank strings, and max-length enforcement with offending value in message.
 - Updated `ExportVerifierTest` and `EntryExporterTest` to use `ExportVerificationResult` accessor methods.
 
 ---
