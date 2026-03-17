@@ -4,6 +4,7 @@ use Chronicle\Signing\Ed25519SigningProvider;
 use Chronicle\Validation\ActionValidator;
 use Chronicle\Validation\ActorPresenceValidator;
 use Chronicle\Validation\CorrelationValidator;
+use Chronicle\Validation\DiffStructureValidator;
 use Chronicle\Validation\PayloadSerializableValidator;
 use Chronicle\Validation\SubjectValidator;
 use Chronicle\Validation\TagLimitValidator;
@@ -85,6 +86,7 @@ return [
         CorrelationValidator::class,
         TagLimitValidator::class,
         TagsValidator::class,
+        DiffStructureValidator::class,
         PayloadSerializableValidator::class,
     ],
 ];
