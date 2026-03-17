@@ -35,8 +35,9 @@ class TagLimitValidator implements EntryExtension, PrioritizedEntryExtension
      *
      * If the entry's "tags" attribute is not an array, validation is skipped and the entry is returned unchanged.
      *
-     * @param PendingEntry $entry The pending entry to validate.
+     * @param  PendingEntry  $entry  The pending entry to validate.
      * @return PendingEntry The input entry (returned unchanged when validation passes or is skipped).
+     *
      * @throws InvalidTagsException If the number of tags exceeds the configured limit.
      */
     public function process(PendingEntry $entry): PendingEntry

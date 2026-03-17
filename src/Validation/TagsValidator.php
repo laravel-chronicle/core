@@ -33,8 +33,9 @@ class TagsValidator implements EntryExtension, PrioritizedEntryExtension
     /**
      * Validate the `tags` attribute of a PendingEntry for type, content, uniqueness, and length.
      *
-     * @param PendingEntry $entry The pending entry whose `tags` attribute will be validated.
+     * @param  PendingEntry  $entry  The pending entry whose `tags` attribute will be validated.
      * @return PendingEntry The original PendingEntry if validation succeeds.
+     *
      * @throws InvalidTagsException If the `tags` attribute is not an array.
      * @throws InvalidTagsException If any tag is not a string (provides the offending index and value).
      * @throws InvalidTagsException If any tag is empty or contains only whitespace (provides the offending index).
