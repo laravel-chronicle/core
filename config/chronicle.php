@@ -3,6 +3,7 @@
 use Chronicle\Signing\Ed25519SigningProvider;
 use Chronicle\Validation\ActionValidator;
 use Chronicle\Validation\ActorPresenceValidator;
+use Chronicle\Validation\PayloadSerializableValidator;
 use Chronicle\Validation\SubjectValidator;
 
 return [
@@ -75,5 +76,6 @@ return [
         ActorPresenceValidator::class,
         SubjectValidator::class,
         ActionValidator::class,
+        PayloadSerializableValidator::class,
     ],
 ];
