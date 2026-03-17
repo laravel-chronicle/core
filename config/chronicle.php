@@ -3,6 +3,7 @@
 use Chronicle\Signing\Ed25519SigningProvider;
 use Chronicle\Validation\ActionValidator;
 use Chronicle\Validation\ActorPresenceValidator;
+use Chronicle\Validation\CorrelationValidator;
 use Chronicle\Validation\PayloadSerializableValidator;
 use Chronicle\Validation\SubjectValidator;
 use Chronicle\Validation\TagLimitValidator;
@@ -63,6 +64,7 @@ return [
         'action_max_length' => env('CHRONICLE_ACTION_MAX_LENGTH', 255),
         'tag_max_length' => env('CHRONICLE_TAG_MAX_LENGTH', 50),
         'tag_limit' => env('CHRONICLE_TAG_LIMIT', 10),
+        'correlation_id_max_length' => env('CHRONICLE_CORRELATION_ID_MAX_LENGTH', 255),
     ],
 
     /*
@@ -80,6 +82,7 @@ return [
         ActorPresenceValidator::class,
         SubjectValidator::class,
         ActionValidator::class,
+        CorrelationValidator::class,
         TagLimitValidator::class,
         TagsValidator::class,
         PayloadSerializableValidator::class,
