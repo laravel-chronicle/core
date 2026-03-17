@@ -109,7 +109,7 @@ class DiffStructureValidator implements EntryExtension, PrioritizedEntryExtensio
         }
 
         if (is_object($value)) {
-            throw InvalidDiffException::valueContainsObject($key, $side, $value::class);
+            throw InvalidDiffException::valueContainsObject($key, $side, get_debug_type($value));
         }
 
         if (is_array($value)) {
