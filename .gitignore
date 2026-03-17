@@ -2,13 +2,6 @@
 /vendor
 composer.lock
 
-# Frontend Assets
-/node_modules
-
-# Logs
-npm-debug.log
-yarn-error.log
-
 # Caches
 .phpunit.cache
 .phpunit.result.cache
@@ -30,6 +23,7 @@ phpstan.neon
 testbench.yaml
 /coverage
 
+# AI
 CLAUDE.md
 .claude
 /docs/superpowers

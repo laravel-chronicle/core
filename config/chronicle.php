@@ -5,6 +5,8 @@ use Chronicle\Validation\ActionValidator;
 use Chronicle\Validation\ActorPresenceValidator;
 use Chronicle\Validation\PayloadSerializableValidator;
 use Chronicle\Validation\SubjectValidator;
+use Chronicle\Validation\TagLimitValidator;
+use Chronicle\Validation\TagsValidator;
 
 return [
     /*
@@ -59,6 +61,8 @@ return [
 
     'validation' => [
         'action_max_length' => env('CHRONICLE_ACTION_MAX_LENGTH', 255),
+        'tag_max_length' => env('CHRONICLE_TAG_MAX_LENGTH', 50),
+        'tag_limit' => env('CHRONICLE_TAG_LIMIT', 10),
     ],
 
     /*
@@ -76,6 +80,8 @@ return [
         ActorPresenceValidator::class,
         SubjectValidator::class,
         ActionValidator::class,
+        TagLimitValidator::class,
+        TagsValidator::class,
         PayloadSerializableValidator::class,
     ],
 ];

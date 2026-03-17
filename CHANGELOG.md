@@ -21,6 +21,12 @@ breaking changes between any two versions — see upgrade notes per version.
 - Added `chronicle.validation.action_max_length` configuration to control the maximum allowed action length.
 - Added `SubjectValidator` as a built-in entry extension to enforce that persisted entries always carry a valid `subject_type` and `subject_id`.
 - `SubjectValidator` allows entries produced by system actors (`actor_type=system`) to omit the subject, supporting system-level events that do not act on a specific entity.
+- Added `PayloadSerializableValidator` as a built-in entry extension to ensure user-supplied payload fields (`metadata`, `context`, `diff`) can be deterministically serialized to JSON. Rejects closures, resources, all objects (including `JsonSerializable` implementations), and non-serializable scalars such as `INF` and `NAN`.
+- Added `UnserializablePayloadException` with named constructors `containsClosure()`, `containsResource()`, `containsObject()`, and `notJsonSerializable()` for precise failure reporting.
+- Added `TagsValidator` as a built-in entry extension to validate the `tags` attribute. Enforces that tags are an array, contain only non-empty strings, are unique (case-sensitive), and each tag respects the configurable `chronicle.validation.tag_max_length` limit (default 50 characters, env `CHRONICLE_TAG_MAX_LENGTH`).
+- Added `InvalidTagsException` with named constructors `mustBeArray()`, `mustContainOnlyStrings()`, `mustNotBeEmpty()`, `mustBeUnique()`, and `tagExceedsMaxLength()` for precise failure reporting.
+- Added `TagLimitValidator` as a built-in entry extension to cap the number of tags per entry. Rejects entries whose `tags` array exceeds the configurable `chronicle.validation.tag_limit` (default 10, env `CHRONICLE_TAG_LIMIT`).
+- Added `InvalidTagsException::exceedsTagLimit()` factory method for precise tag-count failure reporting.
 - Added `workflow()`, `withTag()`, and `withTags()` methods to `EloquentLedgerReader`, surfacing the corresponding `Entry` query scopes through the `LedgerReader` abstraction.
 - Added `failureCode()`, `entryCount()`, `datasetHash()`, and `chainHead()` accessor methods to `ExportVerificationResult`.
 
@@ -47,6 +53,9 @@ breaking changes between any two versions — see upgrade notes per version.
 ### Testing
 
 - Added `SubjectValidatorTest` with 18 assertions covering: stage and priority ordering, valid subject acceptance, system-actor bypass (null, empty, and blank subjects), rejection of missing/blank/non-string `subject_type` and `subject_id`, rejection when both fields are absent, and case-sensitivity of the system-actor bypass.
+- Added `PayloadSerializableValidatorTest` with 27 assertions covering: stage and priority ordering; acceptance of empty, scalar, and nested-array payloads; rejection of closures, resources, and objects (including `JsonSerializable`) in `metadata`, `context`, and `diff`; and rejection of `INF`/`NAN` via the `json_encode` catch-all.
+- Added `TagsValidatorTest` with assertions covering: stage and priority ordering, acceptance of empty/single/multiple valid tag arrays, rejection of non-array tag values, rejection of non-string elements (integer, null, boolean, array, object) with offending index in a message, rejection of empty and whitespace-only tags, rejection of duplicates with tag value in a message, case-sensitive uniqueness, and max-length enforcement (boundary and over-limit).
+- Added `TagLimitValidatorTest` with assertions covering: stage and priority ordering, acceptance of empty and at-limit tag arrays, silent pass-through of non-array tag values (type enforcement is `TagsValidator`'s concern), rejection when count exceeds the limit (one over and many over), count and limit values present in the exception message, and config-driven limit reading.
 - Updated `ExportVerifierTest` and `EntryExporterTest` to use `ExportVerificationResult` accessor methods.
 
 ---
@@ -81,14 +90,14 @@ breaking changes between any two versions — see upgrade notes per version.
 ### Changed
 
 - Entry processing flow now supports optional extension hooks with zero behavioral impact when no extensions are registered.
-- Updated README installation instructions to use the single install command flow (`php artisan chronicle:install --migrate`).
+- Updated README installation instructions to use the single installation command flow (`php artisan chronicle:install --migrate`).
 - Improved `chronicle:verify` CLI output with clearer verification steps and final status messaging.
 
 ---
 
 ### Testing
 
-- Added unit coverage for extension pipeline ordering and no-op behavior when registry is empty.
+- Added unit coverage for extension pipeline ordering and no-op behavior when the registry is empty.
 - Added and updated coverage for extension registration via service container/facade/manager.
 - Added and updated feature coverage for `chronicle:install`, including:
   - command registration assertion
@@ -225,7 +234,7 @@ breaking changes between any two versions — see upgrade notes per version.
 - Corrected storage driver documentation to reflect supported built-ins (`eloquent`, `array`, `null`).
 - Corrected checkpoint field documentation to match the persisted checkpoint model.
 - Updated export verification step ordering to match implementation.
-- Added explicit note on current signing-provider behavior during verification.
+- Added an explicit note on current signing-provider behavior during verification.
 
 ---
 
@@ -243,7 +252,7 @@ breaking changes between any two versions — see upgrade notes per version.
 ### CI
 
 - Added DB-matrix CI coverage for migration rollback semantics.
-- Kept full test + static analysis gates green for release.
+- Kept full test and static analysis gates green for release.
 
 ---
 
@@ -406,7 +415,7 @@ and performance characteristics.
 
 With the addition of streaming queries, cursor pagination, and
 a stable read abstraction, Chronicle is now capable of efficiently
-handling very large audit ledgers.
+handling huge audit ledgers.
 
 Version `0.9.0` represents the final feature release before the
 Chronicle `1.0.0` stable release.
@@ -945,8 +954,7 @@ With this release Chronicle evolves from a simple append-only audit log
 into a structured event ledger capable of representing workflows,
 operations, and nested processes.
 
-Tags and transactions provide the foundation for future Chronicle
-features including:
+Tags and transactions provide the foundation for future Chronicle features, including:
 
 - timeline reconstruction
 - workflow visualization
