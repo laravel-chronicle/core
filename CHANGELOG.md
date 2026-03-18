@@ -12,6 +12,10 @@ breaking changes between any two versions — see upgrade notes per version.
 
 ## [Unreleased]
 
+---
+
+## [1.2.0] - 2026-03-18
+
 ### Added
 
 - Added `ActorPresenceValidator` to enforce that persisted entries always include both `actor_type` and `actor_id`.
