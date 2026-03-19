@@ -4,6 +4,9 @@ use Chronicle\Exceptions\RateLimitExceededException;
 use Chronicle\Policy\RateLimitPolicy;
 use Illuminate\Support\Facades\Cache;
 
+// Note: RateLimiter::fake() does not stub availableIn(), which is required
+// for the retry-after test. Using the array cache driver instead gives full
+// real-implementation coverage without a persistent cache backend.
 beforeEach(function () {
     config(['cache.default' => 'array']);
     Cache::flush();

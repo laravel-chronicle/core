@@ -25,6 +25,7 @@ breaking changes between any two versions — see upgrade notes per version.
 - Added `ContextPolicy` to enforce required top-level keys in the entry's `context` attribute. Treats `null` or non-array context as empty. An empty required-keys list is a no-op.
 - Added six `PolicyViolationException` subclasses: `UnauthenticatedActorException`, `ActionNotAllowedException`, `ActionForbiddenException`, `RateLimitExceededException`, `OutsideTimeWindowException`, and `RequiredContextMissingException`, each with named constructors.
 - Added `policy` configuration block in `config/chronicle.php` with defaults for all six built-in policies. All policies are registered as commented-out entries in the `extensions` array for discoverability.
+- Added `AbstractPolicyTest`, `OnlyAuthenticatedUsersPolicyTest`, `AllowedActionsPolicyTest`, `ForbiddenActionsPolicyTest`, `RateLimitPolicyTest`, `TimeWindowPolicyTest`, `ContextPolicyTest`, and `CombinedPoliciesTest` (Feature).
 
 ---
 
