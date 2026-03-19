@@ -14,6 +14,29 @@ breaking changes between any two versions — see upgrade notes per version.
 
 ---
 
+## [1.3.0] - 2026-03-19
+
+### Added
+
+- Added `Chronicle\Contracts\ContextResolver` interface with `contextKey()` and `resolve()` methods as the public contract for context resolver extensions.
+- Added `Chronicle\Context\AbstractContextResolver` abstract base class implementing `EntryExtension` in the `RESOLVE_CONTEXT` stage; handles the null-skip and namespaced context merge so concrete resolvers only define `contextKey()` and `resolve()`.
+- Added `EnvironmentContextResolver` to attach Laravel environment information (`name`, `debug`) to every entry under `context.environment`.
+- Added `RequestContextResolver` to attach HTTP request information (`ip_address`, `user_agent`, `url`, `method`, `request_id`) under `context.request`. Skips silently when running in a console or queue context. `request_id` reads the `X-Request-ID` header when present; otherwise it generates a stable UUID stored in request attributes, so all Chronicle entries within the same HTTP request share the same generated ID.
+- Added `HostContextResolver` to attach the server hostname under `context.host`. Records an empty string if `gethostname()` fails.
+- Added `ProcessContextResolver` to attach runtime process information (`id`, `runtime`, `version`) under `context.process`.
+- Added `QueueContextResolver` to attach queue job metadata (`job_id`, `connection`, `queue`) under `context.queue`. Skips silently when no queue job is active.
+- Added `QueueJobContext` singleton that tracks the currently executing queue job. `ChronicleServiceProvider` populates it via `JobProcessing`, `JobProcessed`, `JobFailed`, and `JobExceptionOccurred` listeners — no changes to application jobs required.
+- All context resolvers are **opt-in**. `config/chronicle.php` includes them as commented-out entries for discoverability.
+- Added `AbstractContextResolverTest` covering: `RESOLVE_CONTEXT` stage, null-resolve skip, context key assignment, existing-key preservation, non-array context coercion, and duplicate-resolver overwrite behaviour.
+- Added `QueueJobContextTest` covering: initial null state, set/current/clear lifecycle, and replacement on double-set.
+- Added `EnvironmentContextResolverTest` covering: context key, stage, data shape, debug bool cast, fallback on missing env, and existing-key preservation.
+- Added `RequestContextResolverTest` covering: context key, stage, console skip, HTTP data shape, `X-Request-ID` header usage, UUID generation, UUID stability across entries in the same request, and existing-key preservation.
+- Added `HostContextResolverTest` covering: context key, stage, hostname recording, `gethostname()` false-return (empty string), and existing-key preservation.
+- Added `ProcessContextResolverTest` covering: context key, stage, data shape, `id` as int, and existing-key preservation.
+- Added `QueueContextResolverTest` covering: context key, stage, no-job skip, queue data shape, and existing-key preservation.
+
+---
+
 ## [1.2.0] - 2026-03-18
 
 ### Added

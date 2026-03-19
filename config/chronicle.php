@@ -91,5 +91,12 @@ return [
         DiffStructureValidator::class,
         PayloadSerializableValidator::class,
         PayloadSizeValidator::class,
+
+        // Optional context resolvers — uncomment to enable:
+        // \Chronicle\Context\EnvironmentContextResolver::class,
+        // \Chronicle\Context\RequestContextResolver::class,
+        // \Chronicle\Context\HostContextResolver::class,
+        // \Chronicle\Context\ProcessContextResolver::class,
+        // \Chronicle\Context\QueueContextResolver::class,
     ],
 ];
