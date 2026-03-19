@@ -7,6 +7,7 @@ use Chronicle\Console\Commands\ExportCommand;
 use Chronicle\Console\Commands\InstallCommand;
 use Chronicle\Console\Commands\VerifyEntryCommand;
 use Chronicle\Console\Commands\VerifyExportCommand;
+use Chronicle\Context\QueueJobContext;
 use Chronicle\Contracts\EntryExtension;
 use Chronicle\Contracts\LedgerReader as LedgerReaderContract;
 use Chronicle\Contracts\ReferenceResolver;
@@ -30,6 +31,12 @@ use Chronicle\Support\CanonicalPayloadSerializer;
 use Chronicle\Support\DefaultReferenceResolver;
 use Chronicle\Verification\ExportChainVerifier;
 use Chronicle\Verification\ExportVerifier;
+use Illuminate\Contracts\Events\Dispatcher;
+use Illuminate\Contracts\Queue\Job;
+use Illuminate\Queue\Events\JobExceptionOccurred;
+use Illuminate\Queue\Events\JobFailed;
+use Illuminate\Queue\Events\JobProcessed;
+use Illuminate\Queue\Events\JobProcessing;
 use Illuminate\Support\ServiceProvider;
 use InvalidArgumentException;
 use RuntimeException;
@@ -170,27 +177,27 @@ class ChronicleServiceProvider extends ServiceProvider
 
     protected function registerQueueListeners(): void
     {
-        /** @var \Illuminate\Contracts\Events\Dispatcher $events */
-        $events = $this->app->make(\Illuminate\Contracts\Events\Dispatcher::class);
+        /** @var Dispatcher $events */
+        $events = $this->app->make(Dispatcher::class);
 
         $events->listen(
-            \Illuminate\Queue\Events\JobProcessing::class,
-            function (\Illuminate\Queue\Events\JobProcessing $event): void {
-                /** @var \Illuminate\Contracts\Queue\Job $job */
+            JobProcessing::class,
+            function (JobProcessing $event): void {
+                /** @var Job $job */
                 $job = $event->job;
-                $this->app->make(\Chronicle\Context\QueueJobContext::class)->set($job);
+                $this->app->make(QueueJobContext::class)->set($job);
             }
         );
 
         foreach ([
-            \Illuminate\Queue\Events\JobProcessed::class,
-            \Illuminate\Queue\Events\JobFailed::class,
-            \Illuminate\Queue\Events\JobExceptionOccurred::class,
+            JobProcessed::class,
+            JobFailed::class,
+            JobExceptionOccurred::class,
         ] as $event) {
             $events->listen(
                 $event,
                 function (): void {
-                    $this->app->make(\Chronicle\Context\QueueJobContext::class)->clear();
+                    $this->app->make(QueueJobContext::class)->clear();
                 }
             );
         }
@@ -198,7 +205,7 @@ class ChronicleServiceProvider extends ServiceProvider
 
     protected function registerQueueContext(): void
     {
-        $this->app->singleton(\Chronicle\Context\QueueJobContext::class);
+        $this->app->singleton(QueueJobContext::class);
     }
 
     protected function publishConfiguration(): void
