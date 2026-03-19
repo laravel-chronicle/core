@@ -22,8 +22,6 @@ it('passes when the user is authenticated', function () {
     Auth::shouldReceive('check')->once()->andReturn(true);
 
     makeAuthPolicy()->enforce(makePolicyPending());
-
-    expect(true)->toBeTrue();
 });
 
 it('throws when the user is not authenticated', function () {
@@ -37,6 +35,4 @@ it('skips the auth check when running in console', function () {
     Auth::shouldReceive('check')->never();
 
     makeAuthPolicy(console: true)->enforce(makePolicyPending());
-
-    expect(true)->toBeTrue();
 });
