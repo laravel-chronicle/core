@@ -70,6 +70,22 @@ return [
         'max_payload_size' => env('CHRONICLE_MAX_PAYLOAD_SIZE', 65536),
     ],
 
+    'policy' => [
+        'allowed_actions' => [],
+        'forbidden_actions' => [],
+        'rate_limit' => [
+            'max_entries' => 60,
+            'decay_seconds' => 60,
+        ],
+        'time_window' => [
+            'start' => '00:00',
+            'end' => '23:59:59',
+            'days' => [],
+            'timezone' => null,
+        ],
+        'required_context_keys' => [],
+    ],
+
     /*
     |--------------------------------------------------------------------------
     | Entry Extensions
@@ -98,5 +114,13 @@ return [
         // \Chronicle\Context\HostContextResolver::class,
         // \Chronicle\Context\ProcessContextResolver::class,
         // \Chronicle\Context\QueueContextResolver::class,
+
+        // Optional policies — uncomment to enable:
+        // \Chronicle\Policy\OnlyAuthenticatedUsersPolicy::class,
+        // \Chronicle\Policy\AllowedActionsPolicy::class,
+        // \Chronicle\Policy\ForbiddenActionsPolicy::class,
+        // \Chronicle\Policy\RateLimitPolicy::class,
+        // \Chronicle\Policy\TimeWindowPolicy::class,
+        // \Chronicle\Policy\ContextPolicy::class,
     ],
 ];
