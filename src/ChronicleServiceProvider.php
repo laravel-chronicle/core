@@ -47,6 +47,7 @@ class ChronicleServiceProvider extends ServiceProvider
         $this->registerSigning();
         $this->registerLedgerReader();
         $this->registerExports();
+        $this->registerQueueContext();
     }
 
     public function boot(): void
@@ -55,6 +56,8 @@ class ChronicleServiceProvider extends ServiceProvider
 
         $this->publishConfiguration();
         $this->publishMigrations();
+
+        $this->registerQueueListeners();
 
         if ($this->app->runningInConsole()) {
             $this->commands([
@@ -163,6 +166,39 @@ class ChronicleServiceProvider extends ServiceProvider
                 $app->make(ExportSigner::class),
             );
         });
+    }
+
+    protected function registerQueueListeners(): void
+    {
+        /** @var \Illuminate\Contracts\Events\Dispatcher $events */
+        $events = $this->app->make(\Illuminate\Contracts\Events\Dispatcher::class);
+
+        $events->listen(
+            \Illuminate\Queue\Events\JobProcessing::class,
+            function (\Illuminate\Queue\Events\JobProcessing $event): void {
+                /** @var \Illuminate\Contracts\Queue\Job $job */
+                $job = $event->job;
+                $this->app->make(\Chronicle\Context\QueueJobContext::class)->set($job);
+            }
+        );
+
+        foreach ([
+            \Illuminate\Queue\Events\JobProcessed::class,
+            \Illuminate\Queue\Events\JobFailed::class,
+            \Illuminate\Queue\Events\JobExceptionOccurred::class,
+        ] as $event) {
+            $events->listen(
+                $event,
+                function (): void {
+                    $this->app->make(\Chronicle\Context\QueueJobContext::class)->clear();
+                }
+            );
+        }
+    }
+
+    protected function registerQueueContext(): void
+    {
+        $this->app->singleton(\Chronicle\Context\QueueJobContext::class);
     }
 
     protected function publishConfiguration(): void
