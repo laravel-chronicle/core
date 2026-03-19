@@ -14,6 +14,25 @@ breaking changes between any two versions — see upgrade notes per version.
 
 ---
 
+## [1.4.0] - 2026-03-20
+
+### Added
+
+- Added `Chronicle\Contracts\EntryPolicy` interface with a single `enforce(PendingEntry): void` method as the public contract for policy extensions.
+- Added `Chronicle\Policy\AbstractPolicy` abstract base class implementing `EntryExtension` in the `POLICY` stage; seals `stage()` and `process()` so concrete policies only implement `enforce()` and can never accidentally mutate the entry.
+- Added `Chronicle\Exceptions\PolicyViolationException` base exception extending `ChronicleException`; callers who catch `ChronicleException` receive policy rejections without changes.
+- Added `OnlyAuthenticatedUsersPolicy` to reject entries when no authenticated user session is active. Skips automatically in console and queue worker contexts via `runningInConsole()`.
+- Added `AllowedActionsPolicy` to restrict entry recording to a configured list of allowed action patterns. Supports `Str::is()` wildcard syntax (e.g. `user.*`). An empty allowlist rejects every action.
+- Added `ForbiddenActionsPolicy` to prevent recording of entries matching a configured denylist of action patterns. Supports the same wildcard syntax. An empty denylist passes all actions.
+- Added `RateLimitPolicy` to cap entry creation per actor per time window. Uses Laravel's `RateLimiter` facade with a hashed cache key (`sha1("{actor_type}/{actor_id}")`) safe for all cache backends. Throws `RateLimitExceededException` with retry-after seconds.
+- Added `TimeWindowPolicy` to restrict entry recording to configured hours and days of the week. Uses Carbon for timezone-aware comparison. Midnight-spanning windows are not supported; `start >= end` throws `\InvalidArgumentException` at construction time.
+- Added `ContextPolicy` to enforce required top-level keys in the entry's `context` attribute. Treats `null` or non-array context as empty. An empty required-keys list is a no-op.
+- Added six `PolicyViolationException` subclasses: `UnauthenticatedActorException`, `ActionNotAllowedException`, `ActionForbiddenException`, `RateLimitExceededException`, `OutsideTimeWindowException`, and `RequiredContextMissingException`, each with named constructors.
+- Added `policy` configuration block in `config/chronicle.php` with defaults for all six built-in policies. All policies are registered as commented-out entries in the `extensions` array for discoverability.
+- Added `AbstractPolicyTest`, `OnlyAuthenticatedUsersPolicyTest`, `AllowedActionsPolicyTest`, `ForbiddenActionsPolicyTest`, `RateLimitPolicyTest`, `TimeWindowPolicyTest`, `ContextPolicyTest`, and `CombinedPoliciesTest` (Feature).
+
+---
+
 ## [1.3.0] - 2026-03-19
 
 ### Added
