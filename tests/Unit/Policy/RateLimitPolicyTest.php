@@ -1,7 +1,9 @@
 <?php
 
+use Chronicle\Entry\PendingEntry;
 use Chronicle\Exceptions\RateLimitExceededException;
 use Chronicle\Policy\RateLimitPolicy;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cache;
 
 // Note: RateLimiter::fake() does not stub availableIn(), which is required
@@ -59,7 +61,7 @@ it('uses a separate limit bucket per actor', function () {
     $policy->enforce(makePolicyPending());
 
     // Second actor (different actor_id) should still pass.
-    $secondEntry = new \Chronicle\Entry\PendingEntry([
+    $secondEntry = new PendingEntry([
         'id' => '01J2Q5M2M8M0P0X2A9BTD3M7D2',
         'actor_type' => 'App\\Models\\User',
         'actor_id' => '99',
@@ -71,7 +73,7 @@ it('uses a separate limit bucket per actor', function () {
         'diff' => null,
         'tags' => [],
         'correlation_id' => null,
-        'created_at' => \Illuminate\Support\Carbon::parse('2026-01-01 00:00:00', 'UTC'),
+        'created_at' => Carbon::parse('2026-01-01 00:00:00', 'UTC'),
     ]);
 
     $policy->enforce($secondEntry);

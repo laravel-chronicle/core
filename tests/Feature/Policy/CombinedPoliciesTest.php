@@ -5,6 +5,8 @@
 use Chronicle\Exceptions\ActionForbiddenException;
 use Chronicle\Exceptions\ActionNotAllowedException;
 use Chronicle\Facades\Chronicle;
+use Chronicle\Policy\AllowedActionsPolicy;
+use Chronicle\Policy\ForbiddenActionsPolicy;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
 uses(RefreshDatabase::class);
@@ -16,8 +18,8 @@ beforeEach(function () {
         'chronicle.policy.forbidden_actions' => ['user.deleted'],
     ]);
 
-    Chronicle::extendEntry(\Chronicle\Policy\AllowedActionsPolicy::class);
-    Chronicle::extendEntry(\Chronicle\Policy\ForbiddenActionsPolicy::class);
+    Chronicle::extendEntry(AllowedActionsPolicy::class);
+    Chronicle::extendEntry(ForbiddenActionsPolicy::class);
 });
 
 it('rejects an action in allowlist that also matches denylist', function () {

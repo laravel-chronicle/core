@@ -114,7 +114,7 @@ it('throws an InvalidArgumentException when start is equal to end', function () 
     ]]);
 
     expect(fn () => new TimeWindowPolicy)
-        ->toThrow(\InvalidArgumentException::class);
+        ->toThrow(InvalidArgumentException::class);
 });
 
 it('throws an InvalidArgumentException when start is after end', function () {
@@ -126,5 +126,5 @@ it('throws an InvalidArgumentException when start is after end', function () {
     ]]);
 
     expect(fn () => new TimeWindowPolicy)
-        ->toThrow(\InvalidArgumentException::class);
+        ->toThrow(InvalidArgumentException::class);
 });
