@@ -12,6 +12,10 @@ breaking changes between any two versions — see upgrade notes per version.
 
 ## [Unreleased]
 
+---
+
+## [1.4.0] - 2026-03-20
+
 ### Added
 
 - Added `Chronicle\Contracts\EntryPolicy` interface with a single `enforce(PendingEntry): void` method as the public contract for policy extensions.
