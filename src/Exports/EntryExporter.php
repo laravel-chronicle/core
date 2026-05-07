@@ -83,6 +83,8 @@ class EntryExporter
             'action' => $entry->action,
             'subject_type' => $entry->subject_type,
             'subject_id' => $entry->subject_id,
+            'metadata' => $entry->metadata,
+            'context' => $entry->context,
             'payload' => $entry->payload,
             'payload_hash' => $entry->payload_hash,
             'chain_hash' => $entry->chain_hash,
