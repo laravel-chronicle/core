@@ -38,6 +38,7 @@ breaking changes between any two versions — see upgrade notes per version.
 ### Security
 
 - `ExportVerifier` now re-derives `payload_hash` from the exported `payload` field per-entry, closing a gap where a tampered payload with an unmodified `payload_hash` field would pass export verification.
+- `Ed25519SigningProvider` now zeroes the private key in memory via `sodium_memzero()` when the object is destroyed, reducing key exposure for compliance-sensitive deployments.
 
 ---
 
