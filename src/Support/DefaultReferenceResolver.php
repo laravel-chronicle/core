@@ -13,8 +13,8 @@ use InvalidArgumentException;
  *
  * Supports:
  *  - Eloquent models
- *  - scalar values
- *  - objects with id property
+ *  - Scalar values
+ *  - Objects with id property
  */
 class DefaultReferenceResolver implements ReferenceResolver
 {

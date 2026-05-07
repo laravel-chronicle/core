@@ -5,6 +5,7 @@ namespace Chronicle\Storage;
 use Chronicle\Contracts\StorageDriver;
 use Chronicle\Entry\Entry;
 use Illuminate\Support\Collection;
+use JsonException;
 
 /**
  * Stores entries in memory for the duration of the request/test.
@@ -18,11 +19,15 @@ use Illuminate\Support\Collection;
  */
 class ArrayDriver implements StorageDriver
 {
+    use SerializesEntryAttributes;
+
     /** @var array<int|string, mixed> */
     private static array $entries = [];
 
     /**
      * @param  array<string, mixed>  $entry
+     *
+     * @throws JsonException
      */
     public function store(array $entry): Entry
     {
@@ -30,24 +35,7 @@ class ArrayDriver implements StorageDriver
 
         $model = new Entry;
 
-        $model->forceFill([
-            'id' => $entry['id'],
-            'actor_type' => $entry['actor_type'],
-            'actor_id' => $entry['actor_id'],
-            'action' => $entry['action'],
-            'subject_type' => $entry['subject_type'],
-            'subject_id' => $entry['subject_id'],
-            'payload' => json_encode($entry['payload']),
-            'payload_hash' => $entry['payload_hash'],
-            'chain_hash' => $entry['chain_hash'],
-            'metadata' => json_encode($entry['metadata']),
-            'context' => json_encode($entry['context']),
-            'tags' => json_encode($entry['tags']),
-            'diff' => json_encode($entry['diff']),
-            'correlation_id' => $entry['correlation_id'],
-            'checkpoint_id' => $entry['checkpoint_id'],
-            'created_at' => $entry['created_at'],
-        ]);
+        $model->forceFill($this->toEntryAttributes($entry));
 
         $model->exists = true;
 

@@ -32,6 +32,7 @@ breaking changes between any two versions — see upgrade notes per version.
 - `DefaultReferenceResolver` now throws `InvalidArgumentException` when passed a scalar value (string, int, etc.), rather than silently using PHP's `gettype()` return value (e.g., `"integer"`) as the actor/subject type. Pass an Eloquent model or an object with a public `$id` property instead.
   **Breaking change:** Any code passing raw scalars directly as actor or subject (other than the reserved `'system'` string handled by `EntryBuilder`) must be updated.
 - `ChronicleServiceProvider` no longer validates signing configuration in `boot()`. The check is now deferred to the first resolution of `SigningProvider` from the container, eliminating key-decoding overhead on every request in apps that do not use Chronicle signing on every route.
+- Extracted `SerializesEntryAttributes` trait from `ArrayDriver`, `DatabaseDriver`, and `NullDriver`, replacing three identical copies of the JSON-encoding attribute array with a single shared `toEntryAttributes()` implementation. All `json_encode` calls in the trait use `JSON_THROW_ON_ERROR`.
 
 ---
 

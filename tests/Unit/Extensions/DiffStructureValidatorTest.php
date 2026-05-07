@@ -95,7 +95,7 @@ it('returns the same pending entry instance on success', function () {
 });
 
 // ---------------------------------------------------------------------------
-// Top-level type — diff must be array or null
+// Top-level type — diff must be arrayed or null
 // ---------------------------------------------------------------------------
 
 it('rejects a string diff', function () {
