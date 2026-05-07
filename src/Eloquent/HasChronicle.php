@@ -66,6 +66,20 @@ trait HasChronicle
 
                 $builder->commit();
             });
+
+        static::deleted(
+            /** @throws Throwable */
+            function (self $model): void {
+                if (! $model->shouldChronicleEvent('deleted')) {
+                    return;
+                }
+
+                Chronicle::record()
+                    ->actor($model->chronicleActor())
+                    ->action($model->chronicleActionPrefix().'.deleted')
+                    ->subject($model)
+                    ->commit();
+            });
     }
 
     protected function chronicleActor(): Authenticatable|string

@@ -56,3 +56,17 @@ it('does not record an updated entry when only timestamps change', function () {
 
     expect(Entry::count())->toBe(0);
 });
+
+it('records a deleted entry when a model is deleted', function () {
+    $model = FakeChronicleModel::create(['name' => 'Alice']);
+    Entry::query()->delete();
+
+    $model->delete();
+
+    $entry = Entry::first();
+
+    expect(Entry::count())->toBe(1)
+        ->and($entry->action)->toBe('fake_chronicle_model.deleted')
+        ->and($entry->subject_type)->toBe(FakeChronicleModel::class)
+        ->and($entry->subject_id)->toBe((string) $model->id);
+});
