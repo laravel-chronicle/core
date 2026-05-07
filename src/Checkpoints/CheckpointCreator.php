@@ -38,6 +38,7 @@ class CheckpointCreator
             $chainHash = Entry::query()
                 ->orderByDesc('created_at')
                 ->orderByDesc('id')
+                ->lockForUpdate()
                 ->value('chain_hash');
 
             if (! $chainHash) {
