@@ -70,3 +70,49 @@ it('records a deleted entry when a model is deleted', function () {
         ->and($entry->subject_type)->toBe(FakeChronicleModel::class)
         ->and($entry->subject_id)->toBe((string) $model->id);
 });
+
+it('excludes chronicleIgnore fields from the recorded diff', function () {
+    $model = new class extends FakeChronicleModel
+    {
+        protected array $chronicleIgnore = ['password'];
+
+        protected function chronicleActionPrefix(): string
+        {
+            return 'fake_chronicle_model';
+        }
+    };
+    $model->setTable('fake_chronicle_models');
+    $model->fill(['name' => 'Alice', 'password' => 'secret'])->save();
+    Entry::query()->delete();
+
+    $model->update(['name' => 'Bob', 'password' => 'newsecret']);
+
+    $entry = Entry::first();
+
+    expect($entry->diff)->toHaveKey('name')
+        ->and($entry->diff)->not->toHaveKey('password');
+});
+
+it('still records an updated entry when only a chronicleIgnore field changes', function () {
+    $model = new class extends FakeChronicleModel
+    {
+        protected array $chronicleIgnore = ['password'];
+
+        protected function chronicleActionPrefix(): string
+        {
+            return 'fake_chronicle_model';
+        }
+    };
+    $model->setTable('fake_chronicle_models');
+    $model->fill(['name' => 'Alice', 'password' => 'secret'])->save();
+    Entry::query()->delete();
+
+    $model->update(['password' => 'newsecret']); // only ignored field changed
+
+    $entry = Entry::first();
+
+    // Entry is recorded (something changed), but diff is empty/null.
+    expect(Entry::count())->toBe(1)
+        ->and($entry->action)->toBe('fake_chronicle_model.updated')
+        ->and($entry->diff)->toBeNull();
+});
