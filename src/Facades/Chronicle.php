@@ -2,12 +2,11 @@
 
 namespace Chronicle\Facades;
 
-use Carbon\CarbonInterface;
 use Chronicle\Contracts\EntryExtension;
 use Chronicle\Contracts\LedgerReader;
 use Chronicle\Contracts\StorageDriver;
 use Chronicle\Entry\EntryBuilder;
-use Chronicle\Reports\ComplianceReportResult;
+use Chronicle\Query\LedgerQuery;
 use Chronicle\Transaction\ChronicleTransaction;
 use Illuminate\Support\Facades\Facade;
 
@@ -33,10 +32,10 @@ use Illuminate\Support\Facades\Facade;
  * @method static void extendEntry(EntryExtension|string $extension)
  * @method static ChronicleTransaction|mixed transaction(?callable $callback = null)
  * @method static LedgerReader reader()
+ * @method static LedgerQuery query()
  * @method static ChronicleTransaction|null currentTransaction()
- * @method static string|null currentCorrelationId()
+ * @method static string|null currentCorrelation()
  * @method static StorageDriver driver(string $name)
- * @method static ComplianceReportResult report(string $path, ?CarbonInterface $from = null, ?CarbonInterface $to = null)
  */
 class Chronicle extends Facade
 {

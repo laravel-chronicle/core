@@ -6,10 +6,12 @@ use Chronicle\Contracts\EntryExtension;
 use Chronicle\Contracts\LedgerReader as LedgerReaderContract;
 use Chronicle\Contracts\ReferenceResolver;
 use Chronicle\Contracts\StorageDriver;
+use Chronicle\Entry\Entry;
 use Chronicle\Entry\EntryBuilder;
 use Chronicle\Entry\PendingEntry;
 use Chronicle\Pipeline\EntryExtensionRegistry;
 use Chronicle\Pipeline\EntryPipeline;
+use Chronicle\Query\LedgerQuery;
 use Chronicle\Storage\DriverResolver;
 use Chronicle\Transaction\ChronicleTransaction;
 use Illuminate\Contracts\Container\BindingResolutionException;
@@ -134,6 +136,11 @@ class ChronicleManager
     public function reader(): LedgerReaderContract
     {
         return $this->reader;
+    }
+
+    public function query(): LedgerQuery
+    {
+        return new LedgerQuery(Entry::query());
     }
 
     /**
