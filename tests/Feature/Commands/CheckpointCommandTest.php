@@ -7,7 +7,7 @@ it('creates a checkpoint', function () {
     Chronicle::record()
         ->actor('system')
         ->action('checkpoint.test')
-        ->subject('ledger')
+        ->subject(ref('ledger'))
         ->commit();
 
     $this->artisan('chronicle:checkpoint')

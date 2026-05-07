@@ -11,7 +11,7 @@ use SodiumException;
  */
 class Ed25519SigningProvider implements SigningProvider
 {
-    protected string $privateKey;
+    protected ?string $privateKey = null;
 
     protected string $publicKey;
 
@@ -55,8 +55,6 @@ class Ed25519SigningProvider implements SigningProvider
             return false;
         }
 
-        /** @var non-falsy-string $signature */
-        $signature = $signature;
         /** @var non-empty-string $publicKey */
         $publicKey = $this->publicKey;
 
@@ -104,5 +102,13 @@ class Ed25519SigningProvider implements SigningProvider
     public function keyId(): string
     {
         return $this->keyId;
+    }
+
+    /**
+     * @throws SodiumException
+     */
+    public function __destruct()
+    {
+        sodium_memzero($this->privateKey);
     }
 }

@@ -11,7 +11,7 @@ it('fails export when target path collides with an existing file', function () {
     Chronicle::record()
         ->actor('system')
         ->action('fs.collision')
-        ->subject('ledger')
+        ->subject(ref('ledger'))
         ->commit();
 
     $path = storage_path('chronicle-export-collision-'.Str::uuid());
@@ -41,7 +41,7 @@ it('surfaces filesystem failure from chronicle export command', function () {
     Chronicle::record()
         ->actor('system')
         ->action('fs.command')
-        ->subject('ledger')
+        ->subject(ref('ledger'))
         ->commit();
 
     $path = storage_path('chronicle-export-command-collision-'.Str::uuid());

@@ -40,7 +40,7 @@ it('paginates entries in id order', function () {
         Chronicle::record()
             ->actor('system')
             ->action('paginate.'.$i)
-            ->subject('ledger')
+            ->subject(ref('ledger'))
             ->commit();
     }
 
@@ -59,7 +59,7 @@ it('streams entries lazily in id order', function () {
         Chronicle::record()
             ->actor('system')
             ->action('stream.'.$i)
-            ->subject('ledger')
+            ->subject(ref('ledger'))
             ->commit();
     }
 
@@ -77,9 +77,9 @@ it('streams entries lazily in id order', function () {
 it('filters by actor via reader', function () {
     $actor = FakeActor::create();
 
-    Chronicle::record()->actor($actor)->action('actor.older')->subject('ledger')->commit();
-    Chronicle::record()->actor($actor)->action('actor.newer')->subject('ledger')->commit();
-    Chronicle::record()->actor('system')->action('actor.other')->subject('ledger')->commit();
+    Chronicle::record()->actor($actor)->action('actor.older')->subject(ref('ledger'))->commit();
+    Chronicle::record()->actor($actor)->action('actor.newer')->subject(ref('ledger'))->commit();
+    Chronicle::record()->actor('system')->action('actor.other')->subject(ref('ledger'))->commit();
 
     Entry::where('action', 'actor.older')->update(['created_at' => Carbon::now('UTC')->subMinutes(2)]);
     Entry::where('action', 'actor.newer')->update(['created_at' => Carbon::now('UTC')->subMinute()]);
@@ -95,7 +95,7 @@ it('filters by subject via reader', function () {
     $subject = FakeSubject::create();
 
     Chronicle::record()->actor('system')->action('subject.hit')->subject($subject)->commit();
-    Chronicle::record()->actor('system')->action('subject.miss')->subject('ledger')->commit();
+    Chronicle::record()->actor('system')->action('subject.miss')->subject(ref('ledger'))->commit();
 
     $entries = app(LedgerReaderContract::class)->forSubject($subject);
 
@@ -104,9 +104,9 @@ it('filters by subject via reader', function () {
 });
 
 it('filters by action via reader', function () {
-    Chronicle::record()->actor('system')->action('orders.created')->subject('ledger')->commit();
-    Chronicle::record()->actor('system')->action('orders.created')->subject('ledger')->commit();
-    Chronicle::record()->actor('system')->action('orders.updated')->subject('ledger')->commit();
+    Chronicle::record()->actor('system')->action('orders.created')->subject(ref('ledger'))->commit();
+    Chronicle::record()->actor('system')->action('orders.created')->subject(ref('ledger'))->commit();
+    Chronicle::record()->actor('system')->action('orders.updated')->subject(ref('ledger'))->commit();
 
     $entries = app(LedgerReaderContract::class)->action('orders.created');
 
@@ -117,10 +117,10 @@ it('filters by action via reader', function () {
 it('filters by correlation via reader', function () {
     $tx = Chronicle::transaction();
 
-    $tx->entry()->actor('system')->action('corr.one')->subject('ledger')->commit();
-    $tx->entry()->actor('system')->action('corr.two')->subject('ledger')->commit();
+    $tx->entry()->actor('system')->action('corr.one')->subject(ref('ledger'))->commit();
+    $tx->entry()->actor('system')->action('corr.two')->subject(ref('ledger'))->commit();
 
-    Chronicle::record()->actor('system')->action('corr.other')->subject('ledger')->correlation((string) Str::uuid())->commit();
+    Chronicle::record()->actor('system')->action('corr.other')->subject(ref('ledger'))->correlation((string) Str::uuid())->commit();
 
     $entries = app(LedgerReaderContract::class)->correlation($tx->id());
 

@@ -77,7 +77,7 @@ class PendingEntry
     }
 
     /**
-     * Set canonical payload.
+     * Set a canonical payload.
      *
      * @param  array<string, mixed>  $payload
      */
@@ -97,7 +97,7 @@ class PendingEntry
     }
 
     /**
-     * Set payload hash.
+     * Set the payload hash.
      */
     public function setPayloadHash(string $hash): void
     {
@@ -137,7 +137,7 @@ class PendingEntry
     }
 
     /**
-     * Convert pending entry into a database payload.
+     * Convert a pending entry into a database payload.
      *
      * @return array<string, mixed>
      */

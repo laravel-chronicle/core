@@ -4,6 +4,7 @@ namespace Chronicle\Storage;
 
 use Chronicle\Contracts\StorageDriver;
 use Chronicle\Entry\Entry;
+use JsonException;
 
 /**
  * NullDriver
@@ -20,8 +21,12 @@ use Chronicle\Entry\Entry;
  */
 class NullDriver implements StorageDriver
 {
+    use SerializesEntryAttributes;
+
     /**
      * @param  array<string, mixed>  $entry
+     *
+     * @throws JsonException
      */
     public function store(array $entry): Entry
     {
@@ -31,31 +36,5 @@ class NullDriver implements StorageDriver
 
         // Deliberately not saved - this driver is a black hole.
         return $model;
-    }
-
-    /**
-     * @param  array<string, mixed>  $entry
-     * @return array<string, mixed>
-     */
-    private function toEntryAttributes(array $entry): array
-    {
-        return [
-            'id' => $entry['id'],
-            'actor_type' => $entry['actor_type'],
-            'actor_id' => $entry['actor_id'],
-            'action' => $entry['action'],
-            'subject_type' => $entry['subject_type'],
-            'subject_id' => $entry['subject_id'],
-            'payload' => json_encode($entry['payload']),
-            'payload_hash' => $entry['payload_hash'],
-            'chain_hash' => $entry['chain_hash'],
-            'metadata' => json_encode($entry['metadata']),
-            'context' => json_encode($entry['context']),
-            'tags' => json_encode($entry['tags']),
-            'diff' => json_encode($entry['diff']),
-            'correlation_id' => $entry['correlation_id'],
-            'checkpoint_id' => $entry['checkpoint_id'],
-            'created_at' => $entry['created_at'],
-        ];
     }
 }

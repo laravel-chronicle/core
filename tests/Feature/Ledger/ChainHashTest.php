@@ -7,13 +7,13 @@ it('creates a valid chain of entries', function () {
     Chronicle::record()
         ->actor('system')
         ->action('chain.first')
-        ->subject('test')
+        ->subject(ref('test'))
         ->commit();
 
     Chronicle::record()
         ->actor('system')
         ->action('chain.second')
-        ->subject('test')
+        ->subject(ref('test'))
         ->commit();
 
     $entries = Entry::all();

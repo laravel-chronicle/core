@@ -29,13 +29,13 @@ it('filters entries by actor', function () {
     Chronicle::record()
         ->actor($actor)
         ->action('test.actor')
-        ->subject('ledger')
+        ->subject(ref('ledger'))
         ->commit();
 
     Chronicle::record()
         ->actor('system')
         ->action('test.actor')
-        ->subject('ledger')
+        ->subject(ref('ledger'))
         ->commit();
 
     $entries = Entry::forActor($actor)->get();
@@ -55,7 +55,7 @@ it('filters entries by subject', function () {
     Chronicle::record()
         ->actor('system')
         ->action('test.subject')
-        ->subject('ledger')
+        ->subject(ref('ledger'))
         ->commit();
 
     $entries = Entry::forSubject($subject)->get();
@@ -67,13 +67,13 @@ it('filters entries by action', function () {
     Chronicle::record()
         ->actor('system')
         ->action('order.created')
-        ->subject('ledger')
+        ->subject(ref('ledger'))
         ->commit();
 
     Chronicle::record()
         ->actor('system')
         ->action('order.updated')
-        ->subject('ledger')
+        ->subject(ref('ledger'))
         ->commit();
 
     $entries = Entry::action('order.created')->get();
@@ -87,7 +87,7 @@ it('filters entries by correlation id', function () {
         Chronicle::record()
             ->actor('system')
             ->action('corr.first')
-            ->subject('ledger')
+            ->subject(ref('ledger'))
             ->commit();
 
     });
@@ -95,7 +95,7 @@ it('filters entries by correlation id', function () {
     Chronicle::record()
         ->actor('system')
         ->action('corr.second')
-        ->subject('ledger')
+        ->subject(ref('ledger'))
         ->commit();
 
     $correlation = Entry::first()->correlation_id;
@@ -111,7 +111,7 @@ it('filters workflow entries using hierarchical correlation', function () {
         Chronicle::record()
             ->actor('system')
             ->action('workflow.root')
-            ->subject('ledger')
+            ->subject(ref('ledger'))
             ->commit();
 
         Chronicle::transaction(function () {
@@ -119,7 +119,7 @@ it('filters workflow entries using hierarchical correlation', function () {
             Chronicle::record()
                 ->actor('system')
                 ->action('workflow.child')
-                ->subject('ledger')
+                ->subject(ref('ledger'))
                 ->commit();
 
         });
@@ -137,14 +137,14 @@ it('filters entries by tag', function () {
     Chronicle::record()
         ->actor('system')
         ->action('tagged.event')
-        ->subject('ledger')
+        ->subject(ref('ledger'))
         ->tags(['security'])
         ->commit();
 
     Chronicle::record()
         ->actor('system')
         ->action('untagged.event')
-        ->subject('ledger')
+        ->subject(ref('ledger'))
         ->commit();
 
     $entries = Entry::withTag('security')->get();
@@ -156,14 +156,14 @@ it('filters entries by multiple tags', function () {
     Chronicle::record()
         ->actor('system')
         ->action('tagged.event')
-        ->subject('ledger')
+        ->subject(ref('ledger'))
         ->tags(['orders', 'checkout'])
         ->commit();
 
     Chronicle::record()
         ->actor('system')
         ->action('tagged.event')
-        ->subject('ledger')
+        ->subject(ref('ledger'))
         ->tags(['orders'])
         ->commit();
 
@@ -176,7 +176,7 @@ it('filters entries within a time range', function () {
     Chronicle::record()
         ->actor('system')
         ->action('time.old')
-        ->subject('ledger')
+        ->subject(ref('ledger'))
         ->commit();
 
     $entries = Entry::between(
@@ -191,7 +191,7 @@ it('orders entries using latestFirst scope', function () {
     Chronicle::record()
         ->actor('system')
         ->action('order.first')
-        ->subject('ledger')
+        ->subject(ref('ledger'))
         ->commit();
 
     sleep(1);
@@ -199,10 +199,16 @@ it('orders entries using latestFirst scope', function () {
     Chronicle::record()
         ->actor('system')
         ->action('order.second')
-        ->subject('ledger')
+        ->subject(ref('ledger'))
         ->commit();
 
     $entries = Entry::latestFirst()->get();
 
     expect($entries->first()->action)->toBe('order.second');
+});
+
+it('scopeWorkflow appends an explicit ESCAPE clause so LIKE works correctly across databases', function () {
+    $sql = Entry::query()->workflow('root_corr')->toSql();
+
+    expect($sql)->toContain("ESCAPE '!'");
 });

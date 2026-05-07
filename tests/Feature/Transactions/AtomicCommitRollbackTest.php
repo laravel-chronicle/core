@@ -47,9 +47,8 @@ it('rolls back chronicle commit when persistence fails after insert', function (
         Chronicle::record()
             ->actor('system')
             ->action('atomic.rollback')
-            ->subject('ledger')
+            ->subject(ref('ledger'))
             ->commit();
-    })->toThrow(RuntimeException::class, 'forcing rollback');
-
-    expect(Entry::count())->toBe(0);
+    })->toThrow(RuntimeException::class, 'forcing rollback')
+        ->and(Entry::count())->toBe(0);
 });

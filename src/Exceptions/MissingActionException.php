@@ -11,7 +11,7 @@ namespace Chronicle\Exceptions;
  * Actions represent the semantic event that occurred within the
  * application (e.g. "invoice.created", "user.invited").
  *
- * Chronicle requires actions to be explicit in order to maintain
+ * Chronicle requires actions to be explicit to maintain
  * a meaningful and searchable audit trail.
  */
 class MissingActionException extends ChronicleException

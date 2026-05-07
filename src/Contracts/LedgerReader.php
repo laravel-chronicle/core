@@ -57,4 +57,26 @@ interface LedgerReader
      * @return Collection<int, Entry>
      */
     public function correlation(string $id): Collection;
+
+    /**
+     * Get entries belonging to a workflow tree (prefix match on correlation_id).
+     *
+     * @return Collection<int, Entry>
+     */
+    public function workflow(string $rootCorrelation): Collection;
+
+    /**
+     * Get entries containing a tag.
+     *
+     * @return Collection<int, Entry>
+     */
+    public function withTag(string $tag): Collection;
+
+    /**
+     * Get entries containing all the given tags.
+     *
+     * @param  list<string>  $tags
+     * @return Collection<int, Entry>
+     */
+    public function withTags(array $tags): Collection;
 }

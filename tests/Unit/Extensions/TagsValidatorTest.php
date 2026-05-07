@@ -43,7 +43,7 @@ it('has a priority between ActionValidator (-100) and PayloadSerializableValidat
 // ---------------------------------------------------------------------------
 
 it('accepts an empty tags array', function () {
-    $entry = makeTagsValidatorPending([]);
+    $entry = makeTagsValidatorPending();
 
     expect(app(TagsValidator::class)->process($entry))->toBe($entry);
 });

@@ -199,6 +199,9 @@ class ChronicleManager
         });
     }
 
+    /**
+     * @throws BindingResolutionException
+     */
     public function driver(string $name): StorageDriver
     {
         return $this->drivers->resolve($name);
@@ -219,6 +222,9 @@ class ChronicleManager
         $this->extensions->register($extension);
     }
 
+    /**
+     * @throws BindingResolutionException
+     */
     public function getActiveDriver(): StorageDriver
     {
         if ($this->resolvedDriver === null) {
@@ -233,6 +239,8 @@ class ChronicleManager
 
     /**
      * Swap the active driver directly. Used by fake() and useEloquentDriver() in tests.
+     *
+     * @internal
      */
     public function swapDriver(StorageDriver $driver): void
     {

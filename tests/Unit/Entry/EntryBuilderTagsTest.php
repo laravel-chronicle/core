@@ -7,7 +7,7 @@ it('normalizes tags', function () {
     $entry = Chronicle::record()
         ->actor('system')
         ->action('test.event')
-        ->subject('test')
+        ->subject(ref('test'))
         ->tags([' Orders ', 'CHECKOUT'])
         ->build();
 
@@ -18,7 +18,7 @@ it('removes duplicate tags', function () {
     $entry = Chronicle::record()
         ->actor('system')
         ->action('test.event')
-        ->subject('test')
+        ->subject(ref('test'))
         ->tags(['orders', 'Orders', 'ORDERS'])
         ->build();
 
@@ -29,7 +29,7 @@ it('sorts tags alphabetically', function () {
     $entry = Chronicle::record()
         ->actor('system')
         ->action('test.event')
-        ->subject('test')
+        ->subject(ref('test'))
         ->tags(['billing', 'auth', 'orders'])
         ->build();
 
@@ -40,7 +40,7 @@ it('filters empty tags', function () {
     $entry = Chronicle::record()
         ->actor('system')
         ->action('test.event')
-        ->subject('test')
+        ->subject(ref('test'))
         ->tags(['orders', '', '   ', 'billing'])
         ->build();
 
@@ -51,7 +51,7 @@ it('persists tags when recording entries', function () {
     Chronicle::record()
         ->actor('system')
         ->action('test.event')
-        ->subject('test')
+        ->subject(ref('test'))
         ->tags(['orders', 'billing'])
         ->commit();
 

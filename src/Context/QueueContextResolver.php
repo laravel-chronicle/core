@@ -21,7 +21,6 @@ class QueueContextResolver extends AbstractContextResolver
             return null;
         }
 
-        /** @var string $jobId */
         $jobId = $job->getJobId();
 
         return [

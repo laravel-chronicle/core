@@ -27,7 +27,7 @@ it('fails entry export when output file cannot be opened', function () {
     Chronicle::record()
         ->actor('system')
         ->action('export.open-failure')
-        ->subject('ledger')
+        ->subject(ref('ledger'))
         ->commit();
 
     $dirPath = storage_path('chronicle-entry-export-dir-'.Str::uuid());
@@ -89,7 +89,7 @@ it('fails entry export when write operation cannot persist bytes', function () {
     Chronicle::record()
         ->actor('system')
         ->action('export.write-failure')
-        ->subject('ledger')
+        ->subject(ref('ledger'))
         ->commit();
 
     $scheme = 'chroniclefailwrite';

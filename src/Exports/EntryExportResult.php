@@ -11,26 +11,15 @@ namespace Chronicle\Exports;
 class EntryExportResult
 {
     /**
-     * Number of exported entries.
-     */
-    public int $entryCount;
-
-    /**
-     * The final chain hash of the exported dataset.
-     */
-    public ?string $chainHead;
-
-    /**
      * Create a new export result instance.
      */
     public function __construct(
-        int $entryCount,
-        ?string $chainHead,
+        public int $entryCount,
+        public ?string $chainHead,
         public ?string $firstEntryId,
         public ?string $lastEntryId,
     ) {
-        $this->entryCount = $entryCount;
-        $this->chainHead = $chainHead;
+        //
     }
 
     /**

@@ -130,3 +130,29 @@ it('preserves existing context keys', function () {
     expect($entry->attribute('context'))->toHaveKey('tenant_id', 5)
         ->and($entry->attribute('context'))->toHaveKey('request');
 });
+
+it('truncates user agent strings longer than 512 characters', function () {
+    $longUserAgent = str_repeat('A', 600);
+
+    $request = Request::create('https://example.com/', 'GET', [], [], [], [
+        'HTTP_USER_AGENT' => $longUserAgent,
+    ]);
+    app()->instance('request', $request);
+
+    $result = makeHttpResolver()->resolve(makeRequestPending());
+
+    expect(strlen($result['user_agent']))->toBeLessThanOrEqual(512);
+});
+
+it('strips password and token query parameters from the stored URL', function () {
+    $request = Request::create(
+        'https://example.com/api?action=export&password=secret&api_token=abc123'
+    );
+    app()->instance('request', $request);
+
+    $result = makeHttpResolver()->resolve(makeRequestPending());
+
+    expect($result['url'])->not->toContain('secret')
+        ->and($result['url'])->not->toContain('abc123')
+        ->and($result['url'])->toContain('action=export');
+});

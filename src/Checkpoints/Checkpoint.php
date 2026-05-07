@@ -59,7 +59,7 @@ class Checkpoint extends Model
     protected $keyType = 'string';
 
     /**
-     * Chronicle entries have created_at only - no updated_at.
+     * Chronicle checkpoints have created_at only - no updated_at.
      */
     public $timestamps = false;
 
@@ -105,7 +105,7 @@ class Checkpoint extends Model
     }
 
     /**
-     * Prevent updates via fill + save patterns.
+     * Prevent updates via fill and save patterns.
      */
     public function update(array $attributes = [], array $options = []): bool
     {

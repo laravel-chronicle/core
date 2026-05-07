@@ -5,14 +5,15 @@ namespace Chronicle\Console\Commands;
 use Chronicle\Entry\Entry;
 use Chronicle\Verification\IntegrityVerifier;
 use Illuminate\Console\Command;
+use JsonException;
 
 /**
  * Verifies the integrity of the Chronicle ledger.
  *
  * This command checks:
- *  - payload hashes
- *  - chain hashes
- *  - checkpoint signatures
+ *  - Payload hashes
+ *  - Chain hashes
+ *  - Checkpoint signatures
  */
 class VerifyEntryCommand extends Command
 {
@@ -20,6 +21,9 @@ class VerifyEntryCommand extends Command
 
     protected $description = 'Verify the integrity of the Chronicle ledger';
 
+    /**
+     * @throws JsonException
+     */
     public function handle(IntegrityVerifier $verifier): int
     {
         $this->info('Verifying Chronicle ledger...');
@@ -37,9 +41,8 @@ class VerifyEntryCommand extends Command
         $bar->finish();
         $this->newLine();
 
+        $this->newLine();
         if ($result->hasFailed()) {
-            $this->newLine();
-
             $this->error('Integrity violation detected.');
 
             $this->line('Type: '.$result->failureType());
@@ -48,7 +51,6 @@ class VerifyEntryCommand extends Command
             return self::FAILURE;
         }
 
-        $this->newLine();
         $this->line('✓ Chain integrity verified');
         $this->line('✓ Entry count validated');
         $this->line('✓ Dataset boundaries verified');

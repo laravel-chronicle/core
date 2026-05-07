@@ -9,6 +9,18 @@ pest()->extends(TestCase::class)
     ->use(RefreshDatabase::class)
     ->in(__DIR__);
 
+/**
+ * Create a plain object reference for use as an actor / subject in tests.
+ * DefaultReferenceResolver resolves any object with a public $id property.
+ */
+function ref(string $id): object
+{
+    $obj = new stdClass;
+    $obj->id = $id;
+
+    return $obj;
+}
+
 function makePolicyPending(): PendingEntry
 {
     return new PendingEntry([

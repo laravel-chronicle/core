@@ -38,7 +38,7 @@ describe('NullDriver', function () {
         expect($entry)
             ->toBeInstanceOf(Entry::class)
             ->and($entry->action)->toBe('order.placed')
-            ->and($entry->exists)->toBe(false);
+            ->and($entry->exists)->toBeFalse();
     });
 
     it('hydrates all fields onto the returned Entry', function () {

@@ -13,8 +13,8 @@ use InvalidArgumentException;
  *
  * Supports:
  *  - Eloquent models
- *  - scalar values
- *  - objects with id property
+ *  - Scalar values
+ *  - Objects with id property
  */
 class DefaultReferenceResolver implements ReferenceResolver
 {
@@ -28,9 +28,8 @@ class DefaultReferenceResolver implements ReferenceResolver
         }
 
         if (is_scalar($value)) {
-            return new Reference(
-                gettype($value),
-                (string) $value,
+            throw new InvalidArgumentException(
+                'Chronicle: scalar values cannot be used as actor or subject references. Pass an Eloquent model or an object with a public $id property.'
             );
         }
 
@@ -56,7 +55,7 @@ class DefaultReferenceResolver implements ReferenceResolver
         /** @var string $key */
         $key = $model->getKey();
 
-        $id = (string) $key;
+        $id = $key;
 
         return new Reference(
             $model::class,

@@ -3,6 +3,7 @@
 namespace Chronicle\Storage;
 
 use Chronicle\Contracts\StorageDriver;
+use Illuminate\Contracts\Container\BindingResolutionException;
 use Illuminate\Contracts\Container\Container;
 use InvalidArgumentException;
 
@@ -43,6 +44,14 @@ class DriverResolver
         $this->extensions[$driver] = $factory;
     }
 
+    public function has(string $driver): bool
+    {
+        return array_key_exists($driver, $this->extensions);
+    }
+
+    /**
+     * @throws BindingResolutionException
+     */
     public function resolve(string $driver): StorageDriver
     {
         if (array_key_exists($driver, $this->extensions)) {

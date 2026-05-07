@@ -30,7 +30,7 @@ it('builds a valid entry payload', function () {
     $entry = $builder
         ->actor('user:1')
         ->action('invoice.created')
-        ->subject('invoice:10')
+        ->subject(ref('invoice:10'))
         ->metadata(['amount' => 100])
         ->tags(['billing'])
         ->build();
@@ -55,7 +55,7 @@ it('throws exception when actor is missing', function () {
 
     $builder
         ->action('invoice.created')
-        ->subject('invoice:10')
+        ->subject(ref('invoice:10'))
         ->build();
 
 })->throws(MissingActorException::class);
@@ -91,7 +91,7 @@ it('throws exception when action is missing', function () {
 
     $builder
         ->actor('user:1')
-        ->subject('invoice:10')
+        ->subject(ref('invoice:10'))
         ->build();
 
 })->throws(MissingActionException::class);
@@ -118,7 +118,7 @@ it('accepts falsy-but-valid actor and subject values', function () {
     $entry = $builder
         ->actor(0)
         ->action('invoice.created')
-        ->subject('0')
+        ->subject(ref('0'))
         ->build();
 
     expect($entry['actor_id'])->toBe('0')
@@ -147,7 +147,7 @@ it('accepts action set to string zero', function () {
     $entry = $builder
         ->actor('user:1')
         ->action('0')
-        ->subject('invoice:10')
+        ->subject(ref('invoice:10'))
         ->build();
 
     expect($entry['action'])->toBe('0');
@@ -172,7 +172,7 @@ it('normalizes the system actor without using the resolver', function () {
     $entry = $builder
         ->actor('system')
         ->action('invoice.created')
-        ->subject('invoice:10')
+        ->subject(ref('invoice:10'))
         ->build();
 
     expect($entry['actor_type'])->toBe('system')
@@ -193,7 +193,38 @@ it('throws exception when action is blank whitespace', function () {
     $builder
         ->actor('user:1')
         ->action('   ')
-        ->subject('invoice:10')
+        ->subject(ref('invoice:10'))
         ->build();
 
 })->throws(MissingActionException::class);
+
+it('keeps diff keys in alphabetical order when using change() in non-alphabetical order', function () {
+    $resolver = mock(ReferenceResolver::class);
+    $resolver->shouldReceive('resolve')->once()->andReturn(
+        new Reference('order', '5'),
+    );
+    $manager = mock(ChronicleManager::class);
+    $manager->shouldReceive('currentCorrelation')->andReturn(null)->byDefault();
+
+    $builder = new EntryBuilder($resolver, $manager);
+
+    $payload = $builder
+        ->actor('system')
+        ->action('order.updated')
+        ->subject(ref('order:5'))
+        ->change('status', 'pending', 'confirmed')   // s > a
+        ->change('amount', 100, 200)                  // a comes first alphabetically
+        ->build();
+
+    expect(array_keys($payload['diff']))->toBe(['amount', 'status']);
+});
+
+it('throws InvalidArgumentException when diff() receives a malformed change entry', function () {
+    $resolver = mock(ReferenceResolver::class);
+    $manager = mock(ChronicleManager::class);
+
+    $builder = new EntryBuilder($resolver, $manager);
+
+    expect(fn () => $builder->diff(['field' => 'not-an-array']))
+        ->toThrow(InvalidArgumentException::class, 'Chronicle EntryBuilder: diff entry for key "field" must be an array with "old" and "new" keys.');
+});

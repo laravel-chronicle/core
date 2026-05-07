@@ -7,7 +7,7 @@ it('records explicit diff', function () {
     Chronicle::record()
         ->actor('system')
         ->action('diff.recorded')
-        ->subject('ledger')
+        ->subject(ref('ledger'))
         ->diff([
             'amount' => [
                 'old' => 10,
@@ -25,7 +25,7 @@ it('supports change helper', function () {
     Chronicle::record()
         ->actor('system')
         ->action('diff.changed')
-        ->subject('ledger')
+        ->subject(ref('ledger'))
         ->change('status', 'draft', 'paid')
         ->commit();
 
@@ -38,7 +38,7 @@ it('sorts diff keys deterministically', function () {
     $entry = Chronicle::record()
         ->actor('system')
         ->action('diff.sorted')
-        ->subject('ledger')
+        ->subject(ref('ledger'))
         ->diff([
             'b' => ['old' => 1, 'new' => 2],
             'a' => ['old' => 1, 'new' => 2],

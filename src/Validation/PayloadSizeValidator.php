@@ -7,6 +7,7 @@ use Chronicle\Contracts\PrioritizedEntryExtension;
 use Chronicle\Entry\PendingEntry;
 use Chronicle\Exceptions\InvalidPayloadSizeException;
 use Chronicle\Pipeline\ExtensionStage;
+use JsonException;
 
 class PayloadSizeValidator implements EntryExtension, PrioritizedEntryExtension
 {
@@ -43,7 +44,8 @@ class PayloadSizeValidator implements EntryExtension, PrioritizedEntryExtension
      * @param  PendingEntry  $entry  The pending entry whose payload fields will be measured.
      * @return PendingEntry The original PendingEntry if validation succeeds.
      *
-     * @throws InvalidPayloadSizeException If the serialized byte length exceeds the configured maximum.
+     * @throws InvalidPayloadSizeException
+     * @throws JsonException
      */
     public function process(PendingEntry $entry): PendingEntry
     {
@@ -64,9 +66,9 @@ class PayloadSizeValidator implements EntryExtension, PrioritizedEntryExtension
     }
 
     /**
-     * Determine the maximum allowed payload size in bytes from configuration.
+     * Determine the maximum allowed payload size in bytes from the configuration.
      *
-     * Reads `chronicle.validation.max_payload_size` and falls back to 65536 (64 KB) if not set.
+     * Reads `chronicle.validation.max_payload_size` and falls back to 65,536 (64 KB) if not set.
      *
      * @return int The maximum number of bytes allowed for the serialized payload.
      */

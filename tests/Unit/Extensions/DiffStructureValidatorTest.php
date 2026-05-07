@@ -43,7 +43,7 @@ it('has a priority between TagsValidator (-75) and PayloadSerializableValidator 
 // ---------------------------------------------------------------------------
 
 it('accepts a null diff', function () {
-    $entry = makeDiffValidatorPending(null);
+    $entry = makeDiffValidatorPending();
 
     expect(app(DiffStructureValidator::class)->process($entry))->toBe($entry);
 });
@@ -95,7 +95,7 @@ it('returns the same pending entry instance on success', function () {
 });
 
 // ---------------------------------------------------------------------------
-// Top-level type — diff must be array or null
+// Top-level type — diff must be arrayed or null
 // ---------------------------------------------------------------------------
 
 it('rejects a string diff', function () {

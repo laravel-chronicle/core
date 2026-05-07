@@ -3,6 +3,7 @@
 namespace Chronicle\Verification;
 
 use Chronicle\Contracts\SigningProvider;
+use Chronicle\Support\CanonicalPayloadSerializer;
 use JsonException;
 
 /**
@@ -12,10 +13,14 @@ class ExportVerifier
 {
     protected SigningProvider $signer;
 
+    protected CanonicalPayloadSerializer $serializer;
+
     public function __construct(
         SigningProvider $signer,
+        CanonicalPayloadSerializer $serializer,
     ) {
         $this->signer = $signer;
+        $this->serializer = $serializer;
     }
 
     /**
@@ -160,7 +165,6 @@ class ExportVerifier
             }
 
             try {
-                /** @var mixed $decoded */
                 $decoded = json_decode($line, true, 512, JSON_THROW_ON_ERROR);
             } catch (JsonException) {
                 fclose($handle);
@@ -195,6 +199,30 @@ class ExportVerifier
                 fclose($handle);
 
                 return 'chain_invalid';
+            }
+
+            // Re-derive payload hash from the exported payload to detect tampered payload data.
+            /** @var array<string, mixed>|null $payload */
+            $payload = $decoded['payload'] ?? null;
+            if (! is_array($payload)) {
+                fclose($handle);
+
+                return 'entries_invalid_format';
+            }
+
+            try {
+                $canonical = $this->serializer->serialize($payload);
+            } catch (JsonException) {
+                fclose($handle);
+
+                return 'entries_invalid_format';
+            }
+
+            $computedPayloadHash = hash('sha256', $canonical);
+            if ($computedPayloadHash !== $payloadHash) {
+                fclose($handle);
+
+                return 'payload_hash_mismatch';
             }
 
             if ($count === 0) {
@@ -251,7 +279,6 @@ class ExportVerifier
         }
 
         try {
-            /** @var mixed $decoded */
             $decoded = json_decode($contents, true, 512, JSON_THROW_ON_ERROR);
         } catch (JsonException) {
             return $invalidJsonFailure;

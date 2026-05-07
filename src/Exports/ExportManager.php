@@ -31,6 +31,13 @@ class ExportManager
 
     /**
      * Export the Chronicle dataset.
+     *
+     * **Contract:** The export directory must not be written to by any other
+     * process between the `entries.ndjson` write and the `hashFile()` call that
+     * follows. If another process modifies `entries.ndjson` in that window, the
+     * dataset hash will not match the actual exported data. In production, ensure
+     * the export path is outside any publicly writable location and that no
+     * concurrent export jobs target the same path.
      */
     public function export(string $path): ExportResult
     {

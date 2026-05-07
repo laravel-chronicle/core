@@ -8,8 +8,7 @@ it('extends chronicle exception', function () {
     expect(ImmutabilityViolationException::onUpdate())
         ->toBeInstanceOf(ChronicleException::class)
         ->and(ImmutabilityViolationException::onDelete())
-        ->toBeInstanceOf(ChronicleException::class);
-
-    expect(InvalidActionException::mustUseDotNotation('orders'))
+        ->toBeInstanceOf(ChronicleException::class)
+        ->and(InvalidActionException::mustUseDotNotation('orders'))
         ->toBeInstanceOf(ChronicleException::class);
 });

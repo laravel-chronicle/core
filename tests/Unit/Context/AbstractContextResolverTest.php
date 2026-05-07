@@ -27,7 +27,7 @@ function makeConcreteResolver(string $key, ?array $result): AbstractContextResol
 {
     return new class($key, $result) extends AbstractContextResolver
     {
-        public function __construct(private string $k, private ?array $r) {}
+        public function __construct(private readonly string $k, private readonly ?array $r) {}
 
         public function contextKey(): string
         {
@@ -61,8 +61,8 @@ it('returns the entry unmodified when resolve returns null', function () {
 
     $result = $resolver->process($entry);
 
-    expect($result)->toBe($entry);
-    expect($result->attribute('context'))->toBe(['app_key' => 'app_value']);
+    expect($result)->toBe($entry)
+        ->and($result->attribute('context'))->toBe(['app_key' => 'app_value']);
 });
 
 // ---------------------------------------------------------------------------
@@ -71,7 +71,7 @@ it('returns the entry unmodified when resolve returns null', function () {
 
 it('sets the resolved data under the context key', function () {
     $resolver = makeConcreteResolver('environment', ['name' => 'production']);
-    $entry = makeAbstractResolverPending([]);
+    $entry = makeAbstractResolverPending();
 
     $resolver->process($entry);
 

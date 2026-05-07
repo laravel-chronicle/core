@@ -21,7 +21,7 @@ function makeActionValidatorPending(mixed $action = 'orders.created'): PendingEn
 }
 
 it('accepts actions with exactly two segments', function () {
-    $entry = makeActionValidatorPending('orders.created');
+    $entry = makeActionValidatorPending();
 
     expect(app(ActionValidator::class)->process($entry))->toBe($entry);
 });
@@ -45,5 +45,5 @@ it('rejects actions with more than two segments', function () {
 it('rejects actions that exceed the configured maximum length', function () {
     config()->set('chronicle.validation.action_max_length', 12);
 
-    app(ActionValidator::class)->process(makeActionValidatorPending('orders.created'));
+    app(ActionValidator::class)->process(makeActionValidatorPending());
 })->throws(InvalidActionException::class, 'maximum length');

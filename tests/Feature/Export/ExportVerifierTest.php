@@ -108,7 +108,7 @@ it('fails when entries ndjson has invalid entry shape', function () {
 });
 
 it('fails when chain in entries ndjson is invalid', function () {
-    Chronicle::record()->actor('system')->action('chain.check')->subject('ledger')->commit();
+    Chronicle::record()->actor('system')->action('chain.check')->subject(ref('ledger'))->commit();
 
     $manager = app(ExportManager::class);
     $path = storage_path('chronicle-test-export-'.Str::uuid());
@@ -131,7 +131,7 @@ it('fails when chain in entries ndjson is invalid', function () {
 });
 
 it('fails when manifest chain head does not match entries', function () {
-    Chronicle::record()->actor('system')->action('head.check')->subject('ledger')->commit();
+    Chronicle::record()->actor('system')->action('head.check')->subject(ref('ledger'))->commit();
 
     $manager = app(ExportManager::class);
     $path = storage_path('chronicle-test-export-'.Str::uuid());
@@ -224,7 +224,7 @@ it('fails when entries file is unreadable', function () {
 });
 
 it('fails when dataset hash mismatches manifest', function () {
-    Chronicle::record()->actor('system')->action('hash.check')->subject('ledger')->commit();
+    Chronicle::record()->actor('system')->action('hash.check')->subject(ref('ledger'))->commit();
 
     $manager = app(ExportManager::class);
     $path = storage_path('chronicle-test-export-'.Str::uuid());
@@ -246,7 +246,7 @@ it('fails when dataset hash mismatches manifest', function () {
 });
 
 it('fails when signature verification is invalid', function () {
-    Chronicle::record()->actor('system')->action('signature.check')->subject('ledger')->commit();
+    Chronicle::record()->actor('system')->action('signature.check')->subject(ref('ledger'))->commit();
 
     $manager = app(ExportManager::class);
     $path = storage_path('chronicle-test-export-'.Str::uuid());
@@ -264,7 +264,7 @@ it('fails when signature verification is invalid', function () {
 });
 
 it('fails when manifest entry count mismatches dataset', function () {
-    Chronicle::record()->actor('system')->action('count.check')->subject('ledger')->commit();
+    Chronicle::record()->actor('system')->action('count.check')->subject(ref('ledger'))->commit();
 
     $manager = app(ExportManager::class);
     $path = storage_path('chronicle-test-export-'.Str::uuid());
@@ -282,7 +282,7 @@ it('fails when manifest entry count mismatches dataset', function () {
 });
 
 it('fails when manifest first entry id mismatches dataset', function () {
-    Chronicle::record()->actor('system')->action('first.check')->subject('ledger')->commit();
+    Chronicle::record()->actor('system')->action('first.check')->subject(ref('ledger'))->commit();
 
     $manager = app(ExportManager::class);
     $path = storage_path('chronicle-test-export-'.Str::uuid());
@@ -300,7 +300,7 @@ it('fails when manifest first entry id mismatches dataset', function () {
 });
 
 it('fails when manifest last entry id mismatches dataset', function () {
-    Chronicle::record()->actor('system')->action('last.check')->subject('ledger')->commit();
+    Chronicle::record()->actor('system')->action('last.check')->subject(ref('ledger'))->commit();
 
     $manager = app(ExportManager::class);
     $path = storage_path('chronicle-test-export-'.Str::uuid());
@@ -315,4 +315,31 @@ it('fails when manifest last entry id mismatches dataset', function () {
 
     expect($result->isValid())->toBeFalse()
         ->and($result->failureCode())->toBe('last_entry_mismatch');
+});
+
+it('fails when an exported entry payload has been tampered with', function () {
+    $manager = app(ExportManager::class);
+    $path = storage_path('chronicle-test-export-'.Str::uuid());
+
+    Chronicle::record()
+        ->actor('system')
+        ->action('test.tamper')
+        ->subject(ref('system'))
+        ->commit();
+
+    $manager->export($path);
+
+    // Read the entry file and tamper with the payload field only,
+    // leaving payload_hash unchanged — the old verifier would miss this.
+    $lines = file($path.'/entries.ndjson', FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+    $entry = json_decode($lines[0], true, 512, JSON_THROW_ON_ERROR);
+    $entry['payload']['action'] = 'tampered.action';  // mutate payload
+    // payload_hash is left unchanged → integrity gap
+    $lines[0] = json_encode($entry, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR);
+    file_put_contents($path.'/entries.ndjson', implode("\n", $lines)."\n");
+
+    $result = app(ExportVerifier::class)->verify($path);
+
+    expect($result->isValid())->toBeFalse()
+        ->and($result->failureCode())->toBe('payload_hash_mismatch');
 });

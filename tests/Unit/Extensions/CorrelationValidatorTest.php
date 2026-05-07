@@ -43,7 +43,7 @@ it('has a priority between ActionValidator (-100) and TagLimitValidator (-80)', 
 // ---------------------------------------------------------------------------
 
 it('accepts a null correlation id', function () {
-    $entry = makeCorrelationValidatorPending(null);
+    $entry = makeCorrelationValidatorPending();
 
     expect(app(CorrelationValidator::class)->process($entry))->toBe($entry);
 });

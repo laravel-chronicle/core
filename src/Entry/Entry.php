@@ -21,7 +21,7 @@ use Illuminate\Support\LazyCollection;
  * entry throws ImmutabilityViolationException.
  *
  * Do not call Entry::create() or new Entry()
- * directly in application code.
+ * directly in the application code.
  * Use Chronicle::record()->...->commit() exclusively.
  *
  * @property string $id
@@ -136,7 +136,7 @@ class Entry extends Model
     }
 
     /**
-     * Prevent updates via fill + save patterns.
+     * Prevent updates via fill and save patterns.
      */
     public function update(array $attributes = [], array $options = []): bool
     {
@@ -229,9 +229,12 @@ class Entry extends Model
      */
     public function scopeWorkflow(Builder $query, string $rootCorrelation): Builder
     {
-        $escaped = str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $rootCorrelation);
+        $escaped = str_replace(['!', '%', '_'], ['!!', '!%', '!_'], $rootCorrelation);
 
-        return $query->where('correlation_id', 'like', $escaped.'%');
+        return $query->whereRaw(
+            "correlation_id LIKE ? ESCAPE '!'",
+            [$escaped.'%']
+        );
     }
 
     /**

@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\Schema;
  * Checkpoints anchor the Chronicle ledger by signing
  * a specific chain hash using a cryptographic signature.
  *
- * This prevents attackes with database access from
+ * This prevents attacks with database access from
  * recomputing the entire chain after tampering.
  */
 return new class extends Migration

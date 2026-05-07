@@ -13,10 +13,10 @@ use JsonException;
  * Canonical serialization ensures that identical payloads always
  * produce identical JSON representations, which is critical for:
  *
- * - payload hashing
- * - chain hashing
- * - signed exports
- * - dataset verification
+ * - Payload hashing
+ * - Chain hashing
+ * - Signed exports
+ * - Dataset verification
  *
  * The serializer recursively sorts keys and normalizes values.
  */
@@ -46,7 +46,7 @@ class CanonicalPayloadSerializer
      *
      * Ensures deterministic ordering and consistent value types.
      */
-    protected function normalize(mixed $value): mixed
+    public function normalize(mixed $value): mixed
     {
         if (is_array($value)) {
             if ($this->isAssoc($value)) {

@@ -11,6 +11,8 @@ use Chronicle\Support\Reference;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
+use InvalidArgumentException;
+use Throwable;
 
 /**
  * Class EntryBuilder
@@ -26,7 +28,7 @@ use Illuminate\Support\Str;
  *  - Generate the entry identifier
  *
  * The builder DOES NOT persist data. It only produces the
- * structured payload that will later be processed by Chronicle.
+ * structured payload that Chronicle will later process.
  *
  * Example usage:
  *
@@ -52,9 +54,9 @@ class EntryBuilder
      * Actor responsible for the action.
      *
      * This may be:
-     *  - an Eloquent model
-     *  - a domain object
-     *  - a string identifier
+     *  - An Eloquent model
+     *  - A domain object
+     *  - A string identifier
      */
     protected mixed $actor = null;
 
@@ -82,7 +84,7 @@ class EntryBuilder
      * Optional execution context.
      *
      * Examples:
-     *  - request id
+     *  - Request id
      *  - IP address
      *  - CLI command
      *
@@ -205,6 +207,8 @@ class EntryBuilder
             'new' => $new,
         ];
 
+        ksort($this->diff);
+
         return $this;
     }
 
@@ -217,12 +221,14 @@ class EntryBuilder
         ksort($diff);
 
         return collect($diff)
-            ->map(function (mixed $change): array {
+            ->map(function (mixed $change, string $key): array {
                 if (! is_array($change)) {
-                    return [
-                        'old' => null,
-                        'new' => null,
-                    ];
+                    throw new InvalidArgumentException(
+                        sprintf(
+                            'Chronicle EntryBuilder: diff entry for key "%s" must be an array with "old" and "new" keys.',
+                            $key,
+                        )
+                    );
                 }
 
                 return [
@@ -239,10 +245,10 @@ class EntryBuilder
      * Tags are normalized to ensure deterministic payload
      * serialization:
      *
-     * - converted to lowercase
-     * - trimmed
-     * - duplicates removed
-     * - sorted alphabetically
+     * - Converted to lowercase
+     * - Trimmed
+     * - Duplicates removed
+     * - Sorted alphabetically
      *
      * @param  string[]  $tags
      */
@@ -367,6 +373,8 @@ class EntryBuilder
 
     /**
      * Build and persist the Chronicle entry.
+     *
+     * @throws Throwable
      */
     public function commit(): void
     {

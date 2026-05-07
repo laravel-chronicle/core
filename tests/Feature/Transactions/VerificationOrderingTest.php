@@ -8,13 +8,13 @@ it('verifies ledger deterministically when entries share created_at timestamps',
     Chronicle::record()
         ->actor('system')
         ->action('verify.one')
-        ->subject('ledger')
+        ->subject(ref('ledger'))
         ->commit();
 
     Chronicle::record()
         ->actor('system')
         ->action('verify.two')
-        ->subject('ledger')
+        ->subject(ref('ledger'))
         ->commit();
 
     $sameTimestamp = now()->startOfSecond();
