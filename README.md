@@ -16,7 +16,6 @@ cryptographic audit log
 [![Tests](https://github.com/laravel-chronicle/core/actions/workflows/run-tests.yml/badge.svg)](https://github.com/laravel-chronicle/core/actions)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![All Contributors](https://img.shields.io/github/all-contributors/laravel-chronicle/core?color=ee8449&style=flat-square)](#contributors)
-[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/laravel-chronicle/core/badge)](https://scorecard.dev/viewer/?uri=github.com/laravel-chronicle/core)
 
 **Chronicle** is a cryptographically verifiable audit ledger for Laravel.
 
