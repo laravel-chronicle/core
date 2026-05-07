@@ -35,3 +35,55 @@ it('constructs a failure result with a failure code', function () {
         ->and($result->failureCode())->toBe('payload_hash_mismatch')
         ->and($result->entry)->toBe($entry);
 });
+
+it('returns ok for a valid entry', function () {
+    Chronicle::record()->actor('system')->action('ver.ok')->subject(ref('ledger'))->commit();
+
+    $entry = Entry::first();
+    $verifier = app(EntryVerifier::class);
+
+    $result = $verifier->verify($entry->id);
+
+    expect($result->isValid())->toBeTrue()
+        ->and($result->failureCode())->toBeNull()
+        ->and($result->entry?->id)->toBe($entry->id);
+});
+
+it('returns not_found for an unknown entry id', function () {
+    $verifier = app(EntryVerifier::class);
+
+    $result = $verifier->verify('01FAKEULIDXXXXXXXXX');
+
+    expect($result->isValid())->toBeFalse()
+        ->and($result->failureCode())->toBe('not_found');
+});
+
+it('returns payload_hash_mismatch when payload is tampered', function () {
+    Chronicle::record()->actor('system')->action('ver.tamper')->subject(ref('ledger'))->commit();
+
+    $entry = Entry::first();
+    $entry->newQuery()->whereKey($entry->id)->update([
+        'payload' => json_encode(['tampered' => true]),
+    ]);
+
+    $verifier = app(EntryVerifier::class);
+    $result = $verifier->verify($entry->id);
+
+    expect($result->isValid())->toBeFalse()
+        ->and($result->failureCode())->toBe('payload_hash_mismatch');
+});
+
+it('returns chain_hash_mismatch when chain hash is tampered', function () {
+    Chronicle::record()->actor('system')->action('ver.chain')->subject(ref('ledger'))->commit();
+
+    $entry = Entry::first();
+    $entry->newQuery()->whereKey($entry->id)->update([
+        'chain_hash' => str_repeat('f', 64),
+    ]);
+
+    $verifier = app(EntryVerifier::class);
+    $result = $verifier->verify($entry->id);
+
+    expect($result->isValid())->toBeFalse()
+        ->and($result->failureCode())->toBe('chain_hash_mismatch');
+});
