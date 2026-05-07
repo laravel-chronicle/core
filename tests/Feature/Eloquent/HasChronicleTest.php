@@ -171,3 +171,22 @@ it('uses a custom chronicleActor() when overridden on the model', function () {
     expect($entry->actor_id)->toBe('custom-actor-99')
         ->and($entry->actor_type)->toBe(stdClass::class);
 });
+
+it('derives the action prefix from the class name by default', function () {
+    FakeChronicleModel::create(['name' => 'Alice']);
+
+    expect(Entry::first()->action)->toBe('fake_chronicle_model.created');
+});
+
+it('uses a custom action prefix when chronicleActionPrefix() is overridden', function () {
+    $model = new class extends FakeChronicleModel {
+        protected function chronicleActionPrefix(): string
+        {
+            return 'order';
+        }
+    };
+    $model->setTable('fake_chronicle_models');
+    $model->fill(['name' => 'Alice'])->save();
+
+    expect(Entry::first()->action)->toBe('order.created');
+});
