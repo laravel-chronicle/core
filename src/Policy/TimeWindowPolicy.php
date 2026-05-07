@@ -9,14 +9,18 @@ use InvalidArgumentException;
 
 class TimeWindowPolicy extends AbstractPolicy
 {
-    private readonly string $start;
+    private readonly Carbon $startCarbon;
 
-    private readonly string $end;
+    private readonly Carbon $endCarbon;
 
     /** @var string[] */
     private readonly array $days;
 
     private readonly string $timezone;
+
+    private readonly string $start;
+
+    private readonly string $end;
 
     public function __construct()
     {
@@ -54,6 +58,9 @@ class TimeWindowPolicy extends AbstractPolicy
                 'Midnight-spanning windows are not supported.'
             );
         }
+
+        $this->startCarbon = $startCarbon;
+        $this->endCarbon = $endCarbon;
     }
 
     public function enforce(PendingEntry $entry): void
@@ -67,15 +74,14 @@ class TimeWindowPolicy extends AbstractPolicy
             }
         }
 
-        $startCarbon = $this->parseTime($this->start, $this->timezone);
-        $endCarbon = $this->parseTime($this->end, $this->timezone);
+        $start = clone $this->startCarbon;
+        $end = clone $this->endCarbon;
+        /** @var Carbon $start */
+        $start->setDate($now->year, $now->month, $now->day);
+        /** @var Carbon $end */
+        $end->setDate($now->year, $now->month, $now->day);
 
-        /** @var Carbon $startCarbon */
-        /** @var Carbon $endCarbon */
-        $startCarbon->setDate($now->year, $now->month, $now->day);
-        $endCarbon->setDate($now->year, $now->month, $now->day);
-
-        if ($now->lt($startCarbon) || $now->gt($endCarbon)) {
+        if ($now->lt($start) || $now->gt($end)) {
             throw OutsideTimeWindowException::outsideWindow($this->start, $this->end);
         }
     }

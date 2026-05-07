@@ -128,3 +128,22 @@ it('throws an InvalidArgumentException when start is after end', function () {
     expect(fn () => new TimeWindowPolicy)
         ->toThrow(InvalidArgumentException::class);
 });
+
+it('does not call parseTime more than once per construction', function () {
+    // Regression: enforce() previously called parseTime() again, which could
+    // return null in a different locale/timezone context and fatal.
+    // After the fix the Carbon objects are stored in constructor properties.
+    config(['chronicle.policy.time_window' => [
+        'start' => '09:00',
+        'end' => '17:00',
+        'days' => [],
+        'timezone' => 'UTC',
+    ]]);
+    Carbon::setTestNow(Carbon::parse('2026-01-05 12:00:00', 'UTC'));
+
+    $policy = new TimeWindowPolicy;
+
+    // Call enforce() twice — both must succeed with frozen construction-time state.
+    $policy->enforce(makePolicyPending());
+    $policy->enforce(makePolicyPending());
+})->throwsNoExceptions()->afterEach(fn () => Carbon::setTestNow(null));

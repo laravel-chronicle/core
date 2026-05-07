@@ -19,6 +19,14 @@ breaking changes between any two versions — see upgrade notes per version.
 - Added @methods to `Chronicle` Facade.
 - Added a `null check` in `ExportCommand` Chain head.
 
+---
+
+### Fixed
+
+- `TimeWindowPolicy` now stores the parsed `Carbon` time bounds at construction rather than re-parsing them on every `enforce()` call, eliminating a theoretical null-deref if `parseTime()` returned `null` inside `enforce()`.
+
+---
+
 ### Security
 
 - `ExportVerifier` now re-derives `payload_hash` from the exported `payload` field per-entry, closing a gap where a tampered payload with an unmodified `payload_hash` field would pass export verification.
