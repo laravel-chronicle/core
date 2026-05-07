@@ -1,4 +1,4 @@
-# Chronicle - Verifiable Audit Logging for Laravel
+# Chronicle – Verifiable Audit Logging for Laravel
 
 <!--
 keywords:
@@ -6,7 +6,7 @@ laravel audit log
 laravel audit trail
 append only log
 immutable audit log
-tamper proof audit log
+tamperproof audit log
 cryptographic audit log
 -->
 
@@ -133,7 +133,7 @@ These queries are optimized with database indexes.
 
 Chronicle supports streaming entries using database cursors.
 
-This allows processing very large ledgers with constant memory usage.
+This allows processing huge ledgers with constant memory usage.
 
 ```php
 use Chronicle\Entry\Entry;
@@ -161,7 +161,7 @@ Entry::cursorPaginateLedger(50);
 
 Chronicle can create cryptographic checkpoints that anchor the ledger.
 
-A checkpoint records:
+A checkpoint record:
 
 - current chain head
 - entry count
@@ -237,7 +237,7 @@ for detailed documentation.
 
 # Design Principles
 
-Chronicle is build around several core principles.
+Chronicle is built around several core principles.
 
 ## Append-only
 
