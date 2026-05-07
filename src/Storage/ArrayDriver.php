@@ -49,6 +49,8 @@ class ArrayDriver implements StorageDriver
             'created_at' => $entry['created_at'],
         ]);
 
+        $model->exists = true;
+
         return $model;
     }
 
