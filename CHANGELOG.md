@@ -24,6 +24,9 @@ breaking changes between any two versions — see upgrade notes per version.
 
 ### Changed
 - `EntryBuilder::normalizeDiff()` now throws `InvalidArgumentException` when a diff entry is not an array with `old`/`new` keys, rather than silently replacing the value with `['old' => null, 'new' => null]`.
+- `EntryExportResult` now uses constructor property promotion consistently for all four properties.
+- `ChronicleManager::swapDriver()` is now annotated `@internal` to discourage use outside of test infrastructure.
+- Fixed copy-paste error in `Checkpoint` model docblock (said "entries" instead of "checkpoints").
 
 ---
 

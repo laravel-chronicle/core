@@ -233,6 +233,8 @@ class ChronicleManager
 
     /**
      * Swap the active driver directly. Used by fake() and useEloquentDriver() in tests.
+     *
+     * @internal
      */
     public function swapDriver(StorageDriver $driver): void
     {
