@@ -8,9 +8,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 Semantic versioning applies from **v1.0.0** onwards. Pre-1.0 releases may contain
 breaking changes between any two versions — see upgrade notes per version.
 
+## [Unreleased]
+
 ---
 
-## [Unreleased]
+## [1.5.0] - 2026-05-07
 
 ### Added
 
