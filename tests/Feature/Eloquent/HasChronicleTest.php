@@ -179,7 +179,8 @@ it('derives the action prefix from the class name by default', function () {
 });
 
 it('uses a custom action prefix when chronicleActionPrefix() is overridden', function () {
-    $model = new class extends FakeChronicleModel {
+    $model = new class extends FakeChronicleModel
+    {
         protected function chronicleActionPrefix(): string
         {
             return 'order';
@@ -189,4 +190,44 @@ it('uses a custom action prefix when chronicleActionPrefix() is overridden', fun
     $model->fill(['name' => 'Alice'])->save();
 
     expect(Entry::first()->action)->toBe('order.created');
+});
+
+it('does not record events excluded from chronicleEvents', function () {
+    $model = new class extends FakeChronicleModel
+    {
+        protected array $chronicleEvents = ['created', 'deleted'];
+
+        protected function chronicleActionPrefix(): string
+        {
+            return 'fake_chronicle_model';
+        }
+    };
+    $model->setTable('fake_chronicle_models');
+    $model->fill(['name' => 'Alice'])->save();
+    Entry::query()->delete(); // clear created entry
+
+    $model->update(['name' => 'Bob']); // updated is not in $chronicleEvents
+
+    expect(Entry::count())->toBe(0);
+});
+
+it('records no entries when chronicleEvents is empty', function () {
+    $model = new class extends FakeChronicleModel
+    {
+        protected array $chronicleEvents = [];
+    };
+    $model->setTable('fake_chronicle_models');
+    $model->fill(['name' => 'Alice'])->save();
+    $model->update(['name' => 'Bob']);
+    $model->delete();
+
+    expect(Entry::count())->toBe(0);
+});
+
+it('records all three events when chronicleEvents is not overridden', function () {
+    $model = FakeChronicleModel::create(['name' => 'Alice']);
+    $model->update(['name' => 'Bob']);
+    $model->delete();
+
+    expect(Entry::count())->toBe(3);
 });
