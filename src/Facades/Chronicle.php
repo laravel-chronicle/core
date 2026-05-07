@@ -2,7 +2,11 @@
 
 namespace Chronicle\Facades;
 
+use Chronicle\Contracts\EntryExtension;
+use Chronicle\Contracts\LedgerReader;
+use Chronicle\Contracts\StorageDriver;
 use Chronicle\Entry\EntryBuilder;
+use Chronicle\Transaction\ChronicleTransaction;
 use Illuminate\Support\Facades\Facade;
 
 /**
@@ -24,7 +28,12 @@ use Illuminate\Support\Facades\Facade;
  *
  * @method static EntryBuilder record()
  * @method static void extendDriver(string $name, callable $factory)
- * @method static void extendEntry(\Chronicle\Contracts\EntryExtension|string $extension)
+ * @method static void extendEntry(EntryExtension|string $extension)
+ * @method static ChronicleTransaction|mixed transaction(?callable $callback = null)
+ * @method static LedgerReader reader()
+ * @method static ChronicleTransaction|null currentTransaction()
+ * @method static string|null currentCorrelationId()
+ * @method static StorageDriver driver(string $name)
  */
 class Chronicle extends Facade
 {
