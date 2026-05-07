@@ -46,7 +46,7 @@ class CanonicalPayloadSerializer
      *
      * Ensures deterministic ordering and consistent value types.
      */
-    protected function normalize(mixed $value): mixed
+    public function normalize(mixed $value): mixed
     {
         if (is_array($value)) {
             if ($this->isAssoc($value)) {

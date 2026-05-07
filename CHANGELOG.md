@@ -27,6 +27,7 @@ breaking changes between any two versions — see upgrade notes per version.
 - `EntryExportResult` now uses constructor property promotion consistently for all four properties.
 - `ChronicleManager::swapDriver()` is now annotated `@internal` to discourage use outside of test infrastructure.
 - Fixed copy-paste error in `Checkpoint` model docblock (said "entries" instead of "checkpoints").
+- `CanonicalizePayload` pipeline stage now calls `CanonicalPayloadSerializer::normalize()` directly instead of serializing to JSON and immediately decoding back to an array, eliminating a redundant encode/decode round-trip. `CanonicalPayloadSerializer::normalize()` is now public.
 
 ---
 
