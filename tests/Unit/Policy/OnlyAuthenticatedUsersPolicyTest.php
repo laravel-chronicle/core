@@ -9,7 +9,7 @@ function makeAuthPolicy(bool $console = false): OnlyAuthenticatedUsersPolicy
 {
     return new class($console) extends OnlyAuthenticatedUsersPolicy
     {
-        public function __construct(private bool $console) {}
+        public function __construct(private readonly bool $console) {}
 
         protected function isRunningInConsole(): bool
         {

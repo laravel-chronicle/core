@@ -55,7 +55,7 @@ class DefaultReferenceResolver implements ReferenceResolver
         /** @var string $key */
         $key = $model->getKey();
 
-        $id = (string) $key;
+        $id = $key;
 
         return new Reference(
             $model::class,

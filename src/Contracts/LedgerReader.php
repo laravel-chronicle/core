@@ -73,7 +73,7 @@ interface LedgerReader
     public function withTag(string $tag): Collection;
 
     /**
-     * Get entries containing all of the given tags.
+     * Get entries containing all the given tags.
      *
      * @param  list<string>  $tags
      * @return Collection<int, Entry>

@@ -7,7 +7,7 @@ namespace Chronicle\Support;
  *
  * Represents a normalized Chronicle entity reference.
  *
- * Every actor and subject is converted into a Reference
+ * Every actor and subject is converted into a Reference,
  * so the ledger stores deterministic identifiers.
  */
 class Reference

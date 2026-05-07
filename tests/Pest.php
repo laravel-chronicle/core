@@ -10,7 +10,7 @@ pest()->extends(TestCase::class)
     ->in(__DIR__);
 
 /**
- * Create a plain object reference for use as actor/subject in tests.
+ * Create a plain object reference for use as an actor / subject in tests.
  * DefaultReferenceResolver resolves any object with a public $id property.
  */
 function ref(string $id): object

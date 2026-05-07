@@ -197,7 +197,7 @@ it('includes the class name in the object exception message', function () {
 it('rejects a JsonSerializable object in metadata', function () {
     $obj = new class implements JsonSerializable
     {
-        public function jsonSerialize(): mixed
+        public function jsonSerialize(): array
         {
             return ['ok' => true];
         }

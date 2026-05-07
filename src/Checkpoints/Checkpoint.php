@@ -105,7 +105,7 @@ class Checkpoint extends Model
     }
 
     /**
-     * Prevent updates via fill + save patterns.
+     * Prevent updates via fill and save patterns.
      */
     public function update(array $attributes = [], array $options = []): bool
     {

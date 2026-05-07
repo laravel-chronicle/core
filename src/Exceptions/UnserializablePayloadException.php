@@ -25,7 +25,7 @@ class UnserializablePayloadException extends ChronicleException
     public static function notJsonSerializable(string $reason): self
     {
         return new self(sprintf(
-            'Chronicle entry payload is not JSON-serialisable: %s.',
+            'Chronicle entry payload is not JSON-serializable: %s.',
             $reason,
         ));
     }

@@ -199,6 +199,9 @@ class ChronicleManager
         });
     }
 
+    /**
+     * @throws BindingResolutionException
+     */
     public function driver(string $name): StorageDriver
     {
         return $this->drivers->resolve($name);
@@ -219,6 +222,9 @@ class ChronicleManager
         $this->extensions->register($extension);
     }
 
+    /**
+     * @throws BindingResolutionException
+     */
     public function getActiveDriver(): StorageDriver
     {
         if ($this->resolvedDriver === null) {

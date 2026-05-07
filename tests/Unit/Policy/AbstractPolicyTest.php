@@ -17,7 +17,7 @@ function makeThrowingPolicy(Throwable $e): AbstractPolicy
 {
     return new class($e) extends AbstractPolicy
     {
-        public function __construct(private Throwable $e) {}
+        public function __construct(private readonly Throwable $e) {}
 
         public function enforce(PendingEntry $entry): void
         {

@@ -19,9 +19,9 @@ return [
     |
     | The driver Chronicle uses to persist audit entries. Built-in drivers:
     |
-    |   'eloquent' — Synchronous write via Laravel's database layer. Default.
-    |   'array'    — In-memory. For testing only.
-    |   'null'     — Discards all entries silently. For testing or local dev.
+    | 'eloquent' — Synchronous write via Laravel's database layer. Default.
+    | 'array' — In-memory. For testing only.
+    | 'null' — Discards all entries silently. For testing or local dev.
     |
     */
     'driver' => env('CHRONICLE_DRIVER', 'eloquent'),

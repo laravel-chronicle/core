@@ -31,6 +31,7 @@ use Chronicle\Support\CanonicalPayloadSerializer;
 use Chronicle\Support\DefaultReferenceResolver;
 use Chronicle\Verification\ExportChainVerifier;
 use Chronicle\Verification\ExportVerifier;
+use Illuminate\Contracts\Container\BindingResolutionException;
 use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Contracts\Queue\Job;
 use Illuminate\Queue\Events\JobExceptionOccurred;
@@ -57,6 +58,9 @@ class ChronicleServiceProvider extends ServiceProvider
         $this->registerQueueContext();
     }
 
+    /**
+     * @throws BindingResolutionException
+     */
     public function boot(): void
     {
         $this->publishConfiguration();
@@ -148,7 +152,7 @@ class ChronicleServiceProvider extends ServiceProvider
                     keyId: $config['key_id'],
                 );
             } catch (Throwable $e) {
-                if ((bool) config('chronicle.signing.enforce_on_boot', false)
+                if (config('chronicle.signing.enforce_on_boot', false)
                     && ! $app->environment('testing')
                 ) {
                     throw new RuntimeException(
@@ -187,6 +191,9 @@ class ChronicleServiceProvider extends ServiceProvider
         });
     }
 
+    /**
+     * @throws BindingResolutionException
+     */
     protected function registerQueueListeners(): void
     {
         /** @var Dispatcher $events */
@@ -236,7 +243,7 @@ class ChronicleServiceProvider extends ServiceProvider
 
     protected function assertSigningConfiguration(): void
     {
-        if (! (bool) config('chronicle.signing.enforce_on_boot', false)) {
+        if (! config('chronicle.signing.enforce_on_boot', false)) {
             return;
         }
 

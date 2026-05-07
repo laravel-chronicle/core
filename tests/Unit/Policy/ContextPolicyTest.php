@@ -38,7 +38,7 @@ it('passes when required_context_keys is empty', function () {
 it('throws when a required key is missing', function () {
     config(['chronicle.policy.required_context_keys' => ['tenant_id']]);
 
-    expect(fn () => (new ContextPolicy)->enforce(makeContextPolicyPending([])))
+    expect(fn () => (new ContextPolicy)->enforce(makeContextPolicyPending()))
         ->toThrow(RequiredContextMissingException::class, 'tenant_id');
 });
 

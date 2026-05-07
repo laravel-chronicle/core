@@ -4,8 +4,8 @@ use Illuminate\Contracts\Console\Kernel;
 
 it('installs chronicle and allows skipping optional follow-up actions', function () {
     $this->artisan('chronicle:install', ['--force' => true])
-        ->expectsConfirmation('Would you like to run migrations now?', 'no')
-        ->expectsConfirmation('Would you like to star our repo on GitHub?', 'no')
+        ->expectsConfirmation('Would you like to run migrations now?')
+        ->expectsConfirmation('Would you like to star our repo on GitHub?')
         ->expectsOutput('Installing Chronicle...')
         ->expectsOutput('Chronicle installed successfully.')
         ->assertSuccessful();
@@ -22,7 +22,7 @@ it('can run migrations during install when confirmed', function () {
     $this->artisan('chronicle:install')
         ->expectsConfirmation('Would you like to run migrations now?', 'yes')
         ->expectsOutput('Running Migrations...')
-        ->expectsConfirmation('Would you like to star our repo on GitHub?', 'no')
+        ->expectsConfirmation('Would you like to star our repo on GitHub?')
         ->expectsOutput('Chronicle installed successfully.')
         ->assertSuccessful();
 });

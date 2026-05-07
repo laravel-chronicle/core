@@ -77,7 +77,7 @@ it('ensures database row is unchanged after failed update attempt', function () 
         $entry->action = 'invoice.updated';
         $entry->save();
 
-    } catch (ImmutabilityViolationException $e) {
+    } catch (ImmutabilityViolationException) {
     }
 
     $entry->refresh();

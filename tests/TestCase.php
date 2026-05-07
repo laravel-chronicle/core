@@ -58,8 +58,8 @@ abstract class TestCase extends Orchestra
             ],
         };
 
-        config()->set("database.connections.{$connection}", $databaseConfig);
-        config()->set("database.connections.{$aliasConnection}", $databaseConfig);
+        config()->set("database.connections.$connection", $databaseConfig);
+        config()->set("database.connections.$aliasConnection", $databaseConfig);
         config()->set('database.default', $connection);
         config()->set('chronicle.connection', $connection);
 

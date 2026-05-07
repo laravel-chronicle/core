@@ -12,6 +12,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
 use InvalidArgumentException;
+use Throwable;
 
 /**
  * Class EntryBuilder
@@ -27,7 +28,7 @@ use InvalidArgumentException;
  *  - Generate the entry identifier
  *
  * The builder DOES NOT persist data. It only produces the
- * structured payload that will later be processed by Chronicle.
+ * structured payload that Chronicle will later process.
  *
  * Example usage:
  *
@@ -53,9 +54,9 @@ class EntryBuilder
      * Actor responsible for the action.
      *
      * This may be:
-     *  - an Eloquent model
-     *  - a domain object
-     *  - a string identifier
+     *  - An Eloquent model
+     *  - A domain object
+     *  - A string identifier
      */
     protected mixed $actor = null;
 
@@ -83,7 +84,7 @@ class EntryBuilder
      * Optional execution context.
      *
      * Examples:
-     *  - request id
+     *  - Request id
      *  - IP address
      *  - CLI command
      *
@@ -244,10 +245,10 @@ class EntryBuilder
      * Tags are normalized to ensure deterministic payload
      * serialization:
      *
-     * - converted to lowercase
-     * - trimmed
-     * - duplicates removed
-     * - sorted alphabetically
+     * - Converted to lowercase
+     * - Trimmed
+     * - Duplicates removed
+     * - Sorted alphabetically
      *
      * @param  string[]  $tags
      */
@@ -372,6 +373,8 @@ class EntryBuilder
 
     /**
      * Build and persist the Chronicle entry.
+     *
+     * @throws Throwable
      */
     public function commit(): void
     {

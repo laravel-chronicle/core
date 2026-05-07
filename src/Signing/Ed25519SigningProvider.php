@@ -55,8 +55,6 @@ class Ed25519SigningProvider implements SigningProvider
             return false;
         }
 
-        /** @var non-falsy-string $signature */
-        $signature = $signature;
         /** @var non-empty-string $publicKey */
         $publicKey = $this->publicKey;
 

@@ -33,7 +33,6 @@ class ExportChainVerifier
             }
 
             try {
-                /** @var mixed $decoded */
                 $decoded = json_decode($line, true, 512, JSON_THROW_ON_ERROR);
             } catch (JsonException) {
                 fclose($handle);

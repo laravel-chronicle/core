@@ -43,7 +43,7 @@ it('has a priority between ActionValidator (-100) and TagsValidator (-75)', func
 // ---------------------------------------------------------------------------
 
 it('accepts an empty tags array', function () {
-    $entry = makeTagLimitValidatorPending([]);
+    $entry = makeTagLimitValidatorPending();
 
     expect(app(TagLimitValidator::class)->process($entry))->toBe($entry);
 });

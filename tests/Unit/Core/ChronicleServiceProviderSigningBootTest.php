@@ -88,8 +88,6 @@ it('skips signing sanity check in non-testing environment when enforcement is di
 it('does not validate signing configuration during boot', function () {
     config()->set('chronicle.signing.enforce_on_boot', true);
 
-    $sanityCheckCalled = false;
-
     $provider = new class(app()) extends ChronicleServiceProvider
     {
         public bool $sanityCheckCalled = false;
@@ -112,7 +110,7 @@ it('does not validate signing configuration during boot', function () {
 });
 
 it('skips signing sanity check when enforce_on_boot is missing from config', function () {
-    config()->set('chronicle.signing', null);
+    config()->set('chronicle.signing');
 
     $app = Mockery::mock();
     $app->shouldNotReceive('environment');
