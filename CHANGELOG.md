@@ -10,6 +10,17 @@ breaking changes between any two versions — see upgrade notes per version.
 
 ## [Unreleased]
 
+### Added
+
+- `Chronicle::query()` returns a `LedgerQuery` fluent builder for composable, chainable ledger queries. Filter by actor, subject, action, tags, date range, or correlation; terminate with `get()`, `first()`, `count()`, `exists()`, `paginate()`, or `stream()`. Defaults to ledger order (oldest-first) on `get()` and `paginate()` unless `latest()` or `oldest()` is called explicitly.
+- `LedgerQuery::withAnyTag(array $tags)` — OR-semantics tag filter; returns entries carrying any of the given tags. Complements the existing `withTags()` which requires all tags to be present.
+- `LedgerQuery::actions(array $actions)` — matches entries whose action is any of the given values (`whereIn` semantics).
+- `LedgerQuery::since()` and `LedgerQuery::until()` accept both `CarbonInterface` and date strings; an unparseable string throws `InvalidArgumentException`.
+
+### Fixed
+
+- `Chronicle` facade `@method` annotation for `currentCorrelation()` was incorrectly declared as `currentCorrelationId()`. Corrected to match the actual `ChronicleManager` method name.
+
 ---
 
 ## [1.5.0] - 2026-05-07
