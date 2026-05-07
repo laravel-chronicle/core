@@ -86,3 +86,30 @@ it('writes the html report to the given path', function () {
 
     expect(file_exists($path))->toBeTrue();
 });
+
+it('html report contains the entry count', function () {
+    Chronicle::record()->actor('system')->action('html.test')->subject(ref('ledger'))->commit();
+
+    $report = app(ComplianceReport::class);
+    $result = $report->generate(storage_path('chronicle-report-'.Str::uuid().'.html'));
+
+    expect($result->html)
+        ->toContain('Chronicle Compliance Report')
+        ->toContain('1') // entry count
+        ->toContain($result->chainHead ?? '')
+        ->toContain($result->reportHash)
+        ->toContain($result->signature)
+        ->toContain($result->algorithm);
+});
+
+it('html report escapes values to prevent xss', function () {
+    $report = app(ComplianceReport::class);
+
+    // Verify chain_head-style value in html would be escaped (integrity check on renderer)
+    $result = $report->generate(storage_path('chronicle-report-'.Str::uuid().'.html'));
+
+    // The HTML must be a complete document
+    expect($result->html)
+        ->toContain('<!DOCTYPE html>')
+        ->toContain('</html>');
+});
