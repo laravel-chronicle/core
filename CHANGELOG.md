@@ -16,6 +16,8 @@ breaking changes between any two versions — see upgrade notes per version.
 - `LedgerQuery::withAnyTag(array $tags)` — OR-semantics tag filter; returns entries carrying any of the given tags. Complements the existing `withTags()` which requires all tags to be present.
 - `LedgerQuery::actions(array $actions)` — matches entries whose action is any of the given values (`whereIn` semantics).
 - `LedgerQuery::since()` and `LedgerQuery::until()` accept both `CarbonInterface` and date strings; an unparseable string throws `InvalidArgumentException`.
+- `LedgerStats::compute()` returns a `LedgerStats` value object with aggregate ledger statistics: total entry count, oldest/newest entry timestamps, checkpoint count, top 10 actions by frequency, and daily activity for the last 30 days. All queries run against Chronicle's configured DB connection via the query builder (no Eloquent overhead).
+- `chronicle:stats` Artisan command displays ledger statistics as a formatted text report. Pass `--json` for machine-readable output suitable for monitoring or scripting.
 
 ### Fixed
 
