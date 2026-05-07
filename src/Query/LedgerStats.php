@@ -4,6 +4,7 @@ namespace Chronicle\Query;
 
 use Carbon\CarbonInterface;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
 
 class LedgerStats
 {
@@ -61,5 +62,80 @@ class LedgerStats
     public function isEmpty(): bool
     {
         return $this->totalEntries === 0;
+    }
+
+    public static function compute(): self
+    {
+        /** @var string|null $configured */
+        $configured = config('chronicle.connection');
+
+        $db = is_string($configured) && $configured !== ''
+            ? DB::connection($configured)
+            : DB::connection();
+
+        /** @var string $entriesTable */
+        $entriesTable = config('chronicle.tables.entries', 'chronicle_entries');
+
+        /** @var string $checkpointsTable */
+        $checkpointsTable = config('chronicle.tables.checkpoints', 'chronicle_checkpoints');
+
+        $aggregate = $db->table($entriesTable)
+            ->selectRaw('COUNT(*) as total_entries, MIN(created_at) as oldest_entry_at, MAX(created_at) as newest_entry_at')
+            ->first();
+
+        if ($aggregate === null) {
+            return new self(
+                totalEntries: 0,
+                oldestEntryAt: null,
+                newestEntryAt: null,
+                checkpointCount: 0,
+                topActions: [],
+                dailyActivity: [],
+            );
+        }
+
+        /** @var int $totalEntries */
+        $totalEntries = $aggregate->total_entries;
+
+        $oldestEntryAt = $aggregate->oldest_entry_at !== null
+            ? Carbon::parse($aggregate->oldest_entry_at)
+            : null;
+
+        $newestEntryAt = $aggregate->newest_entry_at !== null
+            ? Carbon::parse($aggregate->newest_entry_at)
+            : null;
+
+        /** @var list<array{action: string, count: int}> $topActions */
+        $topActions = $db->table($entriesTable)
+            ->selectRaw('action, COUNT(*) as count')
+            ->groupBy('action')
+            ->orderByDesc('count')
+            ->limit(10)
+            ->get()
+            ->map(fn (object $row): array => ['action' => (string) $row->action, 'count' => (int) $row->count])
+            ->values()
+            ->all();
+
+        /** @var list<array{date: string, count: int}> $dailyActivity */
+        $dailyActivity = $db->table($entriesTable)
+            ->selectRaw('DATE(created_at) as date, COUNT(*) as count')
+            ->where('created_at', '>=', now()->subDays(30)->startOfDay())
+            ->groupByRaw('DATE(created_at)')
+            ->orderBy('date')
+            ->get()
+            ->map(fn (object $row): array => ['date' => (string) $row->date, 'count' => (int) $row->count])
+            ->values()
+            ->all();
+
+        $checkpointCount = $db->table($checkpointsTable)->count();
+
+        return new self(
+            totalEntries: $totalEntries,
+            oldestEntryAt: $oldestEntryAt,
+            newestEntryAt: $newestEntryAt,
+            checkpointCount: $checkpointCount,
+            topActions: $topActions,
+            dailyActivity: $dailyActivity,
+        );
     }
 }
