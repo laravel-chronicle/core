@@ -18,6 +18,7 @@ breaking changes between any two versions — see upgrade notes per version.
 - Added `lockForUpdate()` to `ChainHashEntry` to prevent duplicate record.
 - Added @methods to `Chronicle` Facade.
 - Added a `null check` in `ExportCommand` Chain head.
+- `LedgerReader` contract now declares `workflow()`, `withTag()`, and `withTags()` — methods that were already implemented in `EloquentLedgerReader` but missing from the interface.
 
 ---
 
