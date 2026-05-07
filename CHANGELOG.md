@@ -8,9 +8,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 Semantic versioning applies from **v1.0.0** onwards. Pre-1.0 releases may contain
 breaking changes between any two versions — see upgrade notes per version.
 
+## [Unreleased]
+
 ---
 
-## [Unreleased]
+## [1.5.0] - 2026-05-07
+
+### Added
+
+- Added `Chronicle\Eloquent\HasChronicle` trait for Eloquent models. Adding the trait to a model automatically records Chronicle audit entries for `created`, `updated`, and `deleted` Eloquent events with no configuration required.
+- **Default actor:** the currently authenticated user (`Auth::user()`), falling back to `system` when unauthenticated.
+- **Default action prefix:** snake_case class basename (e.g. `BlogPost` → `blog_post.created`).
+- **`$chronicleIgnore`:** list fields to exclude from the diff recorded on `updated` (the entry is still recorded; just those field changes are omitted).
+- **`$chronicleEvents`:** restrict which events are recorded; set to `[]` to silence Chronicle for that model entirely.
+- **`chronicleActor()`:** override to return any Chronicle-resolvable actor (Eloquent model, object with `$id`, or `'system'`).
+- **`chronicleActionPrefix()`:** override to return a custom action prefix string.
+- `chronicle:report {path}` command generates a signed, tamper-evident HTML compliance report for the audit ledger. The report contains entry count, chain head, reporting period, a SHA-256 report hash, and an Ed25519 signature block. Optional `--from` and `--to` flags restrict the report to a date range. The underlying `Chronicle\Reports\ComplianceReport` service is available for programmatic use.
+- `chronicle:verify --entry=<id>` spot-checks a single ledger entry — verifies its payload hash and chain hash without scanning the full ledger. Exits 0 on success, 1 on tampering or missing entry, and displays the entry's action, subject, actor, and timestamp alongside the verification result. The underlying `Chronicle\Verification\EntryVerifier` service is available for programmatic use.
 
 ---
 
@@ -45,17 +59,17 @@ breaking changes between any two versions — see upgrade notes per version.
 - `EntryBuilder::normalizeDiff()` now throws `InvalidArgumentException` when a diff entry is not an array with `old`/`new` keys, rather than silently replacing the value with `['old' => null, 'new' => null]`.
 - Extracted `SerializesEntryAttributes` trait from `ArrayDriver`, `DatabaseDriver`, and `NullDriver`, replacing three identical copies of the JSON-encoding attribute array with a single shared `toEntryAttributes()` implementation. All `json_encode` calls in the trait use `JSON_THROW_ON_ERROR`.
 - `EntryExportResult` now uses constructor property promotion consistently for all four properties.
-- `ChronicleManager::swapDriver()` is now annotated `@internal` to discourage use outside of test infrastructure.
+- `ChronicleManager::swapDriver()` is now annotated `@internal` to discourage use outside test infrastructure.
 
 ---
 
 ### Fixed
 
 - `ExportVerifier` now correctly catches payload tampering where the `payload` field is modified but `payload_hash` is left unchanged — previously this would pass verification undetected.
-- `TimeWindowPolicy` now stores the parsed `Carbon` time bounds at construction rather than re-parsing them on every `enforce()` call, eliminating a theoretical null-deref if `parseTime()` returned `null` inside `enforce()`.
+- `TimeWindowPolicy` now stores the parsed `Carbon` time bounds at construction rather than reparsing them on every `enforce()` call, eliminating a theoretical null-deref if `parseTime()` returned `null` inside `enforce()`.
 - `EntryBuilder::change()` now calls `ksort()` after each field assignment, guaranteeing alphabetical diff key ordering consistent with `diff()`.
 - `EntryExporter` now includes `metadata` and `context` as top-level fields in the exported NDJSON, making the export format consistent with the database schema.
-- `Entry::scopeWorkflow()` now appends an explicit `ESCAPE '!'` clause to the `LIKE` query, ensuring correct behaviour on PostgreSQL and other databases where the default LIKE escape character differs from MySQL.
+- `Entry::scopeWorkflow()` now appends an explicit `ESCAPE '!'` clause to the `LIKE` query, ensuring correct behavior on PostgreSQL and other databases where the default LIKE escape character differs from MySQL.
 
 ---
 
@@ -91,7 +105,7 @@ breaking changes between any two versions — see upgrade notes per version.
 - Added `QueueContextResolver` to attach queue job metadata (`job_id`, `connection`, `queue`) under `context.queue`. Skips silently when no queue job is active.
 - Added `QueueJobContext` singleton that tracks the currently executing queue job. `ChronicleServiceProvider` populates it via `JobProcessing`, `JobProcessed`, `JobFailed`, and `JobExceptionOccurred` listeners — no changes to application jobs required.
 - All context resolvers are **opt-in**. `config/chronicle.php` includes them as commented-out entries for discoverability.
-- Added `AbstractContextResolverTest` covering: `RESOLVE_CONTEXT` stage, null-resolve skip, context key assignment, existing-key preservation, non-array context coercion, and duplicate-resolver overwrite behaviour.
+- Added `AbstractContextResolverTest` covering: `RESOLVE_CONTEXT` stage, null-resolve skip, context key assignment, existing-key preservation, non-array context coercion, and duplicate-resolver overwrite behavior.
 - Added `QueueJobContextTest` covering: initial null state, set/current/clear lifecycle, and replacement on double-set.
 - Added `EnvironmentContextResolverTest` covering: context key, stage, data shape, debug bool cast, fallback on missing env, and existing-key preservation.
 - Added `RequestContextResolverTest` covering: context key, stage, console skip, HTTP data shape, `X-Request-ID` header usage, UUID generation, UUID stability across entries in the same request, and existing-key preservation.
@@ -122,7 +136,7 @@ breaking changes between any two versions — see upgrade notes per version.
 - Added `InvalidCorrelationIdException` with named constructors `mustBeString()`, `mustNotBeBlank()`, and `exceedsMaxLength()` for precise failure reporting.
 - Added `DiffStructureValidator` as a built-in entry extension to validate the optional `diff` field. Accepts `null` (no diff); when present, enforces that the diff is an array where each entry has exactly the keys `old` and `new` (no extras, no missing), and that neither value is a Closure, resource, or object.
 - Added `InvalidDiffException` with named constructors `mustBeArray()`, `entryMustBeArray()`, `missingKey()`, `extraKeys()`, `valueContainsClosure()`, `valueContainsResource()`, and `valueContainsObject()` for precise failure reporting.
-- Added `PayloadSizeValidator` as a built-in entry extension to prevent extremely large payloads from being persisted. Measures the combined JSON size of `metadata`, `context`, and `diff` after serialization and rejects entries exceeding the configurable `chronicle.validation.max_payload_size` limit (default 65536 bytes / 64 KB, env `CHRONICLE_MAX_PAYLOAD_SIZE`).
+- Added `PayloadSizeValidator` as a built-in entry extension to prevent extremely large payloads from being persisted. Measures the combined JSON size of `metadata`, `context`, and `diff` after serialization and rejects entries exceeding the configurable `chronicle.validation.max_payload_size` limit (default 65,536 bytes / 64 KB, env `CHRONICLE_MAX_PAYLOAD_SIZE`).
 - Added `InvalidPayloadSizeException` with named constructor `exceedsMaxSize()` reporting the actual and maximum byte counts.
 - Added `workflow()`, `withTag()`, and `withTags()` methods to `EloquentLedgerReader`, surfacing the corresponding `Entry` query scopes through the `LedgerReader` abstraction.
 - Added `failureCode()`, `entryCount()`, `datasetHash()`, and `chainHead()` accessor methods to `ExportVerificationResult`.
@@ -153,7 +167,7 @@ breaking changes between any two versions — see upgrade notes per version.
 - Added `PayloadSerializableValidatorTest` with 27 assertions covering: stage and priority ordering; acceptance of empty, scalar, and nested-array payloads; rejection of closures, resources, and objects (including `JsonSerializable`) in `metadata`, `context`, and `diff`; and rejection of `INF`/`NAN` via the `json_encode` catch-all.
 - Added `TagsValidatorTest` with assertions covering: stage and priority ordering, acceptance of empty/single/multiple valid tag arrays, rejection of non-array tag values, rejection of non-string elements (integer, null, boolean, array, object) with offending index in a message, rejection of empty and whitespace-only tags, rejection of duplicates with tag value in a message, case-sensitive uniqueness, and max-length enforcement (boundary and over-limit).
 - Added `TagLimitValidatorTest` with assertions covering: stage and priority ordering, acceptance of empty and at-limit tag arrays, silent pass-through of non-array tag values (type enforcement is `TagsValidator`'s concern), rejection when count exceeds the limit (one over and many over), count and limit values present in the exception message, and config-driven limit reading.
-- Added `CorrelationValidatorTest` with assertions covering: stage and priority ordering, acceptance of null and valid string values (including UUID-style and at-boundary-length), rejection of non-string non-null values with type name in message, rejection of blank strings, and max-length enforcement with offending value in message.
+- Added `CorrelationValidatorTest` with assertions covering: stage and priority ordering, acceptance of null and valid string values (including UUID style and at-boundary-length), rejection of non-string non-null values with type name in a message, rejection of blank strings, and max-length enforcement with offending value in a message.
 - Added `DiffStructureValidatorTest` with assertions covering: stage and priority ordering, acceptance of null and empty diffs and valid single/multi-entry diffs (including scalar and nested-array values), rejection of non-array diffs with type name in message, rejection of non-array entry values with key and type name in message, rejection of entries missing `old` or `new` (verifying `old` is checked first), rejection of extra keys with key and extra-key name in message, and rejection of Closure/resource/object in `old` or `new` values with diff key, side, and (for objects) class name in message.
 - Added `PayloadSizeValidatorTest` with assertions covering: stage and priority ordering; acceptance of empty, under-limit, and exactly-at-limit payloads; rejection of payloads one byte over the limit; per-field rejection (metadata, context, diff independently); and exception message content validation (actual bytes and max bytes present).
 - Updated `ExportVerifierTest` and `EntryExporterTest` to use `ExportVerificationResult` accessor methods.
@@ -1512,7 +1526,7 @@ grow as Chronicle gains new features.
 
 #### EntryBuilder
 
-EntryBuilder now forwards built payloads to ChronicleManager which
+EntryBuilder now forwards built payloads to ChronicleManager, which
 dispatches them into the processing pipeline.
 
 ---

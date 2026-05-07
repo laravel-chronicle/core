@@ -28,6 +28,8 @@ function makePending(string $action = 'test.event', array $overrides = []): arra
 }
 
 describe('NullDriver', function () {
+    beforeEach(fn () => ArrayDriver::flush());
+
     it('returns a hydrated Entry without persisting anything', function () {
         $driver = new NullDriver;
 

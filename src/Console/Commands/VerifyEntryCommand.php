@@ -3,6 +3,7 @@
 namespace Chronicle\Console\Commands;
 
 use Chronicle\Entry\Entry;
+use Chronicle\Verification\EntryVerifier;
 use Chronicle\Verification\IntegrityVerifier;
 use Illuminate\Console\Command;
 use JsonException;
@@ -17,14 +18,30 @@ use JsonException;
  */
 class VerifyEntryCommand extends Command
 {
-    protected $signature = 'chronicle:verify';
+    protected $signature = 'chronicle:verify
+        {--entry= : ULID of a single entry to verify (omit to verify the full ledger)}';
 
-    protected $description = 'Verify the integrity of the Chronicle ledger';
+    protected $description = 'Verify the integrity of the Chronicle ledger (or a single entry with --entry=<id>)';
 
     /**
      * @throws JsonException
      */
-    public function handle(IntegrityVerifier $verifier): int
+    public function handle(IntegrityVerifier $verifier, EntryVerifier $entryVerifier): int
+    {
+        /** @var string|null $id */
+        $id = $this->option('entry');
+
+        if ($id !== null) {
+            return $this->verifySingleEntry($id, $entryVerifier);
+        }
+
+        return $this->verifyLedger($verifier);
+    }
+
+    /**
+     * @throws JsonException
+     */
+    protected function verifyLedger(IntegrityVerifier $verifier): int
     {
         $this->info('Verifying Chronicle ledger...');
         $this->newLine();
@@ -59,5 +76,54 @@ class VerifyEntryCommand extends Command
         $this->info('Ledger integrity OK');
 
         return self::SUCCESS;
+    }
+
+    /**
+     * @throws JsonException
+     */
+    protected function verifySingleEntry(string $id, EntryVerifier $entryVerifier): int
+    {
+        $this->line("Verifying entry <comment>$id</comment>...");
+        $this->newLine();
+
+        $result = $entryVerifier->verify($id);
+
+        if ($result->failureCode() === 'not_found') {
+            $this->error("Entry [$id] not found.");
+
+            return self::FAILURE;
+        }
+
+        $entry = $result->entry;
+        assert($entry !== null);
+
+        $this->line("  Action:   <comment>$entry->action</comment>");
+        $this->line("  Subject:  <comment>$entry->subject_type#$entry->subject_id</comment>");
+        $this->line("  Actor:    <comment>$entry->actor_type#$entry->actor_id</comment>");
+        $this->line("  Created:  <comment>{$entry->created_at->toDateTimeString()}</comment>");
+        $this->newLine();
+
+        if ($result->isValid()) {
+            $this->line('  ✓ Payload hash OK');
+            $this->line('  ✓ Chain hash OK');
+            $this->newLine();
+            $this->info('Entry integrity verified.');
+
+            return self::SUCCESS;
+        }
+
+        $messages = [
+            'payload_hash_mismatch' => 'Payload hash MISMATCH — entry data has been altered',
+            'chain_hash_mismatch' => 'Chain hash MISMATCH — entry position has been manipulated',
+        ];
+
+        $code = $result->failureCode() ?? 'unknown';
+        $label = $messages[$code] ?? $code;
+
+        $this->line("  ✗ $label [$code]");
+        $this->newLine();
+        $this->error('Integrity violation detected.');
+
+        return self::FAILURE;
     }
 }
