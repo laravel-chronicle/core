@@ -3,7 +3,6 @@
 namespace Chronicle\Eloquent;
 
 use Chronicle\Facades\Chronicle;
-use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use Throwable;
@@ -82,7 +81,7 @@ trait HasChronicle
             });
     }
 
-    protected function chronicleActor(): Authenticatable|string
+    protected function chronicleActor(): mixed
     {
         return Auth::user() ?? 'system';
     }

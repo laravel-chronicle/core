@@ -2,6 +2,7 @@
 
 use Chronicle\Entry\Entry;
 use Chronicle\Tests\Fakes\FakeChronicleModel;
+use Chronicle\Tests\Fakes\FakeUser;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
@@ -115,4 +116,58 @@ it('still records an updated entry when only a chronicleIgnore field changes', f
     expect(Entry::count())->toBe(1)
         ->and($entry->action)->toBe('fake_chronicle_model.updated')
         ->and($entry->diff)->toBeNull();
+});
+
+it('uses the authenticated user as actor when one is logged in', function () {
+    Schema::create('fake_users', function (Blueprint $table) {
+        $table->id();
+        $table->string('name');
+        $table->timestamps();
+    });
+
+    $user = FakeUser::create(['name' => 'Actor User']);
+    $this->actingAs($user);
+
+    FakeChronicleModel::create(['name' => 'Subject']);
+
+    $entry = Entry::first();
+
+    expect($entry->actor_type)->toBe(FakeUser::class)
+        ->and($entry->actor_id)->toBe((string) $user->id);
+
+    Schema::dropIfExists('fake_users');
+});
+
+it('falls back to system actor when no user is authenticated', function () {
+    FakeChronicleModel::create(['name' => 'Alice']);
+
+    $entry = Entry::first();
+
+    expect($entry->actor_type)->toBe('system')
+        ->and($entry->actor_id)->toBe('system');
+});
+
+it('uses a custom chronicleActor() when overridden on the model', function () {
+    $model = new class extends FakeChronicleModel
+    {
+        protected function chronicleActor(): stdClass
+        {
+            $actor = new stdClass;
+            $actor->id = 'custom-actor-99';
+
+            return $actor;
+        }
+
+        protected function chronicleActionPrefix(): string
+        {
+            return 'fake_chronicle_model';
+        }
+    };
+    $model->setTable('fake_chronicle_models');
+    $model->fill(['name' => 'Subject'])->save();
+
+    $entry = Entry::first();
+
+    expect($entry->actor_id)->toBe('custom-actor-99')
+        ->and($entry->actor_type)->toBe(stdClass::class);
 });
