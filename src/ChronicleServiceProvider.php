@@ -5,6 +5,7 @@ namespace Chronicle;
 use Chronicle\Console\Commands\CreateCheckpointCommand;
 use Chronicle\Console\Commands\ExportCommand;
 use Chronicle\Console\Commands\InstallCommand;
+use Chronicle\Console\Commands\ReportCommand;
 use Chronicle\Console\Commands\VerifyEntryCommand;
 use Chronicle\Console\Commands\VerifyExportCommand;
 use Chronicle\Context\QueueJobContext;
@@ -26,6 +27,7 @@ use Chronicle\Pipeline\EntryPipeline;
 use Chronicle\Pipeline\HashPayload;
 use Chronicle\Pipeline\PersistEntry;
 use Chronicle\Pipeline\RunExtensions;
+use Chronicle\Reports\ComplianceReport;
 use Chronicle\Storage\DriverResolver;
 use Chronicle\Support\CanonicalPayloadSerializer;
 use Chronicle\Support\DefaultReferenceResolver;
@@ -75,6 +77,7 @@ class ChronicleServiceProvider extends ServiceProvider
                 ExportCommand::class,
                 VerifyExportCommand::class,
                 InstallCommand::class,
+                ReportCommand::class,
             ]);
         }
     }
@@ -180,6 +183,7 @@ class ChronicleServiceProvider extends ServiceProvider
         $this->app->singleton(ExportSigner::class);
         $this->app->singleton(ExportVerifier::class);
         $this->app->singleton(ExportChainVerifier::class);
+        $this->app->singleton(ComplianceReport::class);
 
         $this->app->singleton(ExportManager::class, function ($app) {
             return new ExportManager(
