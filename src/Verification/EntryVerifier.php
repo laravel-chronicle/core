@@ -35,6 +35,7 @@ class EntryVerifier
             return EntryVerificationResult::failure($entry, 'payload_hash_mismatch');
         }
 
+        /** @var string $previousChainHash */
         $previousChainHash = Entry::query()
             ->where(function (Builder $q) use ($entry): void {
                 $q->where('created_at', '<', $entry->created_at)
