@@ -12,38 +12,9 @@ breaking changes between any two versions — see upgrade notes per version.
 
 ## [Unreleased]
 
-### Added
-
-- Added `$model->exists = true` to `ArrayDriver::store()`.
-- Added `lockForUpdate()` to `ChainHashEntry` to prevent duplicate record.
-- Added @methods to `Chronicle` Facade.
-- Added a `null check` in `ExportCommand` Chain head.
-- `LedgerReader` contract now declares `workflow()`, `withTag()`, and `withTags()` — methods that were already implemented in `EloquentLedgerReader` but missing from the interface.
-- `DriverResolver::has(string $driver): bool` — lets callers check whether a custom driver is registered before calling `extend()`, preventing the duplicate-registration exception in third-party service providers.
-
 ---
 
-### Changed
-- `EntryBuilder::normalizeDiff()` now throws `InvalidArgumentException` when a diff entry is not an array with `old`/`new` keys, rather than silently replacing the value with `['old' => null, 'new' => null]`.
-- `EntryExportResult` now uses constructor property promotion consistently for all four properties.
-- `ChronicleManager::swapDriver()` is now annotated `@internal` to discourage use outside of test infrastructure.
-- Fixed copy-paste error in `Checkpoint` model docblock (said "entries" instead of "checkpoints").
-- `CanonicalizePayload` pipeline stage now calls `CanonicalPayloadSerializer::normalize()` directly instead of serializing to JSON and immediately decoding back to an array, eliminating a redundant encode/decode round-trip. `CanonicalPayloadSerializer::normalize()` is now public.
-- `DefaultReferenceResolver` now throws `InvalidArgumentException` when passed a scalar value (string, int, etc.), rather than silently using PHP's `gettype()` return value (e.g., `"integer"`) as the actor/subject type. Pass an Eloquent model or an object with a public `$id` property instead.
-  **Breaking change:** Any code passing raw scalars directly as actor or subject (other than the reserved `'system'` string handled by `EntryBuilder`) must be updated.
-- `ChronicleServiceProvider` no longer validates signing configuration in `boot()`. The check is now deferred to the first resolution of `SigningProvider` from the container, eliminating key-decoding overhead on every request in apps that do not use Chronicle signing on every route.
-- Extracted `SerializesEntryAttributes` trait from `ArrayDriver`, `DatabaseDriver`, and `NullDriver`, replacing three identical copies of the JSON-encoding attribute array with a single shared `toEntryAttributes()` implementation. All `json_encode` calls in the trait use `JSON_THROW_ON_ERROR`.
-
----
-
-### Fixed
-
-- `TimeWindowPolicy` now stores the parsed `Carbon` time bounds at construction rather than re-parsing them on every `enforce()` call, eliminating a theoretical null-deref if `parseTime()` returned `null` inside `enforce()`.
-- `EntryBuilder::change()` now calls `ksort()` after each field assignment, guaranteeing alphabetical diff key ordering consistent with `diff()`.
-- `EntryExporter` now includes `metadata` and `context` as top-level fields in the exported NDJSON, making the export format consistent with the database schema.
-- `Entry::scopeWorkflow()` now appends an explicit `ESCAPE '\\'` clause to the `LIKE` query, ensuring correct behaviour on PostgreSQL and other databases where the default LIKE escape character differs from MySQL.
-
----
+## [1.4.1] - 2026-05-07
 
 ### Security
 
@@ -51,6 +22,40 @@ breaking changes between any two versions — see upgrade notes per version.
 - `Ed25519SigningProvider` now zeroes the private key in memory via `sodium_memzero()` when the object is destroyed, reducing key exposure for compliance-sensitive deployments.
 - `RequestContextResolver` now truncates `user_agent` strings to 512 characters and redacts sensitive query parameters (`password`, `token`, `api_token`, `secret`, `key`, `access_token`) from the logged URL, preventing column overflow and sensitive data leakage in audit records.
 - `ExportManager::export()` now documents the write-then-hash race condition contract: the export path must not be writable by other processes between the `entries.ndjson` write and the subsequent `hashFile()` call.
+
+---
+
+### Added
+
+- `LedgerReader` contract now declares `workflow()`, `withTag()`, and `withTags()` — methods that were already implemented in `EloquentLedgerReader` but missing from the interface.
+- `DriverResolver::has(string $driver): bool` — lets callers check whether a custom driver is registered before calling `extend()`, preventing the duplicate-registration exception in third-party service providers.
+- Added `lockForUpdate()` to `ChainHashEntry` to prevent duplicate chain hash records under concurrent writes.
+- Added `@method` annotations to the `Chronicle` facade for IDE completion.
+- Added null-check guard in `ExportCommand` for the chain head when the ledger is empty.
+- Added `$model->exists = true` to `ArrayDriver::store()` so the returned `Entry` model correctly reports as persisted.
+
+---
+
+### Changed
+
+- `DefaultReferenceResolver` now throws `InvalidArgumentException` when passed a scalar value (string, int, etc.), rather than silently using PHP's `gettype()` return value (e.g., `"integer"`) as the actor/subject type. Pass an Eloquent model or an object with a public `$id` property instead.
+  **Upgrade note:** Any code passing raw scalars directly as actor or subject — other than the reserved `'system'` string handled by `EntryBuilder` — must be updated to pass a model or a plain object with a public `$id`.
+- `ChronicleServiceProvider` no longer validates signing configuration in `boot()`. The check is now deferred to the first resolution of `SigningProvider` from the container, eliminating key-decoding overhead on every request in apps that do not use Chronicle signing on every route.
+- `CanonicalizePayload` pipeline stage now calls `CanonicalPayloadSerializer::normalize()` directly instead of serializing to JSON and immediately decoding back to an array, eliminating a redundant encode/decode round-trip. `CanonicalPayloadSerializer::normalize()` is now `public`.
+- `EntryBuilder::normalizeDiff()` now throws `InvalidArgumentException` when a diff entry is not an array with `old`/`new` keys, rather than silently replacing the value with `['old' => null, 'new' => null]`.
+- Extracted `SerializesEntryAttributes` trait from `ArrayDriver`, `DatabaseDriver`, and `NullDriver`, replacing three identical copies of the JSON-encoding attribute array with a single shared `toEntryAttributes()` implementation. All `json_encode` calls in the trait use `JSON_THROW_ON_ERROR`.
+- `EntryExportResult` now uses constructor property promotion consistently for all four properties.
+- `ChronicleManager::swapDriver()` is now annotated `@internal` to discourage use outside of test infrastructure.
+
+---
+
+### Fixed
+
+- `ExportVerifier` now correctly catches payload tampering where the `payload` field is modified but `payload_hash` is left unchanged — previously this would pass verification undetected.
+- `TimeWindowPolicy` now stores the parsed `Carbon` time bounds at construction rather than re-parsing them on every `enforce()` call, eliminating a theoretical null-deref if `parseTime()` returned `null` inside `enforce()`.
+- `EntryBuilder::change()` now calls `ksort()` after each field assignment, guaranteeing alphabetical diff key ordering consistent with `diff()`.
+- `EntryExporter` now includes `metadata` and `context` as top-level fields in the exported NDJSON, making the export format consistent with the database schema.
+- `Entry::scopeWorkflow()` now appends an explicit `ESCAPE '!'` clause to the `LIKE` query, ensuring correct behaviour on PostgreSQL and other databases where the default LIKE escape character differs from MySQL.
 
 ---
 
