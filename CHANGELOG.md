@@ -40,6 +40,7 @@ breaking changes between any two versions — see upgrade notes per version.
 - `TimeWindowPolicy` now stores the parsed `Carbon` time bounds at construction rather than re-parsing them on every `enforce()` call, eliminating a theoretical null-deref if `parseTime()` returned `null` inside `enforce()`.
 - `EntryBuilder::change()` now calls `ksort()` after each field assignment, guaranteeing alphabetical diff key ordering consistent with `diff()`.
 - `EntryExporter` now includes `metadata` and `context` as top-level fields in the exported NDJSON, making the export format consistent with the database schema.
+- `Entry::scopeWorkflow()` now appends an explicit `ESCAPE '\\'` clause to the `LIKE` query, ensuring correct behaviour on PostgreSQL and other databases where the default LIKE escape character differs from MySQL.
 
 ---
 

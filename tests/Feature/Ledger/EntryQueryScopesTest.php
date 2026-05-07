@@ -206,3 +206,9 @@ it('orders entries using latestFirst scope', function () {
 
     expect($entries->first()->action)->toBe('order.second');
 });
+
+it('scopeWorkflow appends an explicit ESCAPE clause so LIKE works correctly across databases', function () {
+    $sql = Entry::query()->workflow('root_corr')->toSql();
+
+    expect($sql)->toContain("ESCAPE '!'");
+});

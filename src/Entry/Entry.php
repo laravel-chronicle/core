@@ -229,9 +229,12 @@ class Entry extends Model
      */
     public function scopeWorkflow(Builder $query, string $rootCorrelation): Builder
     {
-        $escaped = str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $rootCorrelation);
+        $escaped = str_replace(['!', '%', '_'], ['!!', '!%', '!_'], $rootCorrelation);
 
-        return $query->where('correlation_id', 'like', $escaped.'%');
+        return $query->whereRaw(
+            "correlation_id LIKE ? ESCAPE '!'",
+            [$escaped.'%']
+        );
     }
 
     /**
