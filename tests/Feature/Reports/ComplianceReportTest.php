@@ -27,3 +27,62 @@ it('constructs a ComplianceReportResult and exposes its properties', function ()
         ->and($result->to)->toBeNull()
         ->and($result->html)->toBe('<html></html>');
 });
+
+use Chronicle\Facades\Chronicle;
+use Chronicle\Reports\ComplianceReport;
+
+it('generates a report with correct entry count and chain head', function () {
+    Chronicle::record()->actor('system')->action('report.test')->subject(ref('ledger'))->commit();
+    Chronicle::record()->actor('system')->action('report.test')->subject(ref('ledger'))->commit();
+
+    $report = app(ComplianceReport::class);
+    $path = storage_path('chronicle-report-'.Str::uuid().'.html');
+
+    $result = $report->generate($path);
+
+    expect($result->entryCount)->toBe(2)
+        ->and($result->chainHead)->toBeString()->toHaveLength(64)
+        ->and($result->reportHash)->toBeString()->toHaveLength(64)
+        ->and($result->signature)->toBeString()->not->toBeEmpty()
+        ->and($result->algorithm)->toBe('ed25519')
+        ->and($result->from)->toBeNull()
+        ->and($result->to)->toBeNull();
+});
+
+it('filters by date range when from/to are provided', function () {
+    Chronicle::record()->actor('system')->action('report.old')->subject(ref('ledger'))->commit();
+
+    Carbon::setTestNow(now()->addSeconds(2));
+    $from = now();
+
+    Chronicle::record()->actor('system')->action('report.new')->subject(ref('ledger'))->commit();
+
+    $report = app(ComplianceReport::class);
+    $path = storage_path('chronicle-report-'.Str::uuid().'.html');
+
+    $result = $report->generate($path, from: $from);
+
+    Carbon::setTestNow(null);
+
+    expect($result->entryCount)->toBe(1);
+});
+
+it('generates a report with zero entries when ledger is empty', function () {
+    $report = app(ComplianceReport::class);
+    $path = storage_path('chronicle-report-'.Str::uuid().'.html');
+
+    $result = $report->generate($path);
+
+    expect($result->entryCount)->toBe(0)
+        ->and($result->chainHead)->toBeNull()
+        ->and($result->isEmpty())->toBeTrue();
+});
+
+it('writes the html report to the given path', function () {
+    $report = app(ComplianceReport::class);
+    $path = storage_path('chronicle-report-'.Str::uuid().'.html');
+
+    $report->generate($path);
+
+    expect(file_exists($path))->toBeTrue();
+});
