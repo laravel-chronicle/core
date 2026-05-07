@@ -1,14 +1,8 @@
 <?php
 
 use Chronicle\Support\DefaultReferenceResolver;
-
-it('resolves scalar references', function () {
-    $resolver = new DefaultReferenceResolver;
-
-    $ref = $resolver->resolve('system');
-
-    expect($ref->type)->toBe('string');
-});
+use Chronicle\Support\Reference;
+use Illuminate\Database\Eloquent\Model;
 
 it('resolves eloquent models', function () {
     $resolver = new DefaultReferenceResolver;
@@ -21,4 +15,34 @@ it('resolves eloquent models', function () {
     $ref = $resolver->resolve($model);
 
     expect($ref->id)->toBe('42');
+});
+
+it('resolves an Eloquent model to a Reference', function () {
+    $model = new class extends Model
+    {
+        public function getKey(): int
+        {
+            return 42;
+        }
+
+        public static function getClass(): string
+        {
+            return self::class;
+        }
+    };
+
+    $ref = (new DefaultReferenceResolver)->resolve($model);
+
+    expect($ref)->toBeInstanceOf(Reference::class)
+        ->and($ref->id)->toBe('42');
+});
+
+it('throws InvalidArgumentException when passed a scalar value', function () {
+    expect(fn () => (new DefaultReferenceResolver)->resolve('some-string'))
+        ->toThrow(InvalidArgumentException::class, 'Chronicle: scalar values cannot be used as actor or subject references.');
+});
+
+it('throws InvalidArgumentException when passed an integer', function () {
+    expect(fn () => (new DefaultReferenceResolver)->resolve(123))
+        ->toThrow(InvalidArgumentException::class);
 });

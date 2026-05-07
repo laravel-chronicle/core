@@ -7,7 +7,7 @@ it('exports chronicle dataset via artisan command', function () {
     Chronicle::record()
         ->actor('system')
         ->action('export.command')
-        ->subject('ledger')
+        ->subject(ref('ledger'))
         ->commit();
 
     $path = storage_path('chronicle-test-export');

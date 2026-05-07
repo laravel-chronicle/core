@@ -26,7 +26,7 @@ it('rejects an action in allowlist that also matches denylist', function () {
     expect(fn () => Chronicle::record()
         ->actor('system')
         ->action('user.deleted')
-        ->subject('user:1')
+        ->subject(ref('user:1'))
         ->commit()
     )->toThrow(ActionForbiddenException::class);
 });
@@ -35,7 +35,7 @@ it('rejects an action not in the allowlist', function () {
     expect(fn () => Chronicle::record()
         ->actor('system')
         ->action('payment.captured')
-        ->subject('payment:1')
+        ->subject(ref('payment:1'))
         ->commit()
     )->toThrow(ActionNotAllowedException::class);
 });
@@ -44,6 +44,6 @@ it('passes an action that is in the allowlist and not in the denylist', function
     Chronicle::record()
         ->actor('system')
         ->action('order.placed')
-        ->subject('order:1')
+        ->subject(ref('order:1'))
         ->commit();
 })->throwsNoExceptions();

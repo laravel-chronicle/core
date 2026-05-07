@@ -7,7 +7,7 @@ it('records an entry using the facade', function () {
     Chronicle::record()
         ->actor('system')
         ->action('system.started')
-        ->subject('application')
+        ->subject(ref('application'))
         ->commit();
 
     /** @var Entry|null $entry */

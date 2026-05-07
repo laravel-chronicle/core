@@ -28,9 +28,8 @@ class DefaultReferenceResolver implements ReferenceResolver
         }
 
         if (is_scalar($value)) {
-            return new Reference(
-                gettype($value),
-                (string) $value,
+            throw new InvalidArgumentException(
+                'Chronicle: scalar values cannot be used as actor or subject references. Pass an Eloquent model or an object with a public $id property.'
             );
         }
 

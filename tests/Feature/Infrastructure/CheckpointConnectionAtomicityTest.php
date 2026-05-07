@@ -36,7 +36,7 @@ it('rolls back checkpoint creation on non-default chronicle connection when a po
     Chronicle::record()
         ->actor('system')
         ->action('checkpoint.atomicity')
-        ->subject('ledger')
+        ->subject(ref('ledger'))
         ->commit();
 
     $event = 'eloquent.created: '.Checkpoint::class;

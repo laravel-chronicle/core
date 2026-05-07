@@ -9,7 +9,7 @@ it('fails verify command when payload hash is tampered', function () {
     Chronicle::record()
         ->actor('system')
         ->action('verify.payload')
-        ->subject('ledger')
+        ->subject(ref('ledger'))
         ->commit();
 
     $entry = Entry::query()->firstOrFail();
@@ -28,7 +28,7 @@ it('fails verify command when chain hash is tampered', function () {
     Chronicle::record()
         ->actor('system')
         ->action('verify.chain')
-        ->subject('ledger')
+        ->subject(ref('ledger'))
         ->commit();
 
     $entry = Entry::query()->firstOrFail();
@@ -47,7 +47,7 @@ it('fails verify command when checkpoint signature is invalid', function () {
     Chronicle::record()
         ->actor('system')
         ->action('checkpoint.signature')
-        ->subject('ledger')
+        ->subject(ref('ledger'))
         ->commit();
 
     $entry = Entry::query()->firstOrFail();

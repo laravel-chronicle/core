@@ -7,7 +7,7 @@ it('exports entries to ndjson', function () {
     Chronicle::record()
         ->actor('system')
         ->action('export.test')
-        ->subject('ledger')
+        ->subject(ref('ledger'))
         ->commit();
 
     $path = storage_path('chronicle-test.ndjson');
@@ -24,7 +24,7 @@ it('includes metadata and context columns in the exported entry', function () {
     Chronicle::record()
         ->actor('system')
         ->action('export.tested')
-        ->subject('system')
+        ->subject(ref('system'))
         ->metadata(['key' => 'value'])
         ->commit();
 

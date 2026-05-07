@@ -7,7 +7,7 @@ it('allows manually setting a correlation id', function () {
     Chronicle::record()
         ->actor('system')
         ->action('test.manual')
-        ->subject('ledger')
+        ->subject(ref('ledger'))
         ->correlation('test-correlation')
         ->commit();
 
@@ -22,13 +22,13 @@ it('assigns correlation id when using transaction object', function () {
     $tx->entry()
         ->actor('system')
         ->action('test.one')
-        ->subject('ledger')
+        ->subject(ref('ledger'))
         ->commit();
 
     $tx->entry()
         ->actor('system')
         ->action('test.two')
-        ->subject('ledger')
+        ->subject(ref('ledger'))
         ->commit();
 
     $entries = Entry::all();
@@ -44,13 +44,13 @@ it('assigns correlation automatically in transaction closure', function () {
         Chronicle::record()
             ->actor('system')
             ->action('test.one')
-            ->subject('ledger')
+            ->subject(ref('ledger'))
             ->commit();
 
         Chronicle::record()
             ->actor('system')
             ->action('test.two')
-            ->subject('ledger')
+            ->subject(ref('ledger'))
             ->commit();
     });
 
@@ -67,7 +67,7 @@ it('creates unique correlation ids for separate transactions', function () {
         Chronicle::record()
             ->actor('system')
             ->action('test.a')
-            ->subject('ledger')
+            ->subject(ref('ledger'))
             ->commit();
 
     });
@@ -76,7 +76,7 @@ it('creates unique correlation ids for separate transactions', function () {
         Chronicle::record()
             ->actor('system')
             ->action('test.b')
-            ->subject('ledger')
+            ->subject(ref('ledger'))
             ->commit();
     });
 
@@ -95,7 +95,7 @@ it('supports nested transactions with hierarchical correlation', function () {
         Chronicle::record()
             ->actor('system')
             ->action('tx.outer')
-            ->subject('ledger')
+            ->subject(ref('ledger'))
             ->commit();
 
         Chronicle::transaction(function () {
@@ -103,7 +103,7 @@ it('supports nested transactions with hierarchical correlation', function () {
             Chronicle::record()
                 ->actor('system')
                 ->action('tx.inner')
-                ->subject('ledger')
+                ->subject(ref('ledger'))
                 ->commit();
 
         });
@@ -127,13 +127,13 @@ it('allows querying entries by correlation id', function () {
     $tx->entry()
         ->actor('system')
         ->action('corr.first')
-        ->subject('ledger')
+        ->subject(ref('ledger'))
         ->commit();
 
     $tx->entry()
         ->actor('system')
         ->action('corr.second')
-        ->subject('ledger')
+        ->subject(ref('ledger'))
         ->commit();
 
     $entries = Entry::correlation($tx->id())->get();

@@ -7,7 +7,7 @@ it('stores payload hash', function () {
     Chronicle::record()
         ->actor('system')
         ->action('invoice.created')
-        ->subject('invoice')
+        ->subject(ref('invoice'))
         ->commit();
 
     $entry = Entry::first();

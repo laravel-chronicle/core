@@ -8,7 +8,7 @@ it('verifies an exported chronicle dataset', function () {
     Chronicle::record()
         ->actor('system')
         ->action('export.verify')
-        ->subject('ledger')
+        ->subject(ref('ledger'))
         ->commit();
 
     $path = storage_path('chronicle-test-export-'.Str::uuid());
@@ -24,7 +24,7 @@ it('fails verify-export command when dataset is invalid', function () {
     Chronicle::record()
         ->actor('system')
         ->action('test.invalid')
-        ->subject('ledger')
+        ->subject(ref('ledger'))
         ->commit();
 
     $path = storage_path('chronicle-test-export-invalid-'.Str::uuid());

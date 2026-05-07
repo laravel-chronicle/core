@@ -6,7 +6,7 @@ it('verifies ledger successfully', function () {
     Chronicle::record()
         ->actor('system')
         ->action('verify.entries')
-        ->subject('ledger')
+        ->subject(ref('ledger'))
         ->commit();
 
     $this->artisan('chronicle:verify')

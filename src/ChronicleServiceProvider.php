@@ -59,8 +59,6 @@ class ChronicleServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
-        $this->assertSigningConfiguration();
-
         $this->publishConfiguration();
         $this->publishMigrations();
 
@@ -143,11 +141,25 @@ class ChronicleServiceProvider extends ServiceProvider
             /** @var array{provider: class-string, private_key: ?string, public_key: ?string, key_id: string} $config */
             $config = $app['config']->get('chronicle.signing', []);
 
-            return new $config['provider'](
-                privateKey: $config['private_key'],
-                publicKey: $config['public_key'],
-                keyId: $config['key_id'],
-            );
+            try {
+                return new $config['provider'](
+                    privateKey: $config['private_key'],
+                    publicKey: $config['public_key'],
+                    keyId: $config['key_id'],
+                );
+            } catch (Throwable $e) {
+                if ((bool) config('chronicle.signing.enforce_on_boot', false)
+                    && ! $app->environment('testing')
+                ) {
+                    throw new RuntimeException(
+                        'Invalid Chronicle signing configuration. Configure CHRONICLE_PRIVATE_KEY and CHRONICLE_PUBLIC_KEY (or a valid custom signing provider).',
+                        0,
+                        $e
+                    );
+                }
+
+                throw $e;
+            }
         });
     }
 

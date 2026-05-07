@@ -6,9 +6,9 @@ use Illuminate\Support\Str;
 
 it('records an entry using documented fluent API', function () {
     Chronicle::record()
-        ->actor('docs-user')
+        ->actor(ref('docs-user'))
         ->action('invoice.created')
-        ->subject('invoice:1001')
+        ->subject(ref('invoice:1001'))
         ->metadata(['total' => 1000])
         ->context(['request_id' => (string) Str::uuid()])
         ->tags(['billing'])
@@ -23,9 +23,9 @@ it('records an entry using documented fluent API', function () {
 
 it('records a diff using documented API', function () {
     Chronicle::record()
-        ->actor('docs-admin')
+        ->actor(ref('docs-admin'))
         ->action('invoice.amount_changed')
-        ->subject('invoice:1002')
+        ->subject(ref('invoice:1002'))
         ->diff([
             'amount' => ['old' => 1000, 'new' => 500],
         ])
@@ -44,13 +44,13 @@ it('supports documented transaction closure example', function () {
         Chronicle::record()
             ->actor('system')
             ->action('batch.started')
-            ->subject('ledger')
+            ->subject(ref('ledger'))
             ->commit();
 
         Chronicle::record()
             ->actor('system')
             ->action('batch.finished')
-            ->subject('ledger')
+            ->subject(ref('ledger'))
             ->commit();
     });
 
@@ -66,13 +66,13 @@ it('supports documented transaction object example', function () {
     $tx->entry()
         ->actor('system')
         ->action('import.started')
-        ->subject('ledger')
+        ->subject(ref('ledger'))
         ->commit();
 
     $tx->entry()
         ->actor('system')
         ->action('import.finished')
-        ->subject('ledger')
+        ->subject(ref('ledger'))
         ->commit();
 
     $entries = Entry::orderBy('id')->get();
@@ -86,7 +86,7 @@ it('supports documented export and verify-export commands', function () {
     Chronicle::record()
         ->actor('system')
         ->action('docs.export')
-        ->subject('ledger')
+        ->subject(ref('ledger'))
         ->commit();
 
     $path = storage_path('chronicle-docs-export-'.Str::uuid());

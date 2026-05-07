@@ -10,13 +10,13 @@ it('verifies chain integrity of exported dataset', function () {
     Chronicle::record()
         ->actor('system')
         ->action('chain.first')
-        ->subject('ledger')
+        ->subject(ref('ledger'))
         ->commit();
 
     Chronicle::record()
         ->actor('system')
         ->action('chain.second')
-        ->subject('ledger')
+        ->subject(ref('ledger'))
         ->commit();
 
     $path = storage_path('chronicle-chain-test');

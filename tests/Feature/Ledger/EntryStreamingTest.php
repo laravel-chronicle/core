@@ -8,7 +8,7 @@ it('streams entries in ledger order', function () {
         Chronicle::record()
             ->actor('system')
             ->action('stream.test')
-            ->subject('ledger')
+            ->subject(ref('ledger'))
             ->commit();
     }
 
@@ -25,7 +25,7 @@ it('streams entries in reverse order', function () {
     Chronicle::record()
         ->actor('system')
         ->action('stream.first')
-        ->subject('ledger')
+        ->subject(ref('ledger'))
         ->commit();
 
     sleep(1);
@@ -33,7 +33,7 @@ it('streams entries in reverse order', function () {
     Chronicle::record()
         ->actor('system')
         ->action('stream.second')
-        ->subject('ledger')
+        ->subject(ref('ledger'))
         ->commit();
 
     $actions = Entry::streamLatest()

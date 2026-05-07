@@ -103,6 +103,6 @@ it('rejects persisted actions without dot notation', function () {
     Chronicle::record()
         ->actor('system')
         ->action('invalid')
-        ->subject('ledger')
+        ->subject(ref('ledger'))
         ->commit();
 })->throws(InvalidActionException::class);

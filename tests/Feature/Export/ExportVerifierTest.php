@@ -108,7 +108,7 @@ it('fails when entries ndjson has invalid entry shape', function () {
 });
 
 it('fails when chain in entries ndjson is invalid', function () {
-    Chronicle::record()->actor('system')->action('chain.check')->subject('ledger')->commit();
+    Chronicle::record()->actor('system')->action('chain.check')->subject(ref('ledger'))->commit();
 
     $manager = app(ExportManager::class);
     $path = storage_path('chronicle-test-export-'.Str::uuid());
@@ -131,7 +131,7 @@ it('fails when chain in entries ndjson is invalid', function () {
 });
 
 it('fails when manifest chain head does not match entries', function () {
-    Chronicle::record()->actor('system')->action('head.check')->subject('ledger')->commit();
+    Chronicle::record()->actor('system')->action('head.check')->subject(ref('ledger'))->commit();
 
     $manager = app(ExportManager::class);
     $path = storage_path('chronicle-test-export-'.Str::uuid());
@@ -224,7 +224,7 @@ it('fails when entries file is unreadable', function () {
 });
 
 it('fails when dataset hash mismatches manifest', function () {
-    Chronicle::record()->actor('system')->action('hash.check')->subject('ledger')->commit();
+    Chronicle::record()->actor('system')->action('hash.check')->subject(ref('ledger'))->commit();
 
     $manager = app(ExportManager::class);
     $path = storage_path('chronicle-test-export-'.Str::uuid());
@@ -246,7 +246,7 @@ it('fails when dataset hash mismatches manifest', function () {
 });
 
 it('fails when signature verification is invalid', function () {
-    Chronicle::record()->actor('system')->action('signature.check')->subject('ledger')->commit();
+    Chronicle::record()->actor('system')->action('signature.check')->subject(ref('ledger'))->commit();
 
     $manager = app(ExportManager::class);
     $path = storage_path('chronicle-test-export-'.Str::uuid());
@@ -264,7 +264,7 @@ it('fails when signature verification is invalid', function () {
 });
 
 it('fails when manifest entry count mismatches dataset', function () {
-    Chronicle::record()->actor('system')->action('count.check')->subject('ledger')->commit();
+    Chronicle::record()->actor('system')->action('count.check')->subject(ref('ledger'))->commit();
 
     $manager = app(ExportManager::class);
     $path = storage_path('chronicle-test-export-'.Str::uuid());
@@ -282,7 +282,7 @@ it('fails when manifest entry count mismatches dataset', function () {
 });
 
 it('fails when manifest first entry id mismatches dataset', function () {
-    Chronicle::record()->actor('system')->action('first.check')->subject('ledger')->commit();
+    Chronicle::record()->actor('system')->action('first.check')->subject(ref('ledger'))->commit();
 
     $manager = app(ExportManager::class);
     $path = storage_path('chronicle-test-export-'.Str::uuid());
@@ -300,7 +300,7 @@ it('fails when manifest first entry id mismatches dataset', function () {
 });
 
 it('fails when manifest last entry id mismatches dataset', function () {
-    Chronicle::record()->actor('system')->action('last.check')->subject('ledger')->commit();
+    Chronicle::record()->actor('system')->action('last.check')->subject(ref('ledger'))->commit();
 
     $manager = app(ExportManager::class);
     $path = storage_path('chronicle-test-export-'.Str::uuid());
@@ -324,7 +324,7 @@ it('fails when an exported entry payload has been tampered with', function () {
     Chronicle::record()
         ->actor('system')
         ->action('test.tamper')
-        ->subject('system')
+        ->subject(ref('system'))
         ->commit();
 
     $manager->export($path);
