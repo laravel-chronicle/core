@@ -12,6 +12,8 @@ breaking changes between any two versions — see upgrade notes per version.
 
 ## [Unreleased]
 
+### Added
+
 - Added `Chronicle\Eloquent\HasChronicle` trait for Eloquent models. Adding the trait to a model automatically records Chronicle audit entries for `created`, `updated`, and `deleted` Eloquent events with no configuration required.
 - **Default actor:** the currently authenticated user (`Auth::user()`), falling back to `system` when unauthenticated.
 - **Default action prefix:** snake_case class basename (e.g. `BlogPost` → `blog_post.created`).
@@ -19,6 +21,7 @@ breaking changes between any two versions — see upgrade notes per version.
 - **`$chronicleEvents`:** restrict which events are recorded; set to `[]` to silence Chronicle for that model entirely.
 - **`chronicleActor()`:** override to return any Chronicle-resolvable actor (Eloquent model, object with `$id`, or `'system'`).
 - **`chronicleActionPrefix()`:** override to return a custom action prefix string.
+- `chronicle:report {path}` command generates a signed, tamper-evident HTML compliance report for the audit ledger. The report contains entry count, chain head, reporting period, a SHA-256 report hash, and an Ed25519 signature block. Optional `--from` and `--to` flags restrict the report to a date range. The underlying `Chronicle\Reports\ComplianceReport` service is available for programmatic use.
 
 ---
 
