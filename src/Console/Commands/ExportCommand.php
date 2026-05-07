@@ -47,7 +47,7 @@ class ExportCommand extends Command
 
         $this->line("Entries exported: <info>$result->entryCount</info>");
         $this->line("Dataset hash: <comment>$result->datasetHash</comment>");
-        $this->line("Chain head: <comment>".($result->chainHead ?? '(empty ledger)')."</comment>");
+        $this->line('Chain head: <comment>'.($result->chainHead ?? '(empty ledger)').'</comment>');
 
         return self::SUCCESS;
     }

@@ -19,6 +19,10 @@ breaking changes between any two versions — see upgrade notes per version.
 - Added @methods to `Chronicle` Facade.
 - Added a `null check` in `ExportCommand` Chain head.
 
+### Security
+
+- `ExportVerifier` now re-derives `payload_hash` from the exported `payload` field per-entry, closing a gap where a tampered payload with an unmodified `payload_hash` field would pass export verification.
+
 ---
 
 ## [1.4.0] - 2026-03-20

@@ -316,3 +316,30 @@ it('fails when manifest last entry id mismatches dataset', function () {
     expect($result->isValid())->toBeFalse()
         ->and($result->failureCode())->toBe('last_entry_mismatch');
 });
+
+it('fails when an exported entry payload has been tampered with', function () {
+    $manager = app(ExportManager::class);
+    $path = storage_path('chronicle-test-export-'.Str::uuid());
+
+    Chronicle::record()
+        ->actor('system')
+        ->action('test.tamper')
+        ->subject('system')
+        ->commit();
+
+    $manager->export($path);
+
+    // Read the entry file and tamper with the payload field only,
+    // leaving payload_hash unchanged — the old verifier would miss this.
+    $lines = file($path.'/entries.ndjson', FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+    $entry = json_decode($lines[0], true, 512, JSON_THROW_ON_ERROR);
+    $entry['payload']['action'] = 'tampered.action';  // mutate payload
+    // payload_hash is left unchanged → integrity gap
+    $lines[0] = json_encode($entry, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR);
+    file_put_contents($path.'/entries.ndjson', implode("\n", $lines)."\n");
+
+    $result = app(ExportVerifier::class)->verify($path);
+
+    expect($result->isValid())->toBeFalse()
+        ->and($result->failureCode())->toBe('payload_hash_mismatch');
+});
