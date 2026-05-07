@@ -21,9 +21,15 @@ breaking changes between any two versions — see upgrade notes per version.
 
 ---
 
+### Changed
+- `EntryBuilder::normalizeDiff()` now throws `InvalidArgumentException` when a diff entry is not an array with `old`/`new` keys, rather than silently replacing the value with `['old' => null, 'new' => null]`.
+
+---
+
 ### Fixed
 
 - `TimeWindowPolicy` now stores the parsed `Carbon` time bounds at construction rather than re-parsing them on every `enforce()` call, eliminating a theoretical null-deref if `parseTime()` returned `null` inside `enforce()`.
+- `EntryBuilder::change()` now calls `ksort()` after each field assignment, guaranteeing alphabetical diff key ordering consistent with `diff()`.
 
 ---
 

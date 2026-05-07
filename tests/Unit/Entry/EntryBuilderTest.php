@@ -197,3 +197,34 @@ it('throws exception when action is blank whitespace', function () {
         ->build();
 
 })->throws(MissingActionException::class);
+
+it('keeps diff keys in alphabetical order when using change() in non-alphabetical order', function () {
+    $resolver = mock(Chronicle\Contracts\ReferenceResolver::class);
+    $resolver->shouldReceive('resolve')->once()->andReturn(
+        new Chronicle\Support\Reference('order', '5'),
+    );
+    $manager = mock(Chronicle\ChronicleManager::class);
+    $manager->shouldReceive('currentCorrelation')->andReturn(null)->byDefault();
+
+    $builder = new Chronicle\Entry\EntryBuilder($resolver, $manager);
+
+    $payload = $builder
+        ->actor('system')
+        ->action('order.updated')
+        ->subject('order:5')
+        ->change('status', 'pending', 'confirmed')   // s > a
+        ->change('amount', 100, 200)                  // a comes first alphabetically
+        ->build();
+
+    expect(array_keys($payload['diff']))->toBe(['amount', 'status']);
+});
+
+it('throws InvalidArgumentException when diff() receives a malformed change entry', function () {
+    $resolver = mock(Chronicle\Contracts\ReferenceResolver::class);
+    $manager = mock(Chronicle\ChronicleManager::class);
+
+    $builder = new Chronicle\Entry\EntryBuilder($resolver, $manager);
+
+    expect(fn () => $builder->diff(['field' => 'not-an-array']))
+        ->toThrow(InvalidArgumentException::class, 'Chronicle EntryBuilder: diff entry for key "field" must be an array with "old" and "new" keys.');
+});

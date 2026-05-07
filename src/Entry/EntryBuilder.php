@@ -11,6 +11,7 @@ use Chronicle\Support\Reference;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
+use InvalidArgumentException;
 
 /**
  * Class EntryBuilder
@@ -205,6 +206,8 @@ class EntryBuilder
             'new' => $new,
         ];
 
+        ksort($this->diff);
+
         return $this;
     }
 
@@ -217,12 +220,14 @@ class EntryBuilder
         ksort($diff);
 
         return collect($diff)
-            ->map(function (mixed $change): array {
+            ->map(function (mixed $change, string $key): array {
                 if (! is_array($change)) {
-                    return [
-                        'old' => null,
-                        'new' => null,
-                    ];
+                    throw new InvalidArgumentException(
+                        sprintf(
+                            'Chronicle EntryBuilder: diff entry for key "%s" must be an array with "old" and "new" keys.',
+                            $key,
+                        )
+                    );
                 }
 
                 return [
