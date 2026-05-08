@@ -2,6 +2,7 @@
 
 use Chronicle\Facades\Chronicle;
 use Chronicle\Query\LedgerStats;
+use Illuminate\Database\QueryException;
 use Illuminate\Support\Carbon;
 
 it('compute() returns zero total entries on an empty ledger', function () {
@@ -95,4 +96,18 @@ it('checkpointCount() reflects created checkpoints', function () {
     $stats = LedgerStats::compute();
 
     expect($stats->checkpointCount())->toBe(1);
+});
+
+it('compute() queries the connection configured in chronicle.connection, not the default', function () {
+    // The TestCase configures both 'testing' (default) and 'chronicle_testing'
+    // as separate in-memory SQLite databases. Migrations run on 'testing' only,
+    // so 'chronicle_testing' has no tables.
+    //
+    // Pointing chronicle.connection to 'chronicle_testing' and calling compute()
+    // must throw a QueryException (no such table). If compute() used the default
+    // connection instead, it would return silently with zero entries.
+    config()->set('chronicle.connection', 'chronicle_testing');
+
+    expect(fn () => LedgerStats::compute())
+        ->toThrow(QueryException::class);
 });
