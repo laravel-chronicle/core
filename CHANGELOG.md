@@ -18,6 +18,7 @@ breaking changes between any two versions — see upgrade notes per version.
 - `LedgerQuery::since()` and `LedgerQuery::until()` accept both `CarbonInterface` and date strings; an unparseable string throws `InvalidArgumentException`.
 - `LedgerStats::compute()` returns a `LedgerStats` value object with aggregate ledger statistics: total entry count, oldest/newest entry timestamps, checkpoint count, top 10 actions by frequency, and daily activity for the last 30 days. All queries run against Chronicle's configured DB connection via the query builder (no Eloquent overhead).
 - `chronicle:stats` Artisan command displays ledger statistics as a formatted text report. Pass `--json` for machine-readable output suitable for monitoring or scripting.
+- `chronicle:show {id}` Artisan command displays the full detail of a single Chronicle entry by ULID: actor, action, subject, tags, correlation ID, checkpoint ID, payload/chain hashes, metadata, context (nested keys flattened with dot notation), and diff (old/new per field). Exits 1 with an error message when the entry is not found.
 
 ### Fixed
 
