@@ -10,6 +10,10 @@ breaking changes between any two versions — see upgrade notes per version.
 
 ## [Unreleased]
 
+---
+
+## [1.6.0] - 2026-05-08
+
 ### Added
 
 - `Chronicle::query()` returns a `LedgerQuery` fluent builder for composable, chainable ledger queries. Filter by actor, subject, action, tags, date range, or correlation; terminate with `get()`, `first()`, `count()`, `exists()`, `paginate()`, or `stream()`. Defaults to ledger order (oldest-first) on `get()` and `paginate()` unless `latest()` or `oldest()` is called explicitly.
