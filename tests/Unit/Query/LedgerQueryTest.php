@@ -155,7 +155,7 @@ it('since() throws InvalidArgumentException for an unparseable string', function
     $query = new LedgerQuery($builder);
 
     expect(fn () => $query->since('not-a-date-xyz-garbage-99999'))->toThrow(
-        \InvalidArgumentException::class,
+        InvalidArgumentException::class,
         'Chronicle LedgerQuery: invalid date string.'
     );
 });
@@ -180,7 +180,7 @@ it('until() throws InvalidArgumentException for an unparseable string', function
     $query = new LedgerQuery($builder);
 
     expect(fn () => $query->until('not-a-date-xyz-garbage-99999'))->toThrow(
-        \InvalidArgumentException::class,
+        InvalidArgumentException::class,
         'Chronicle LedgerQuery: invalid date string.'
     );
 });
