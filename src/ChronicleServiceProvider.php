@@ -6,6 +6,7 @@ use Chronicle\Console\Commands\CreateCheckpointCommand;
 use Chronicle\Console\Commands\ExportCommand;
 use Chronicle\Console\Commands\InstallCommand;
 use Chronicle\Console\Commands\ReportCommand;
+use Chronicle\Console\Commands\ShowEntryCommand;
 use Chronicle\Console\Commands\StatsCommand;
 use Chronicle\Console\Commands\VerifyEntryCommand;
 use Chronicle\Console\Commands\VerifyExportCommand;
@@ -80,6 +81,7 @@ class ChronicleServiceProvider extends ServiceProvider
                 InstallCommand::class,
                 ReportCommand::class,
                 StatsCommand::class,
+                ShowEntryCommand::class,
             ]);
         }
     }
