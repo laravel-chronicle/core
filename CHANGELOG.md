@@ -12,6 +12,24 @@ breaking changes between any two versions — see upgrade notes per version.
 
 ---
 
+## [1.6.0] - 2026-05-08
+
+### Added
+
+- `Chronicle::query()` returns a `LedgerQuery` fluent builder for composable, chainable ledger queries. Filter by actor, subject, action, tags, date range, or correlation; terminate with `get()`, `first()`, `count()`, `exists()`, `paginate()`, or `stream()`. Defaults to ledger order (oldest-first) on `get()` and `paginate()` unless `latest()` or `oldest()` is called explicitly.
+- `LedgerQuery::withAnyTag(array $tags)` — OR-semantics tag filter; returns entries carrying any of the given tags. Complements the existing `withTags()` which requires all tags to be present.
+- `LedgerQuery::actions(array $actions)` — matches entries whose action is any of the given values (`whereIn` semantics).
+- `LedgerQuery::since()` and `LedgerQuery::until()` accept both `CarbonInterface` and date strings; an unparseable string throws `InvalidArgumentException`.
+- `LedgerStats::compute()` returns a `LedgerStats` value object with aggregate ledger statistics: total entry count, oldest/newest entry timestamps, checkpoint count, top 10 actions by frequency, and daily activity for the last 30 days. All queries run against Chronicle's configured DB connection via the query builder (no Eloquent overhead).
+- `chronicle:stats` Artisan command displays ledger statistics as a formatted text report. Pass `--json` for machine-readable output suitable for monitoring or scripting.
+- `chronicle:show {id}` Artisan command displays the full detail of a single Chronicle entry by ULID: actor, action, subject, tags, correlation ID, checkpoint ID, payload/chain hashes, metadata, context (nested keys flattened with dot notation), and diff (old/new per field). Exits 1 with an error message when the entry is not found.
+
+### Fixed
+
+- `Chronicle` facade `@method` annotation for `currentCorrelation()` was incorrectly declared as `currentCorrelationId()`. Corrected to match the actual `ChronicleManager` method name.
+
+---
+
 ## [1.5.0] - 2026-05-07
 
 ### Added
