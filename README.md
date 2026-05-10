@@ -89,11 +89,10 @@ Chronicle::record()
     ->action('order.created')
     ->subject($order)
     ->metadata([
-    'total' => 1000,
-    'currency' => 'USD',
+        'total' => 1000,
+        'currency' => 'USD',
     ])
     ->commit();
-])
 ```
 
 This records an immutable ledger entry.
@@ -120,7 +119,7 @@ Chronicle provides expressive query scopes:
 use Chronicle\Entry\Entry;
 
 Entry::forActor($user);
-Entry::forSubect($order);
+Entry::forSubject($order);
 Entry::action('order.created');
 Entry::withTag('orders');
 ```
