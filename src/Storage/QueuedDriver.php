@@ -34,7 +34,7 @@ class QueuedDriver implements StorageDriver
 
         $model = new Entry;
         $model->forceFill($this->toEntryAttributes($entry));
-        $model->exists = true;
+        $model->exists = false;
 
         return $model;
     }
