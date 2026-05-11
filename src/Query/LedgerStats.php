@@ -64,8 +64,10 @@ class LedgerStats
         return $this->totalEntries === 0;
     }
 
-    public static function compute(): self
-    {
+    public static function compute(
+        ?CarbonInterface $from = null,
+        ?CarbonInterface $to = null,
+    ): self {
         /** @var string|null $configured */
         $configured = config('chronicle.connection');
 
@@ -79,7 +81,17 @@ class LedgerStats
         /** @var string $checkpointsTable */
         $checkpointsTable = config('chronicle.tables.checkpoints', 'chronicle_checkpoints');
 
-        $aggregate = $db->table($entriesTable)
+        $baseQuery = $db->table($entriesTable);
+
+        if ($from !== null) {
+            $baseQuery->where('created_at', '>=', $from);
+        }
+
+        if ($to !== null) {
+            $baseQuery->where('created_at', '<=', $to);
+        }
+
+        $aggregate = (clone $baseQuery)
             ->selectRaw('COUNT(*) as total_entries, MIN(created_at) as oldest_entry_at, MAX(created_at) as newest_entry_at')
             ->first();
 
@@ -106,7 +118,7 @@ class LedgerStats
             : null;
 
         /** @var list<array{action: string, count: int}> $topActions */
-        $topActions = $db->table($entriesTable)
+        $topActions = (clone $baseQuery)
             ->selectRaw('action, COUNT(*) as count')
             ->groupBy('action')
             ->orderByDesc('count')
@@ -116,10 +128,12 @@ class LedgerStats
             ->values()
             ->all();
 
+        $activityCutoff = $to ?? now();
+
         /** @var list<array{date: string, count: int}> $dailyActivity */
-        $dailyActivity = $db->table($entriesTable)
+        $dailyActivity = (clone $baseQuery)
             ->selectRaw('DATE(created_at) as date, COUNT(*) as count')
-            ->where('created_at', '>=', now()->subDays(30)->startOfDay())
+            ->where('created_at', '>=', $activityCutoff->copy()->subDays(30)->startOfDay())
             ->groupByRaw('DATE(created_at)')
             ->orderBy('date')
             ->get()

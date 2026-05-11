@@ -6,18 +6,26 @@ use Chronicle\Contracts\EntryExtension;
 use Chronicle\Contracts\LedgerReader as LedgerReaderContract;
 use Chronicle\Contracts\ReferenceResolver;
 use Chronicle\Contracts\StorageDriver;
+use Chronicle\Eloquent\ChronicleModelObserver;
 use Chronicle\Entry\Entry;
 use Chronicle\Entry\EntryBuilder;
 use Chronicle\Entry\PendingEntry;
+use Chronicle\Events\EntryRejected;
+use Chronicle\Exceptions\ChronicleException;
 use Chronicle\Jobs\PersistChronicleEntryJob;
 use Chronicle\Pipeline\EntryExtensionRegistry;
 use Chronicle\Pipeline\EntryPipeline;
 use Chronicle\Query\LedgerQuery;
+use Chronicle\Storage\ArrayDriver;
 use Chronicle\Storage\DriverResolver;
+use Chronicle\Storage\NullDriver;
 use Chronicle\Storage\QueuedDriver;
+use Chronicle\Testing\ChronicleAssertions;
 use Chronicle\Transaction\ChronicleTransaction;
 use Illuminate\Contracts\Container\BindingResolutionException;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Str;
 use Throwable;
 
@@ -191,10 +199,8 @@ class ChronicleManager
     /**
      * Record an entry payload through the Chronicle pipeline.
      *
-     * This method is called internally by EntryBuilder::record().
-     *
-     * The payload will pass through all configured processors
-     * before being persisted.
+     * Fires EntryRejected if the entry is rejected by a validator or policy,
+     * then re-throws the exception.
      *
      * @param  array<string, mixed>  $payload
      *
@@ -202,7 +208,27 @@ class ChronicleManager
      */
     public function commit(array $payload): void
     {
+        try {
+            $this->runCommit($payload);
+        } catch (ChronicleException $e) {
+            Event::dispatch(new EntryRejected($e, $payload));
+
+            throw $e;
+        }
+    }
+
+    /**
+     * @param  array<string, mixed>  $payload
+     *
+     * @throws Throwable
+     */
+    protected function runCommit(array $payload): void
+    {
         $driver = $this->getActiveDriver();
+
+        if ($driver instanceof NullDriver) {
+            return;
+        }
 
         if ($driver instanceof QueuedDriver) {
             $entry = new PendingEntry($payload);
@@ -283,5 +309,55 @@ class ChronicleManager
     public function swapDriver(StorageDriver $driver): void
     {
         $this->resolvedDriver = $driver;
+    }
+
+    /**
+     * Swap the active driver to ArrayDriver and return a ChronicleAssertions helper.
+     *
+     * Call at the start of a test. Flushes ArrayDriver storage so entries from
+     * previous tests do not leak. Rebuilds the EntryPipeline singleton so that
+     * PersistEntry uses ArrayDriver - entries will NOT appear in the database.
+     *
+     * Example:
+     *   $chronicle = Chronicle::fake();
+     *   // ... trigger code under test ...
+     *   $chronicle->assertRecorded(fn ($e) => $e['action'] === 'invoice.sent');
+     */
+    public function fake(): ChronicleAssertions
+    {
+        ArrayDriver::flush();
+
+        $driver = new ArrayDriver;
+
+        // Bind this specific instance so the pipeline resolves it via StorageDriver.
+        app()->instance(StorageDriver::class, $driver);
+
+        // Forget the pipeline singleton and rebuild it with the new StorageDriver.
+        app()->forgetInstance(EntryPipeline::class);
+
+        /** @var EntryPipeline $pipeline */
+        $pipeline = app(EntryPipeline::class);
+        $this->pipeline = $pipeline;
+
+        $this->swapDriver($driver);
+
+        return new ChronicleAssertions($driver);
+    }
+
+    /**
+     * Register a ChronicleModelObserver for a model class.
+     *
+     * If no observer class is given, the base ChronicleModelObserver is used.
+     *
+     * @param  class-string<Model>  $model
+     * @param  class-string<ChronicleModelObserver>|null  $observer
+     */
+    public function observe(string $model, ?string $observer = null): void
+    {
+        $observerInstance = $observer !== null
+            ? app($observer)
+            : app(ChronicleModelObserver::class);
+
+        $model::observe($observerInstance);
     }
 }
