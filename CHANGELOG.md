@@ -12,6 +12,48 @@ breaking changes between any two versions — see upgrade notes per version.
 
 ---
 
+## [1.8.0] - 2026-05-11
+
+### Added
+
+- **`Chronicle::fake()`**: swaps the active driver to `ArrayDriver`, rebuilds the `EntryPipeline` singleton so `PersistEntry` writes to in-memory storage, and returns a `ChronicleAssertions` helper. Entries committed while faking do not appear in the database. Calling `fake()` a second time flushes the previous batch.
+- **`ChronicleAssertions`** (`Chronicle\Testing\ChronicleAssertions`): fluent test assertion helper returned by `Chronicle::fake()`.
+  - `assertRecorded(?callable $filter = null)` — asserts at least one entry was recorded (optionally matching a filter).
+  - `assertRecordedCount(int $count, ?callable $filter = null)` — asserts exactly N entries were recorded.
+  - `assertNothingRecorded()` — asserts no entries were recorded.
+  - `assertNotRecorded(callable $filter)` — asserts no entries matching the filter were recorded.
+  - `entries()` — returns all recorded entries as a `Collection`.
+  - All assertions throw `PHPUnit\Framework\AssertionFailedError` on failure, integrating cleanly with Pest and PHPUnit.
+- **`EntryRecorded` event** (`Chronicle\Events\EntryRecorded`): dispatched by `PersistEntry` after an entry is successfully persisted. Carries the persisted `Entry` model (`$event->entry`). Suppressed when `NullDriver` is active (entries are not persisted). When using the `queued` driver the event fires inside the job worker, not during the HTTP request.
+- **`EntryRejected` event** (`Chronicle\Events\EntryRejected`): dispatched by `ChronicleManager::commit()` when a `ChronicleException` is thrown (validation failure, policy violation, etc.). Carries the rejection reason (`$event->reason`) and the raw entry payload (`$event->payload`). The exception is always re-thrown after the event fires.
+- **`ChronicleModelObserver`** (`Chronicle\Eloquent\ChronicleModelObserver`): base Eloquent observer for recording Chronicle audit entries on third-party models where `HasChronicle` cannot be added directly. Records `created`, `updated`, and `deleted` events. Touch-only `updated` events (only timestamp fields dirty) are silently skipped. The `updated` entry includes a `diff` of changed fields (excluding `created_at` / `updated_at`). All protected methods are overridable: `actionPrefix()`, `resolveActor()`, `recordedEvents()`, `ignoredFields()`, `shouldRecord()`.
+- **`Chronicle::observe(string $model, ?string $observer = null)`**: registers `ChronicleModelObserver` (or a custom subclass) for a given model class. Register in a service provider's `boot()`:
+  ```php
+  Chronicle::observe(Invoice::class);
+  Chronicle::observe(Invoice::class, InvoiceObserver::class);
+  ```
+- **`LedgerQuery::actionPrefix(string $prefix)`**: filters entries whose `action` begins with the given prefix using a `LIKE` query. The prefix is escaped to prevent LIKE injection (`!`, `%`, `_` are all handled). Chainable with other `LedgerQuery` filters.
+- **`Entry::scopeActionPrefix(string $prefix)`**: Eloquent query scope equivalent of `LedgerQuery::actionPrefix()`.
+- **`LedgerStats::compute(from:, to:)`**: `compute()` now accepts optional `?CarbonInterface $from` and `?CarbonInterface $to` parameters to scope `totalEntries`, `oldestEntryAt`, `newestEntryAt`, `topActions`, and `dailyActivity` to a date range. Checkpoint count remains global. Existing call sites with no arguments are unaffected.
+
+### Changed
+
+- `ChronicleManager::commit()` now wraps the inner commit logic in a `try/catch (ChronicleException)` — dispatches `EntryRejected` before re-throwing.
+- `ChronicleManager::runCommit()` extracted from `commit()` as a `protected` method. Silently short-circuits (no pipeline, no event) when the active driver is `NullDriver`.
+- `PersistEntry::process()` dispatches `EntryRecorded` after `store()` when `$stored->exists` is `true`.
+- `Chronicle` facade docblock updated with `@method` annotations for `fake()` and `observe()`.
+
+### Notes
+
+- Register event listeners in your application's `EventServiceProvider` (or `AppServiceProvider` in Laravel 11+):
+  ```php
+  Event::listen(EntryRecorded::class, fn ($e) => /* ... */);
+  Event::listen(EntryRejected::class, fn ($e) => /* ... */);
+  ```
+- `Chronicle::fake()` is designed for feature and integration tests. It is not safe to call in production — it mutates the container's `StorageDriver` binding.
+
+---
+
 ## [1.7.0] - 2026-05-11
 
 ### Added
