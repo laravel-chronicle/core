@@ -15,9 +15,11 @@ use Chronicle\Jobs\PersistChronicleEntryJob;
 use Chronicle\Pipeline\EntryExtensionRegistry;
 use Chronicle\Pipeline\EntryPipeline;
 use Chronicle\Query\LedgerQuery;
+use Chronicle\Storage\ArrayDriver;
 use Chronicle\Storage\DriverResolver;
 use Chronicle\Storage\NullDriver;
 use Chronicle\Storage\QueuedDriver;
+use Chronicle\Testing\ChronicleAssertions;
 use Chronicle\Transaction\ChronicleTransaction;
 use Illuminate\Contracts\Container\BindingResolutionException;
 use Illuminate\Support\Facades\DB;
@@ -305,5 +307,38 @@ class ChronicleManager
     public function swapDriver(StorageDriver $driver): void
     {
         $this->resolvedDriver = $driver;
+    }
+
+    /**
+     * Swap the active driver to ArrayDriver and return a ChronicleAssertions helper.
+     *
+     * Call at the start of a test. Flushes ArrayDriver storage so entries from
+     * previous tests do not leak. Rebuilds the EntryPipeline singleton so that
+     * PersistEntry uses ArrayDriver - entries will NOT appear in the database.
+     *
+     * Example:
+     *   $chronicle = Chronicle::fake();
+     *   // ... trigger code under test ...
+     *   $chronicle->assertRecorded(fn ($e) => $e['action'] === 'invoice.sent');
+     */
+    public function fake(): ChronicleAssertions
+    {
+        ArrayDriver::flush();
+
+        $driver = new ArrayDriver;
+
+        // Bind this specific instance so the pipeline resolves it via StorageDriver.
+        app()->instance(StorageDriver::class, $driver);
+
+        // Forget the pipeline singleton and rebuild it with the new StorageDriver.
+        app()->forgetInstance(EntryPipeline::class);
+
+        /** @var EntryPipeline $pipeline */
+        $pipeline = app(EntryPipeline::class);
+        $this->pipeline = $pipeline;
+
+        $this->swapDriver($driver);
+
+        return new ChronicleAssertions($driver);
     }
 }

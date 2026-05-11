@@ -7,6 +7,7 @@ use Chronicle\Contracts\LedgerReader;
 use Chronicle\Contracts\StorageDriver;
 use Chronicle\Entry\EntryBuilder;
 use Chronicle\Query\LedgerQuery;
+use Chronicle\Testing\ChronicleAssertions;
 use Chronicle\Transaction\ChronicleTransaction;
 use Illuminate\Support\Facades\Facade;
 
@@ -36,6 +37,8 @@ use Illuminate\Support\Facades\Facade;
  * @method static ChronicleTransaction|null currentTransaction()
  * @method static string|null currentCorrelation()
  * @method static StorageDriver driver(string $name)
+ * @method static ChronicleAssertions fake()
+ * @method static void observe(string $mode, ?string $observer = null)
  */
 class Chronicle extends Facade
 {

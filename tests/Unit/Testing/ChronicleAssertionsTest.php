@@ -9,18 +9,18 @@ beforeEach(function () {
 });
 
 it('assertNothingRecorded passes on empty storage', function () {
-    $assertions = new ChronicleAssertions(new ArrayDriver());
+    $assertions = new ChronicleAssertions(new ArrayDriver);
     $assertions->assertNothingRecorded();
 });
 
 it('assertRecorded fails when nothing is recorded', function () {
-    $assertions = new ChronicleAssertions(new ArrayDriver());
+    $assertions = new ChronicleAssertions(new ArrayDriver);
     expect(fn () => $assertions->assertRecorded())
         ->toThrow(AssertionFailedError::class);
 });
 
 it('assertRecordedCount counts all entries when no filter given', function () {
-    $driver = new ArrayDriver();
+    $driver = new ArrayDriver;
     $driver->store(validEntryPayload());
     $driver->store(validEntryPayload());
 
@@ -29,7 +29,7 @@ it('assertRecordedCount counts all entries when no filter given', function () {
 });
 
 it('assertRecordedCount counts filtered entries', function () {
-    $driver = new ArrayDriver();
+    $driver = new ArrayDriver;
 
     $a = validEntryPayload();
     $a['action'] = 'invoice.sent';
@@ -44,7 +44,7 @@ it('assertRecordedCount counts filtered entries', function () {
 });
 
 it('assertNotRecorded passes when filter matches nothing', function () {
-    $driver = new ArrayDriver();
+    $driver = new ArrayDriver;
     $e = validEntryPayload();
     $e['action'] = 'invoice.sent';
     $driver->store($e);
@@ -54,7 +54,7 @@ it('assertNotRecorded passes when filter matches nothing', function () {
 });
 
 it('assertNotRecorded fails when filter matches an entry', function () {
-    $driver = new ArrayDriver();
+    $driver = new ArrayDriver;
     $e = validEntryPayload();
     $e['action'] = 'invoice.sent';
     $driver->store($e);
@@ -65,7 +65,7 @@ it('assertNotRecorded fails when filter matches an entry', function () {
 });
 
 it('entries() returns all recorded entries', function () {
-    $driver = new ArrayDriver();
+    $driver = new ArrayDriver;
     $driver->store(validEntryPayload());
     $driver->store(validEntryPayload());
 
