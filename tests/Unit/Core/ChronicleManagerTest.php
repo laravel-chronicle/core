@@ -22,6 +22,7 @@ it('creates entry builder', function () {
     $manager = new ChronicleManager(
         resolver: $resolver,
         pipeline: $pipeline,
+        prePipeline: mock(EntryPipeline::class),
         reader: $reader,
         drivers: app(DriverResolver::class),
         extensions: app(EntryExtensionRegistry::class),
@@ -58,6 +59,7 @@ it('delegates recording to the pipeline', function () {
     $manager = new ChronicleManager(
         resolver: $resolver,
         pipeline: $pipeline,
+        prePipeline: mock(EntryPipeline::class),
         reader: $reader,
         drivers: app(DriverResolver::class),
         extensions: app(EntryExtensionRegistry::class),
@@ -76,6 +78,7 @@ it('resolves configured active driver', function () {
     $manager = new ChronicleManager(
         resolver: $resolver,
         pipeline: $pipeline,
+        prePipeline: mock(EntryPipeline::class),
         reader: $reader,
         drivers: app(DriverResolver::class),
         extensions: app(EntryExtensionRegistry::class),
@@ -92,6 +95,7 @@ it('can swap the active driver', function () {
     $manager = new ChronicleManager(
         resolver: $resolver,
         pipeline: $pipeline,
+        prePipeline: mock(EntryPipeline::class),
         reader: $reader,
         drivers: app(DriverResolver::class),
         extensions: app(EntryExtensionRegistry::class),
@@ -111,6 +115,7 @@ it('resolves driver by name', function () {
     $manager = new ChronicleManager(
         resolver: $resolver,
         pipeline: $pipeline,
+        prePipeline: mock(EntryPipeline::class),
         reader: $reader,
         drivers: app(DriverResolver::class),
         extensions: app(EntryExtensionRegistry::class),
@@ -129,6 +134,7 @@ it('throws for unknown driver names', function () {
     $manager = new ChronicleManager(
         resolver: $resolver,
         pipeline: $pipeline,
+        prePipeline: mock(EntryPipeline::class),
         reader: $reader,
         drivers: app(DriverResolver::class),
         extensions: app(EntryExtensionRegistry::class),
@@ -145,6 +151,7 @@ it('can register and resolve custom drivers', function () {
     $manager = new ChronicleManager(
         resolver: $resolver,
         pipeline: $pipeline,
+        prePipeline: mock(EntryPipeline::class),
         reader: $reader,
         drivers: app(DriverResolver::class),
         extensions: app(EntryExtensionRegistry::class),
@@ -163,6 +170,7 @@ it('throws when attempting to override reserved driver names', function () {
     $manager = new ChronicleManager(
         resolver: $resolver,
         pipeline: $pipeline,
+        prePipeline: mock(EntryPipeline::class),
         reader: $reader,
         drivers: app(DriverResolver::class),
         extensions: app(EntryExtensionRegistry::class),
@@ -179,6 +187,7 @@ it('throws when attempting to register the same custom driver twice', function (
     $manager = new ChronicleManager(
         resolver: $resolver,
         pipeline: $pipeline,
+        prePipeline: mock(EntryPipeline::class),
         reader: $reader,
         drivers: app(DriverResolver::class),
         extensions: app(EntryExtensionRegistry::class),
@@ -196,6 +205,7 @@ it('throws when custom driver factory returns invalid type', function () {
     $manager = new ChronicleManager(
         resolver: $resolver,
         pipeline: $pipeline,
+        prePipeline: mock(EntryPipeline::class),
         reader: $reader,
         drivers: app(DriverResolver::class),
         extensions: app(EntryExtensionRegistry::class),
@@ -213,6 +223,7 @@ it('returns injected ledger reader instance', function () {
     $manager = new ChronicleManager(
         resolver: $resolver,
         pipeline: $pipeline,
+        prePipeline: mock(EntryPipeline::class),
         reader: $reader,
         drivers: app(DriverResolver::class),
         extensions: app(EntryExtensionRegistry::class),
@@ -230,6 +241,7 @@ it('registers entry extensions', function () {
     $manager = new ChronicleManager(
         resolver: $resolver,
         pipeline: $pipeline,
+        prePipeline: mock(EntryPipeline::class),
         reader: $reader,
         drivers: app(DriverResolver::class),
         extensions: $registry,

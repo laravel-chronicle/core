@@ -14,6 +14,8 @@ class DriverResolver
      */
     private const RESERVED_DRIVERS = [
         'eloquent',
+        'database', // alias for eloquent
+        'queued', // async write via queue
         'array',
         'null',
     ];
@@ -67,7 +69,8 @@ class DriverResolver
         }
 
         return match ($driver) {
-            'eloquent' => $this->container->make(DatabaseDriver::class),
+            'eloquent', 'database' => $this->container->make(DatabaseDriver::class),
+            'queued' => $this->container->make(QueuedDriver::class),
             'array' => $this->container->make(ArrayDriver::class),
             'null' => $this->container->make(NullDriver::class),
             default => throw new InvalidArgumentException(
