@@ -31,6 +31,7 @@ use Chronicle\Pipeline\PersistEntry;
 use Chronicle\Pipeline\RunExtensions;
 use Chronicle\Reports\ComplianceReport;
 use Chronicle\Storage\DriverResolver;
+use Chronicle\Storage\QueuedDriver;
 use Chronicle\Support\CanonicalPayloadSerializer;
 use Chronicle\Support\DefaultReferenceResolver;
 use Chronicle\Verification\ExportChainVerifier;
@@ -82,6 +83,7 @@ class ChronicleServiceProvider extends ServiceProvider
                 ReportCommand::class,
                 StatsCommand::class,
                 ShowEntryCommand::class,
+                \Chronicle\Console\Commands\PruneCommand::class,
             ]);
         }
     }
@@ -118,6 +120,16 @@ class ChronicleServiceProvider extends ServiceProvider
                 $app->make(PersistEntry::class),
             ]);
         });
+
+        $this->app->singleton('chronicle.pipeline.pre', function ($app) {
+            return new EntryPipeline([
+                $app->make(RunExtensions::class),
+                $app->make(CanonicalizePayload::class),
+                $app->make(HashPayload::class),
+            ]);
+        });
+
+        $this->app->singleton(QueuedDriver::class);
     }
 
     protected function registerContracts(): void
@@ -139,6 +151,7 @@ class ChronicleServiceProvider extends ServiceProvider
             return new ChronicleManager(
                 resolver: $app->make(ReferenceResolver::class),
                 pipeline: $app->make(EntryPipeline::class),
+                prePipeline: $app->make('chronicle.pipeline.pre'),
                 reader: $app->make(LedgerReaderContract::class),
                 drivers: $app->make(DriverResolver::class),
                 extensions: $app->make(EntryExtensionRegistry::class),
