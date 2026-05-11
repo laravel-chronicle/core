@@ -69,7 +69,7 @@ return [
     |
     */
     'prune' => [
-        'default_retention_days' => env('CHRONICLE_RETENTION_DAYS'),
+        'default_retention_days' => env('CHRONICLE_RETENTION_DAYS', 365),
         'respect_checkpoints' => true,
     ],
 

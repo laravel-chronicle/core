@@ -12,6 +12,24 @@ breaking changes between any two versions — see upgrade notes per version.
 
 ---
 
+## [1.7.0] - 2026-05-11
+
+### Added
+- **Queued driver** (`CHRONICLE_DRIVER=queued`): moves `ChainHashEntry` and `PersistEntry` to a background job (`PersistChronicleEntryJob`), eliminating the synchronous `lockForUpdate` from the HTTP request thread.
+- **`database` driver alias**: `CHRONICLE_DRIVER=database` is now equivalent to `eloquent`.
+- **`chronicle:prune` command**: prune entries by age (`--older-than=N`, `--before=DATE`), with `--dry-run` preview and `--force` to include checkpoint-anchored entries.
+- **`queue` config block**: `chronicle.queue.connection` and `chronicle.queue.name` control the async queue.
+- **`prune` config block**: `chronicle.prune.default_retention_days` and `chronicle.prune.respect_checkpoints`.
+
+### Changed
+- `ChronicleManager::commit()` is now queued-driver-aware: detects `QueuedDriver` and dispatches `PersistChronicleEntryJob` instead of running the full pipeline synchronously. Sync pipeline behaviour is unchanged.
+
+### Notes
+- The Chronicle queue **must be processed by a single worker**. Multiple workers will corrupt the chain hash sequence.
+- Entries written via the queued driver are not immediately visible in the database after `commit()`.
+
+---
+
 ## [1.6.0] - 2026-05-08
 
 ### Added
