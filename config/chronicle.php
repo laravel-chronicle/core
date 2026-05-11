@@ -19,7 +19,8 @@ return [
     |
     | The driver Chronicle uses to persist audit entries. Built-in drivers:
     |
-    | 'eloquent' — Synchronous write via Laravel's database layer. Default.
+    | 'eloquent' / 'database' — Synchronous write via Laravel's database layer. Default.
+    | 'queued' - Async write via queue (single-worker required).
     | 'array' — In-memory. For testing only.
     | 'null' — Discards all entries silently. For testing or local dev.
     |
@@ -39,6 +40,38 @@ return [
     |
     */
     'connection' => env('CHRONICLE_DB_CONNECTION'),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Async Queue Configuration
+    |--------------------------------------------------------------------------
+    |
+    | Used when driver = 'queued'. Chronicle chain hashes are order-sensitive,
+    | so this queue MUST be processed by a single worker:
+    |
+    |   php artisan queue:work --queue=chronicle --tries=1
+    |
+    | Running multiple workers on this queue will produce chain forks.
+    |
+    */
+    'queue' => [
+        'connection' => env('CHRONICLE_QUEUE_CONNECTION'),
+        'name' => env('CHRONICLE_QUEUE', 'chronicle'),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Data Retention
+    |--------------------------------------------------------------------------
+    |
+    | Used by `chronicle:prune`. Set default_retention_days to null to
+    | disable automatic pruning.
+    |
+    */
+    'prune' => [
+        'default_retention_days' => env('CHRONICLE_RETENTION_DAYS'),
+        'respect_checkpoints' => true,
+    ],
 
     /*
     |--------------------------------------------------------------------------
