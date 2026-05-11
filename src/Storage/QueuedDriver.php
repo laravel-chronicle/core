@@ -4,6 +4,7 @@ namespace Chronicle\Storage;
 
 use Chronicle\Contracts\StorageDriver;
 use Chronicle\Entry\Entry;
+use Chronicle\Jobs\PersistChronicleEntryJob;
 use JsonException;
 
 class QueuedDriver implements StorageDriver
@@ -23,7 +24,7 @@ class QueuedDriver implements StorageDriver
         /** @var string|null $connection */
         $connection = config('chronicle.queue.connection');
 
-        $job = new \Chronicle\Jobs\PersistChronicleEntryJob($entry);
+        $job = new PersistChronicleEntryJob($entry);
 
         if ($connection !== null && $connection !== '') {
             $job->onConnection($connection);

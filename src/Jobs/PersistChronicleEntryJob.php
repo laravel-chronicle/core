@@ -8,6 +8,7 @@ use Chronicle\Storage\DatabaseDriver;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\DB;
+use Throwable;
 
 class PersistChronicleEntryJob implements ShouldQueue
 {
@@ -24,6 +25,9 @@ class PersistChronicleEntryJob implements ShouldQueue
         //
     }
 
+    /**
+     * @throws Throwable
+     */
     public function handle(ChainHashEntry $chainHasher, DatabaseDriver $dbDriver): void
     {
         /** @var string|null $connection */
