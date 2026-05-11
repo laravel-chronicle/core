@@ -14,6 +14,7 @@ use Chronicle\Pipeline\EntryExtensionRegistry;
 use Chronicle\Pipeline\EntryPipeline;
 use Chronicle\Query\LedgerQuery;
 use Chronicle\Storage\DriverResolver;
+use Chronicle\Storage\NullDriver;
 use Chronicle\Storage\QueuedDriver;
 use Chronicle\Transaction\ChronicleTransaction;
 use Illuminate\Contracts\Container\BindingResolutionException;
@@ -203,6 +204,10 @@ class ChronicleManager
     public function commit(array $payload): void
     {
         $driver = $this->getActiveDriver();
+
+        if ($driver instanceof NullDriver) {
+            return;
+        }
 
         if ($driver instanceof QueuedDriver) {
             $entry = new PendingEntry($payload);
