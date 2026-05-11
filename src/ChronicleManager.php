@@ -6,6 +6,7 @@ use Chronicle\Contracts\EntryExtension;
 use Chronicle\Contracts\LedgerReader as LedgerReaderContract;
 use Chronicle\Contracts\ReferenceResolver;
 use Chronicle\Contracts\StorageDriver;
+use Chronicle\Eloquent\ChronicleModelObserver;
 use Chronicle\Entry\Entry;
 use Chronicle\Entry\EntryBuilder;
 use Chronicle\Entry\PendingEntry;
@@ -22,6 +23,7 @@ use Chronicle\Storage\QueuedDriver;
 use Chronicle\Testing\ChronicleAssertions;
 use Chronicle\Transaction\ChronicleTransaction;
 use Illuminate\Contracts\Container\BindingResolutionException;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Str;
@@ -340,5 +342,22 @@ class ChronicleManager
         $this->swapDriver($driver);
 
         return new ChronicleAssertions($driver);
+    }
+
+    /**
+     * Register a ChronicleModelObserver for a model class.
+     *
+     * If no observer class is given, the base ChronicleModelObserver is used.
+     *
+     * @param  class-string<Model>  $model
+     * @param  class-string<ChronicleModelObserver>|null  $observer
+     */
+    public function observe(string $model, ?string $observer = null): void
+    {
+        $observerInstance = $observer !== null
+            ? app($observer)
+            : app(ChronicleModelObserver::class);
+
+        $model::observe($observerInstance);
     }
 }
