@@ -9,10 +9,12 @@ use Chronicle\Contracts\StorageDriver;
 use Chronicle\Entry\Entry;
 use Chronicle\Entry\EntryBuilder;
 use Chronicle\Entry\PendingEntry;
+use Chronicle\Jobs\PersistChronicleEntryJob;
 use Chronicle\Pipeline\EntryExtensionRegistry;
 use Chronicle\Pipeline\EntryPipeline;
 use Chronicle\Query\LedgerQuery;
 use Chronicle\Storage\DriverResolver;
+use Chronicle\Storage\QueuedDriver;
 use Chronicle\Transaction\ChronicleTransaction;
 use Illuminate\Contracts\Container\BindingResolutionException;
 use Illuminate\Support\Facades\DB;
@@ -53,6 +55,8 @@ class ChronicleManager
 
     private ?StorageDriver $resolvedDriver = null;
 
+    protected EntryPipeline $prePipeline;
+
     /**
      * Active transaction stack.
      *
@@ -66,12 +70,14 @@ class ChronicleManager
     public function __construct(
         ReferenceResolver $resolver,
         EntryPipeline $pipeline,
+        EntryPipeline $prePipeline,
         LedgerReaderContract $reader,
         DriverResolver $drivers,
         EntryExtensionRegistry $extensions,
     ) {
         $this->resolver = $resolver;
         $this->pipeline = $pipeline;
+        $this->prePipeline = $prePipeline;
         $this->reader = $reader;
         $this->drivers = $drivers;
         $this->extensions = $extensions;
@@ -196,6 +202,31 @@ class ChronicleManager
      */
     public function commit(array $payload): void
     {
+        $driver = $this->getActiveDriver();
+
+        if ($driver instanceof QueuedDriver) {
+            $entry = new PendingEntry($payload);
+            $entry = $this->prePipeline->process($entry);
+
+            /** @var string $queue */
+            $queue = config('chronicle.queue.name', 'chronicle');
+
+            /** @var string|null $connection */
+            $connection = config('chronicle.queue.connection');
+
+            $attrs = $entry->toDatabasePayload();
+
+            $job = new PersistChronicleEntryJob($attrs);
+
+            if ($connection !== null && $connection !== '') {
+                $job->onConnection($connection);
+            }
+
+            dispatch($job->onQueue($queue));
+
+            return;
+        }
+
         /** @var string|null $connection */
         $connection = config('chronicle.connection');
 
