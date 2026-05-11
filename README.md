@@ -304,6 +304,7 @@ before submitting pull requests.
     <tr>
       <td align="center" valign="top" width="14.28%"><a href="https://poornachandradinesh.netlify.app/"><img src="https://avatars.githubusercontent.com/u/69423861?v=4?s=100" width="100px;" alt="Poorna Chandra Dinesh"/><br /><sub><b>Poorna Chandra Dinesh</b></sub></a><br /><a href="#code-Poorna-Chandra-D" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/ntoufoudis"><img src="https://avatars.githubusercontent.com/u/93659348?v=4?s=100" width="100px;" alt="Vasileios Ntoufoudis"/><br /><sub><b>Vasileios Ntoufoudis</b></sub></a><br /><a href="#code-ntoufoudis" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://jamesking.dev"><img src="https://avatars.githubusercontent.com/u/253237?v=4?s=100" width="100px;" alt="James King"/><br /><sub><b>James King</b></sub></a><br /><a href="#doc-Jamesking56" title="Documentation">📖</a></td>
     </tr>
   </tbody>
 </table>
