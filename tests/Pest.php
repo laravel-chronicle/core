@@ -4,6 +4,7 @@ use Chronicle\Entry\PendingEntry;
 use Chronicle\Tests\TestCase;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Str;
 
 pest()->extends(TestCase::class)
     ->use(RefreshDatabase::class)
@@ -37,4 +38,26 @@ function makePolicyPending(): PendingEntry
         'correlation_id' => null,
         'created_at' => Carbon::parse('2026-01-01 00:00:00', 'UTC'),
     ]);
+}
+
+function validEntryPayload(): array
+{
+    return [
+        'id' => Str::ulid()->toString(),
+        'actor_type' => 'App\\Models\\User',
+        'actor_id' => '1',
+        'action' => 'order.placed',
+        'subject_type' => 'App\\Models\\Order',
+        'subject_id' => '42',
+        'payload' => ['action' => 'order.placed'],
+        'payload_hash' => hash('sha256', '{}'),
+        'chain_hash' => null,
+        'metadata' => [],
+        'context' => [],
+        'diff' => null,
+        'tags' => [],
+        'correlation_id' => null,
+        'checkpoint_id' => null,
+        'created_at' => Carbon::now(),
+    ];
 }

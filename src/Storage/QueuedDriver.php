@@ -12,6 +12,7 @@ class QueuedDriver implements StorageDriver
 
     /**
      * @param  array<string, mixed>  $entry
+     *
      * @throws JsonException
      */
     public function store(array $entry): Entry
