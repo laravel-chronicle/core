@@ -89,6 +89,27 @@ class LedgerQuery
     }
 
     /**
+     * Filter entries whose action starts with the given prefix.
+     *
+     * Uses a LIKE query: actionPrefix('invoice.') matches
+     * 'invoice.created', 'invoice.sent', 'invoice.voided', etc.
+     *
+     * The prefix is escaped to prevent LIKE injection.
+     */
+    public function actionPrefix(string $prefix): static
+    {
+        $escaped = str_replace(
+            ['!', '%', '_'],
+            ['!!', '!%', '!_'],
+            $prefix
+        );
+
+        $this->query->whereRaw("action LIKE ? ESCAPE '!'", [$escaped.'%']);
+
+        return $this;
+    }
+
+    /**
      * Filter entries that carry the given tag (AND with any other tag filters).
      */
     public function withTag(string $tag): static

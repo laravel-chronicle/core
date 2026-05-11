@@ -21,6 +21,7 @@ afterEach(function () {
 class ObservedModel extends Model
 {
     protected $table = 'fake_chronicle_models';
+
     protected $guarded = [];
 }
 
@@ -71,7 +72,8 @@ it('Chronicle::observe() registers the base observer', function () {
 });
 
 it('Chronicle::observe() accepts a custom observer class', function () {
-    $customObserver = new class extends ChronicleModelObserver {
+    $customObserver = new class extends ChronicleModelObserver
+    {
         protected function actionPrefix(Model $model): string
         {
             return 'custom_prefix';

@@ -238,6 +238,19 @@ class Entry extends Model
     }
 
     /**
+     * Scope entries by action prefix (dot-namespace pattern).
+     *
+     * @param  Builder<$this>  $query
+     * @return Builder<$this>
+     */
+    public function scopeActionPrefix(Builder $query, string $prefix): Builder
+    {
+        $escaped = str_replace(['!', '%', '_'], ['!!', '!%', '!_'], $prefix);
+
+        return $query->whereRaw("action LIKE ? ESCAPE '!'", [$escaped.'%']);
+    }
+
+    /**
      * Scope entries containing a tag.
      *
      * @param  Builder<$this>  $query
