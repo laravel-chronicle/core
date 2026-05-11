@@ -9,6 +9,8 @@ use Chronicle\Contracts\StorageDriver;
 use Chronicle\Entry\Entry;
 use Chronicle\Entry\EntryBuilder;
 use Chronicle\Entry\PendingEntry;
+use Chronicle\Events\EntryRejected;
+use Chronicle\Exceptions\ChronicleException;
 use Chronicle\Jobs\PersistChronicleEntryJob;
 use Chronicle\Pipeline\EntryExtensionRegistry;
 use Chronicle\Pipeline\EntryPipeline;
@@ -19,6 +21,7 @@ use Chronicle\Storage\QueuedDriver;
 use Chronicle\Transaction\ChronicleTransaction;
 use Illuminate\Contracts\Container\BindingResolutionException;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Str;
 use Throwable;
 
@@ -192,16 +195,30 @@ class ChronicleManager
     /**
      * Record an entry payload through the Chronicle pipeline.
      *
-     * This method is called internally by EntryBuilder::record().
-     *
-     * The payload will pass through all configured processors
-     * before being persisted.
+     * Fires EntryRejected if the entry is rejected by a validator or policy,
+     * then re-throws the exception.
      *
      * @param  array<string, mixed>  $payload
      *
      * @throws Throwable
      */
     public function commit(array $payload): void
+    {
+        try {
+            $this->runCommit($payload);
+        } catch (ChronicleException $e) {
+            Event::dispatch(new EntryRejected($e, $payload));
+
+            throw $e;
+        }
+    }
+
+    /**
+     * @param  array<string, mixed>  $payload
+     *
+     * @throws Throwable
+     */
+    protected function runCommit(array $payload): void
     {
         $driver = $this->getActiveDriver();
 
