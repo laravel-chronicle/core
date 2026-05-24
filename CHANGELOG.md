@@ -12,6 +12,23 @@ breaking changes between any two versions — see upgrade notes per version.
 
 ---
 
+## [1.8.1] - 2026-05-24
+
+### Changed
+
+- `chronicle:install` now publishes migrations with the current timestamp,
+  matching `php artisan make:migration` behaviour. Previously the files were
+  copied verbatim via `vendor:publish`, which omitted a date prefix.
+  Re-running `chronicle:install --force` republishes with a fresh timestamp;
+  subsequent calls without `--force` are skipped when a migration with the
+  same base name already exists in `database/migrations`.
+- Migrations consolidated: all Chronicle entries columns (payload, chain hash,
+  payload hash, checkpoint reference, tags, correlation ID, diff) and indexes
+  are now defined in a single `create_chronicle_entries_table` migration file.
+  Fresh installs receive one file per table instead of nine incremental files.
+
+---
+
 ## [1.8.0] - 2026-05-11
 
 ### Added

@@ -2,6 +2,12 @@
 
 use Illuminate\Contracts\Console\Kernel;
 
+afterEach(function () {
+    foreach (glob(database_path('migrations/*.php')) as $file) {
+        @unlink($file);
+    }
+});
+
 it('installs chronicle and allows skipping optional follow-up actions', function () {
     $this->artisan('chronicle:install', ['--force' => true])
         ->expectsConfirmation('Would you like to run migrations now?')
@@ -19,6 +25,10 @@ it('installs chronicle and allows skipping optional follow-up actions', function
 });
 
 it('can run migrations during install when confirmed', function () {
+    // Drop Chronicle tables so the freshly published migrations can run on a clean slate
+    Schema::dropIfExists('chronicle_entries');
+    Schema::dropIfExists('chronicle_checkpoints');
+
     $this->artisan('chronicle:install')
         ->expectsConfirmation('Would you like to run migrations now?', 'yes')
         ->expectsOutput('Running Migrations...')

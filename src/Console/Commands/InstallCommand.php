@@ -17,14 +17,10 @@ class InstallCommand extends Command
     {
         $this->info('Installing Chronicle...');
 
-        $shared = [
-            '--provider' => ChronicleServiceProvider::class,
-            '--force' => (bool) $this->option('force'),
-        ];
-
         $publishedConfig = $this->call('vendor:publish', [
-            ...$shared,
+            '--provider' => ChronicleServiceProvider::class,
             '--tag' => 'chronicle-config',
+            '--force' => (bool) $this->option('force'),
         ]);
 
         if ($publishedConfig !== self::SUCCESS) {
@@ -33,12 +29,7 @@ class InstallCommand extends Command
             return self::FAILURE;
         }
 
-        $publishedMigrations = $this->call('vendor:publish', [
-            ...$shared,
-            '--tag' => 'chronicle-migrations',
-        ]);
-
-        if ($publishedMigrations !== self::SUCCESS) {
+        if (! $this->publishMigrations()) {
             $this->error('Failed to publish Chronicle migrations.');
 
             return self::FAILURE;
@@ -75,5 +66,57 @@ class InstallCommand extends Command
         $this->info('Chronicle installed successfully.');
 
         return self::SUCCESS;
+    }
+
+    private function publishMigrations(): bool
+    {
+        $source = __DIR__.'/../../../database/migrations';
+        $destination = database_path('migrations');
+        $force = (bool) $this->option('force');
+        $timestamp = now();
+
+        $files = glob($source.'/*.php');
+        if ($files === false) {
+            return false;
+        }
+
+        sort($files);
+
+        foreach ($files as $index => $file) {
+            $basename = basename($file);
+            $timestamped = $timestamp->copy()->addSeconds($index)->format('Y_m_d_His').'_'.$basename;
+            $target = $destination.'/'.$timestamped;
+
+            if (! $force && $this->migrationExists($destination, $basename)) {
+                $this->line("<info>Migration already exists:</info> $basename");
+
+                continue;
+            }
+
+            if (! copy($file, $target)) {
+                return false;
+            }
+
+            $this->line("<info>Published migration:</info> $timestamped");
+        }
+
+        return true;
+    }
+
+    private function migrationExists(string $directory, string $filename): bool
+    {
+        $existing = glob($directory.'/*.php');
+        if ($existing === false) {
+            return false;
+        }
+
+        foreach ($existing as $file) {
+            $basename = preg_replace('/^\d{4}_\d{2}_\d{2}_\d{6}_/', '', basename($file));
+            if ($basename === $filename) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }
