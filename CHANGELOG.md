@@ -12,6 +12,25 @@ breaking changes between any two versions — see upgrade notes per version.
 
 ---
 
+## [1.9.0] - 2026-05-25
+
+### Added
+
+- **Read-only Blade UI** (`CHRONICLE_UI_ENABLED=true`): an optional web interface for browsing the audit ledger, disabled by default.
+  - **Entry index** (`GET /chronicle`): paginated list of entries with filters for action, actor ID, subject type, subject ID, tag, date range, and sort order.
+  - **Entry detail** (`GET /chronicle/entries/{id}`): full entry view including payload, tags, correlation ID, hash chain values, and linked checkpoint if present.
+  - **Stats** (`GET /chronicle/stats`): aggregate overview — total entry count, oldest/newest entry timestamps, checkpoint count, top 10 actions by frequency, and a 30-day daily activity chart.
+- **`chronicle.ui` config block**: controls the web UI.
+  - `ui.enabled` (`CHRONICLE_UI_ENABLED`, default `false`) — gates route registration; routes are not registered when disabled.
+  - `ui.prefix` (`CHRONICLE_UI_PREFIX`, default `'chronicle'`) — URL prefix for all UI routes.
+  - `ui.middleware` (default `['web', 'auth']`) — middleware stack applied to all UI routes.
+  - `ui.per_page` (`CHRONICLE_UI_PER_PAGE`, default `25`) — pagination page size for the entry index.
+- **`ChronicleUiEnabled` middleware** (`Chronicle\Http\Middleware\ChronicleUiEnabled`): aborts with `404` when `chronicle.ui.enabled` is `false`. Applied automatically to all UI routes.
+- **`chronicle:install`** now publishes Blade views to `resources/views/vendor/chronicle/` under the `chronicle-views` tag.
+- Named routes: `chronicle.entries.index`, `chronicle.entries.show`, `chronicle.stats`.
+
+---
+
 ## [1.8.1] - 2026-05-24
 
 ### Changed

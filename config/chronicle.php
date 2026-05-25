@@ -156,4 +156,28 @@ return [
         // \Chronicle\Policy\TimeWindowPolicy::class,
         // \Chronicle\Policy\ContextPolicy::class,
     ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Web UI
+    |--------------------------------------------------------------------------
+    |
+    | Chronicle ships an optional read-only Blade interface. It is disabled
+    | by default. Set CHRONICLE_UI_ENABLED=true to activate it.
+    |
+    | Routes are registered under `prefix` and protected by `middleware`.
+    | The default middleware stack requires an authenticated web session.
+    | Add your own guards (e.g. 'can:view-chronicle') to the array.
+    | Note: `middleware` is a plain PHP array — it is not driven by an env var
+    | so that arbitrary middleware class names can be added.
+    |
+    | `per_page` controls how many entries appear per page on the index.
+    |
+    */
+    'ui' => [
+        'enabled' => env('CHRONICLE_UI_ENABLED', false),
+        'prefix' => env('CHRONICLE_UI_PREFIX', 'chronicle'),
+        'middleware' => ['web', 'auth'],
+        'per_page' => env('CHRONICLE_UI_PER_PAGE', 25),
+    ],
 ];

@@ -71,6 +71,7 @@ class ChronicleServiceProvider extends ServiceProvider
     {
         $this->publishConfiguration();
         $this->publishMigrations();
+        $this->bootUi();
 
         $this->registerQueueListeners();
 
@@ -261,6 +262,19 @@ class ChronicleServiceProvider extends ServiceProvider
         $this->publishes([
             __DIR__.'/../database/migrations' => database_path('migrations'),
         ], 'chronicle-migrations');
+    }
+
+    protected function bootUi(): void
+    {
+        $this->loadViewsFrom(__DIR__.'/../resources/views', 'chronicle');
+
+        $this->publishes([
+            __DIR__.'/../resources/views' => resource_path('views/vendor/chronicle'),
+        ], 'chronicle-views');
+
+        if (config('chronicle.ui.enabled', false)) {
+            $this->loadRoutesFrom(__DIR__.'/../routes/ui.php');
+        }
     }
 
     protected function assertSigningConfiguration(): void
