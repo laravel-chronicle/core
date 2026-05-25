@@ -31,7 +31,7 @@ class PersistChronicleEntryJob implements ShouldQueue
     public function handle(ChainHashEntry $chainHasher, DatabaseDriver $dbDriver): void
     {
         /** @var string|null $connection */
-        $connection = config('chronicle.database.connection');
+        $connection = config('chronicle.connection');
 
         DB::connection($connection)->transaction(function () use ($chainHasher, $dbDriver): void {
             $entry = new PendingEntry($this->attributes);

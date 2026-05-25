@@ -17,3 +17,16 @@ it('stores the serialized attributes on construction', function () {
 
     expect($reflection->getValue($job))->toBe($payload);
 });
+
+it('reads the connection from chronicle.connection not chronicle.database.connection', function () {
+    // chronicle.database.connection does not exist — if the job reads it, it gets null
+    // and uses the default connection. Verify the job reads the correct key.
+    config(['chronicle.connection' => 'chronicle_testing']);
+    config(['chronicle.database.connection' => null]); // ensure the wrong key is null
+
+    // The job's handle() reads the connection via config; we verify the correct key
+    // is referenced by checking the config key is present in the job source.
+    $source = file_get_contents(__DIR__.'/../../../src/Jobs/PersistChronicleEntryJob.php');
+    expect($source)->toContain("config('chronicle.connection')")
+        ->and($source)->not->toContain("config('chronicle.database.connection')");
+});
