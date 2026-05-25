@@ -24,6 +24,14 @@ use Throwable;
 class ChronicleModelObserver
 {
     /**
+     * Additional fields excluded from the updated diff.
+     * Override in subclasses to add model-specific ignored fields.
+     *
+     * @var list<string>
+     */
+    protected array $ignoredFields = [];
+
+    /**
      * @throws Throwable
      */
     public function created(Model $model): void
@@ -137,6 +145,6 @@ class ChronicleModelObserver
      */
     protected function ignoredFields(Model $model): array
     {
-        return ['created_at', 'updated_at'];
+        return array_merge(['created_at', 'updated_at'], $this->ignoredFields);
     }
 }

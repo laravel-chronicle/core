@@ -38,6 +38,10 @@ breaking changes between any two versions — see upgrade notes per version.
   has always returned a `CursorPaginator`; the old name implied `LengthAwarePaginator` (offset-based)
   which it never was. Update any call to `Chronicle::query()->paginate()` to
   `Chronicle::query()->cursorPaginate()`.
+- `ChronicleModelObserver` now has a `protected array $ignoredFields = []` property that subclasses
+  can override to exclude additional fields from the updated diff. Previously the ignore list was
+  hardcoded to `['created_at', 'updated_at']` with no extension point, unlike `HasChronicle` which
+  supports a per-model `$chronicleIgnore` property.
 
 ---
 
