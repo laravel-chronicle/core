@@ -23,6 +23,13 @@ breaking changes between any two versions — see upgrade notes per version.
 - Deleted `ChronicleServiceProvider::assertSigningConfiguration()` — the method had no callers and
   its enforcement logic had already been consolidated into `registerSigning()`. Its presence falsely
   implied a boot-time signing check existed.
+- `chronicle:prune` dry-run now uses a single `SELECT COUNT(*), MIN(created_at), MAX(created_at)`
+  query instead of three separate round-trips.
+- `chronicle.prune.default_retention_days` now defaults to `null` (was `365`). Running
+  `chronicle:prune` with no arguments on a fresh install no longer silently deletes entries older
+  than one year — an explicit retention policy must be configured. Set
+  `CHRONICLE_RETENTION_DAYS=365` to restore the previous behaviour. **(Breaking change for
+  `chronicle.prune.default_retention_days`)**
 
 ---
 
@@ -40,6 +47,9 @@ breaking changes between any two versions — see upgrade notes per version.
   accidental direct calls immediately visible.
 - Stats controller null-dereferences `->count` on `null` when `$dailyActivity->get($date)` has no
   entry for a given day. Changed to `?->count ?? 0`.
+- `chronicle:prune --before=<invalid>` threw an uncaught `InvalidFormatException` stack trace
+  instead of a human-readable CLI error. Bad dates now print "Invalid date format for --before"
+  and exit non-zero.
 
 ---
 

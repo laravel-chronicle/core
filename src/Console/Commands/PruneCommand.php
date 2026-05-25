@@ -6,6 +6,7 @@ use Carbon\Carbon;
 use Chronicle\Entry\Entry;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
+use Throwable;
 
 class PruneCommand extends Command
 {
@@ -57,13 +58,17 @@ class PruneCommand extends Command
             $query->whereNull('checkpoint_id');
         }
 
-        $count = $query->count();
-
         if ($dryRun) {
-            /** @var string|null $oldest */
-            $oldest = Entry::query()->where('created_at', '<', $cutoff)->min('created_at');
-            /** @var string|null $newest */
-            $newest = Entry::query()->where('created_at', '<', $cutoff)->max('created_at');
+            /** @var object{count: int, oldest: string|null, newest: string|null}|null $preview */
+            $preview = Entry::query()
+                ->where('created_at', '<', $cutoff)
+                ->when(! $force && $respectCheckpoints, fn ($q) => $q->whereNull('checkpoint_id'))
+                ->selectRaw('COUNT(*) as count, MIN(created_at) as oldest, MAX(created_at) as newest')
+                ->first();
+
+            $count = $preview->count ?? 0;
+            $oldest = $preview->oldest ?? null;
+            $newest = $preview->newest ?? null;
 
             $this->info(sprintf(
                 '[dry run] Would prune %d entries (oldest: %s, newest: %s).',
@@ -117,7 +122,13 @@ class PruneCommand extends Command
             /** @var string $before */
             $before = $this->option('before');
 
-            return Carbon::parse($before);
+            try {
+                return Carbon::parse($before);
+            } catch (Throwable) {
+                $this->error("Invalid date format for --before: \"$before\". Expected Y-m-d.");
+
+                return null;
+            }
         }
 
         /** @var int|null $configured */
