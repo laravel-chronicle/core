@@ -2,9 +2,20 @@
 
 use Illuminate\Contracts\Console\Kernel;
 
-afterEach(function () {
-    foreach (glob(database_path('migrations/*.php')) as $file) {
-        @unlink($file);
+$tempPath = null;
+
+beforeEach(function () use (&$tempPath) {
+    $tempPath = sys_get_temp_dir().DIRECTORY_SEPARATOR.'chronicle_install_'.getmypid().'_'.uniqid();
+    mkdir($tempPath.DIRECTORY_SEPARATOR.'migrations', 0755, true);
+    $this->app->useDatabasePath($tempPath);
+});
+
+afterEach(function () use (&$tempPath) {
+    if (is_string($tempPath)) {
+        array_map('unlink', glob($tempPath.DIRECTORY_SEPARATOR.'migrations'.DIRECTORY_SEPARATOR.'*.php') ?: []);
+        @rmdir($tempPath.DIRECTORY_SEPARATOR.'migrations');
+        @rmdir($tempPath);
+        $tempPath = null;
     }
 });
 
