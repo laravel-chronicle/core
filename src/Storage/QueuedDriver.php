@@ -4,38 +4,17 @@ namespace Chronicle\Storage;
 
 use Chronicle\Contracts\StorageDriver;
 use Chronicle\Entry\Entry;
-use Chronicle\Jobs\PersistChronicleEntryJob;
-use JsonException;
 
 class QueuedDriver implements StorageDriver
 {
-    use SerializesEntryAttributes;
-
     /**
      * @param  array<string, mixed>  $entry
-     *
-     * @throws JsonException
      */
     public function store(array $entry): Entry
     {
-        /** @var string $queue */
-        $queue = config('chronicle.queue.name', 'chronicle');
-
-        /** @var string|null $connection */
-        $connection = config('chronicle.queue.connection');
-
-        $job = new PersistChronicleEntryJob($entry);
-
-        if ($connection !== null && $connection !== '') {
-            $job->onConnection($connection);
-        }
-
-        dispatch($job->onQueue($queue));
-
-        $model = new Entry;
-        $model->forceFill($this->toEntryAttributes($entry));
-        $model->exists = false;
-
-        return $model;
+        // ChronicleManager::runCommit() detects QueuedDriver and dispatches
+        // PersistChronicleEntryJob directly — this method is never called on
+        // the normal code path. Throw to make any accidental direct call visible.
+        throw new \LogicException('QueuedDriver::store() must not be called directly. Dispatch is handled by ChronicleManager::runCommit().');
     }
 }

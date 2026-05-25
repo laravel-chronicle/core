@@ -13,11 +13,15 @@ breaking changes between any two versions — see upgrade notes per version.
 ### Fixed
 
 - `PersistChronicleEntryJob` was reading `chronicle.database.connection` (non-existent key) instead
-  of `chronicle.connection`. On apps with a dedicated Chronicle database connection the job silently
-  wrote to the wrong database, corrupting the chain. (C-1)
+  of `chronicle.connection`. On apps with a dedicated Chronicle database connection, the job silently
+  wrote to the wrong database, corrupting the chain.
 - `Ed25519SigningProvider::__destruct()` called `sodium_memzero()` on `$privateKey` without a null
   guard. If construction threw before assigning the key, the destructor produced a fatal `TypeError`
-  at GC time. (C-3)
+  at GC time.
+- `QueuedDriver::store()` contained a dead dispatch path that coexisted with the identical dispatch
+  logic in `ChronicleManager::runCommit()`. Any future refactor that called the full pipeline for all
+  drivers would have dispatched two jobs per entry. `store()` now throws `LogicException` to make
+  accidental direct calls immediately visible.
 
 ---
 
