@@ -47,6 +47,14 @@ class InstallCommand extends Command
             }
         }
 
+        if ($this->confirm('Would you like to publish Chronicle views (customisable Blade UI)?', false)) {
+            $this->call('vendor:publish', [
+                '--provider' => ChronicleServiceProvider::class,
+                '--tag' => 'chronicle-views',
+                '--force' => (bool) $this->option('force'),
+            ]);
+        }
+
         if ($this->confirm('Would you like to star our repo on GitHub?')) {
             $repoUrl = escapeshellarg('https://github.com/laravel-chronicle/core');
 
