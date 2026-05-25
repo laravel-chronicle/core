@@ -30,6 +30,10 @@ breaking changes between any two versions — see upgrade notes per version.
   than one year — an explicit retention policy must be configured. Set
   `CHRONICLE_RETENTION_DAYS=365` to restore the previous behaviour. **(Breaking change for
   `chronicle.prune.default_retention_days`)**
+- `IntegrityVerifier::verify()` no longer runs a separate `COUNT(*)` query before streaming
+  entries. The count was used only for the progress-bar callback, which `VerifyEntryCommand`
+  already computes independently. The `$onProgress` callback signature changes from
+  `callable(int $processed, int $total)` to `callable(int $processed)`.
 
 ---
 

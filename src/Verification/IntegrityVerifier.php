@@ -33,7 +33,7 @@ class IntegrityVerifier
     /**
      * Verify the entire ledger.
      *
-     * @param  callable(int $processed, int $total): void|null  $onProgress
+     * @param  callable(int $processed): void|null  $onProgress
      *
      * @throws JsonException
      */
@@ -41,7 +41,6 @@ class IntegrityVerifier
     {
         $previousChain = '0';
         $count = 0;
-        $total = Entry::query()->count();
 
         $result = new VerificationResult;
 
@@ -115,7 +114,7 @@ class IntegrityVerifier
             $count++;
 
             if ($onProgress) {
-                $onProgress($count, $total);
+                $onProgress($count);
             }
         }
 
