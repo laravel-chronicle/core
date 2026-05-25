@@ -4,10 +4,10 @@ namespace Chronicle\Http\Controllers;
 
 use Chronicle\Checkpoints\Checkpoint;
 use Chronicle\Entry\Entry;
+use Chronicle\Query\LedgerStats;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
-use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 use Throwable;
 
@@ -95,39 +95,9 @@ class ChronicleUiController
 
     public function stats(): View
     {
-        /** @var string|null $connection */
-        $connection = config('chronicle.connection');
+        $stats = LedgerStats::compute();
 
-        /** @var string $entriesTable */
-        $entriesTable = config('chronicle.tables.entries', 'chronicle_entries');
-
-        /** @var string $checkpointsTable */
-        $checkpointsTable = config('chronicle.tables.checkpoints', 'chronicle_checkpoints');
-
-        $db = DB::connection($connection);
-
-        /** @var object{total: int, oldest: string|null, newest: string|null}|null $aggregate */
-        $aggregate = $db->table($entriesTable)
-            ->selectRaw('COUNT(*) as total, MIN(created_at) as oldest, MAX(created_at) as newest')
-            ->first();
-
-        $topActions = $db->table($entriesTable)
-            ->selectRaw('action, COUNT(*) as count')
-            ->groupBy('action')
-            ->orderByDesc('count')
-            ->limit(10)
-            ->get();
-
-        $checkpointCount = $db->table($checkpointsTable)->count();
-
-        $dailyActivity = $db->table($entriesTable)
-            ->selectRaw('DATE(created_at) as date, COUNT(*) as count')
-            ->where('created_at', '>=', now()->subDays(29)->startOfDay())
-            ->groupByRaw('DATE(created_at)')
-            ->orderBy('date')
-            ->get()
-            ->keyBy('date');
-
+        $activityIndexed = collect($stats->dailyActivity())->keyBy('date');
         $activityByDay = collect();
 
         for ($i = 29; $i >= 0; $i--) {
@@ -135,16 +105,16 @@ class ChronicleUiController
 
             $activityByDay->push([
                 'date' => $date,
-                'count' => $dailyActivity->get($date)->count ?? 0,
+                'count' => $activityIndexed->get($date)['count'] ?? 0,
             ]);
         }
 
         return view('chronicle::stats.index', [
-            'total' => $aggregate->total ?? 0,
-            'oldest' => $aggregate?->oldest ? Carbon::parse($aggregate->oldest) : null,
-            'newest' => $aggregate?->newest ? Carbon::parse($aggregate->newest) : null,
-            'checkpointCount' => $checkpointCount,
-            'topActions' => $topActions,
+            'total' => $stats->totalEntries(),
+            'oldest' => $stats->oldestEntryAt(),
+            'newest' => $stats->newestEntryAt(),
+            'checkpointCount' => $stats->checkpointCount(),
+            'topActions' => collect($stats->topActions()),
             'activityByDay' => $activityByDay,
         ]);
     }

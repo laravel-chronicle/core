@@ -17,6 +17,9 @@ breaking changes between any two versions — see upgrade notes per version.
 - Removed intermediate `@var view-string` variable annotations in `ChronicleUiController`. Larastan
   does not recognise `view-string` as a standalone variable type; the three known false-positive
   errors are now suppressed via `phpstan-baseline.neon`.
+- `ChronicleUiController::stats()` no longer duplicates the query logic from `LedgerStats::compute()`.
+  The stats action now delegates entirely to `LedgerStats::compute()`, so any fixes or improvements
+  to `LedgerStats` are automatically reflected in the UI.
 
 ---
 

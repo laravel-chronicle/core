@@ -71,3 +71,13 @@ it('stats page renders correctly when no entries exist for some days in the wind
         ->get('/chronicle/stats')
         ->assertOk();
 });
+
+it('stats page shows correct total entry count', function () {
+    seedUiEntries(7);
+    $user = FakeUser::create(['name' => 'Admin']);
+
+    $this->actingAs($user)
+        ->get('/chronicle/stats')
+        ->assertOk()
+        ->assertSee('7');
+});

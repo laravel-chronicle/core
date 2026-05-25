@@ -59,13 +59,13 @@
                         <tbody>
                             @php $topTotal = $topActions->sum('count') ?: 1; @endphp
                             @foreach($topActions as $row)
-                                @php $pct = round(($row->count / $topTotal) * 100); @endphp
+                                @php $pct = round(($row['count'] / $topTotal) * 100); @endphp
                                 <tr>
                                     <td>
-                                        <a href="{{ route('chronicle.entries.index', ['action' => $row->action]) }}"
-                                           class="chr-badge">{{ $row->action }}</a>
+                                        <a href="{{ route('chronicle.entries.index', ['action' => $row['action']]) }}"
+                                           class="chr-badge">{{ $row['action'] }}</a>
                                     </td>
-                                    <td style="text-align:right; font-weight:600;">{{ number_format($row->count) }}</td>
+                                    <td style="text-align:right; font-weight:600;">{{ number_format($row['count']) }}</td>
                                     <td>
                                         <div style="background:var(--chr-border); border-radius:9999px; height:6px; overflow:hidden;">
                                             <div style="width:{{ $pct }}%; background:var(--chr-accent); height:100%;"></div>
