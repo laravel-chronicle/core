@@ -246,7 +246,7 @@ it('get() does not re-apply ordering when oldest() was already called', function
     $query->oldest()->get();
 });
 
-it('paginate() applies default orderBy(id) when no ordering was called', function () {
+it('cursorPaginate() applies default orderBy(id) when no ordering was called', function () {
     $builder = mockBuilder();
     $builder->shouldReceive('orderBy')->once()->with('id')->andReturnSelf();
     $builder->shouldReceive('cursorPaginate')
@@ -255,7 +255,7 @@ it('paginate() applies default orderBy(id) when no ordering was called', functio
         ->andReturn(Mockery::mock(CursorPaginator::class));
 
     $query = new LedgerQuery($builder);
-    $query->paginate();
+    $query->cursorPaginate();
 });
 
 it('count() delegates to the builder count()', function () {

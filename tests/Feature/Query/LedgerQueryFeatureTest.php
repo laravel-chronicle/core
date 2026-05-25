@@ -256,10 +256,10 @@ it('first() returns one entry or null', function () {
     expect(Chronicle::query()->first())->toBeInstanceOf(Entry::class);
 });
 
-it('paginate() returns a CursorPaginator', function () {
+it('cursorPaginate() returns a CursorPaginator', function () {
     Chronicle::record()->actor('system')->action('test.entry')->subject(ref('ledger'))->commit();
 
-    $paginator = Chronicle::query()->paginate(perPage: 10);
+    $paginator = Chronicle::query()->cursorPaginate(perPage: 10);
 
     expect($paginator)->toBeInstanceOf(CursorPaginator::class)
         ->and($paginator->count())->toBe(1);

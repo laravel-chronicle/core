@@ -34,6 +34,10 @@ breaking changes between any two versions — see upgrade notes per version.
   entries. The count was used only for the progress-bar callback, which `VerifyEntryCommand`
   already computes independently. The `$onProgress` callback signature changes from
   `callable(int $processed, int $total)` to `callable(int $processed)`.
+- **Breaking:** `LedgerQuery::paginate()` renamed to `LedgerQuery::cursorPaginate()`. The method
+  has always returned a `CursorPaginator`; the old name implied `LengthAwarePaginator` (offset-based)
+  which it never was. Update any call to `Chronicle::query()->paginate()` to
+  `Chronicle::query()->cursorPaginate()`.
 
 ---
 

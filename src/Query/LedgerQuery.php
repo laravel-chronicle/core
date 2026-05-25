@@ -230,7 +230,7 @@ class LedgerQuery
      *
      * @return CursorPaginator<int, Entry>
      */
-    public function paginate(int $perPage = 50, ?string $cursor = null): CursorPaginator
+    public function cursorPaginate(int $perPage = 50, ?string $cursor = null): CursorPaginator
     {
         $this->applyDefaultOrder();
 
