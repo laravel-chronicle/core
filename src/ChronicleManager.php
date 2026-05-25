@@ -152,6 +152,14 @@ class ChronicleManager
         return $this->reader;
     }
 
+    /**
+     * Return a fluent LedgerQuery for the Chronicle entries table.
+     *
+     * Bypasses LedgerReaderContract intentionally — LedgerQuery builds on the
+     * Eloquent builder directly to support its full fluent API (filters, sorts,
+     * cursor pagination). LedgerReaderContract is for read-path injection; this
+     * shortcut is for application-layer querying.
+     */
     public function query(): LedgerQuery
     {
         return new LedgerQuery(Entry::query());

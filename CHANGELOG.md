@@ -48,6 +48,10 @@ breaking changes between any two versions — see upgrade notes per version.
   constructed once.
 - `chronicle:install` no longer calls `exec()` to open a browser tab when the user accepts the
   GitHub star prompt. The repo URL is printed to the console instead.
+- `EntryBuilder::modelChanges()` is now marked `@deprecated`. Use `modelDiff()` instead; the alias
+  will be removed in a future major version.
+- Added docblock to `ChronicleManager::query()` explaining the intentional bypass of
+  `LedgerReaderContract`.
 
 ---
 

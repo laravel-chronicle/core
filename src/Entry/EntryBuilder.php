@@ -312,6 +312,9 @@ class EntryBuilder
         return $this;
     }
 
+    /**
+     * @deprecated Use modelDiff() instead. This alias will be removed in a future version.
+     */
     public function modelChanges(Model $model): EntryBuilder
     {
         return $this->modelDiff($model);
