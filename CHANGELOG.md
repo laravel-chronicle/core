@@ -42,6 +42,10 @@ breaking changes between any two versions — see upgrade notes per version.
   can override to exclude additional fields from the updated diff. Previously the ignore list was
   hardcoded to `['created_at', 'updated_at']` with no extension point, unlike `HasChronicle` which
   supports a per-model `$chronicleIgnore` property.
+- `ComplianceReport::generate()` no longer constructs `ComplianceReportResult` twice. Previously it
+  built a stub result with `html: ''`, passed it to `renderHtml()`, then rebuilt the result with the
+  real HTML. Data is now collected once, HTML is rendered from the raw fields, and the result is
+  constructed once.
 
 ---
 
