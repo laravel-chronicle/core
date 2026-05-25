@@ -2,6 +2,8 @@
 
 namespace Chronicle\Testing;
 
+use Chronicle\ChronicleManager;
+use Chronicle\Contracts\StorageDriver;
 use Chronicle\Storage\ArrayDriver;
 use Illuminate\Support\Collection;
 use PHPUnit\Framework\Assert;
@@ -94,5 +96,24 @@ class ChronicleAssertions
         );
 
         return $this;
+    }
+
+    /**
+     * Restore the real StorageDriver after a fake() call.
+     *
+     * Clears the ArrayDriver container binding and resets the ChronicleManager
+     * so the next Chronicle call resolves the driver from config.
+     *
+     * Call in afterEach() when test ordering matters:
+     *
+     *   afterEach(fn () => $fake->restore());
+     */
+    public function restore(): void
+    {
+        app()->forgetInstance(StorageDriver::class);
+
+        /** @var ChronicleManager $manager */
+        $manager = app('chronicle');
+        $manager->resetDriver();
     }
 }

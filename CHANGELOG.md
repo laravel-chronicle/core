@@ -58,6 +58,11 @@ breaking changes between any two versions — see upgrade notes per version.
 - `chronicle:prune --before=<invalid>` threw an uncaught `InvalidFormatException` stack trace
   instead of a human-readable CLI error. Bad dates now print "Invalid date format for --before"
   and exit non-zero.
+- `Chronicle::fake()` bound `ArrayDriver` as the `StorageDriver` container singleton without
+  providing a way to undo it. Tests that ran after a `fake()` test in the same process could
+  unknowingly resolve `ArrayDriver` instead of the real driver.
+  `ChronicleAssertions::restore()` is now available to clear the binding and reset the manager.
+  `ChronicleManager::resetDriver()` is exposed as an `@internal` method for the same purpose.
 
 ---
 

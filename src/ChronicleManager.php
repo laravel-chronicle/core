@@ -312,6 +312,17 @@ class ChronicleManager
     }
 
     /**
+     * Reset the resolved driver to null so the next access re-resolves from config.
+     * Used by ChronicleAssertions::restore() after Chronicle::fake().
+     *
+     * @internal
+     */
+    public function resetDriver(): void
+    {
+        $this->resolvedDriver = null;
+    }
+
+    /**
      * Swap the active driver to ArrayDriver and return a ChronicleAssertions helper.
      *
      * Call at the start of a test. Flushes ArrayDriver storage so entries from
