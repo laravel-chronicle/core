@@ -20,6 +20,9 @@ breaking changes between any two versions — see upgrade notes per version.
 - `ChronicleUiController::stats()` no longer duplicates the query logic from `LedgerStats::compute()`.
   The stats action now delegates entirely to `LedgerStats::compute()`, so any fixes or improvements
   to `LedgerStats` are automatically reflected in the UI.
+- Deleted `ChronicleServiceProvider::assertSigningConfiguration()` — the method had no callers and
+  its enforcement logic had already been consolidated into `registerSigning()`. Its presence falsely
+  implied a boot-time signing check existed.
 
 ---
 

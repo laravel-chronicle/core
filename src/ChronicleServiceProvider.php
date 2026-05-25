@@ -276,25 +276,4 @@ class ChronicleServiceProvider extends ServiceProvider
             $this->loadRoutesFrom(__DIR__.'/../routes/ui.php');
         }
     }
-
-    protected function assertSigningConfiguration(): void
-    {
-        if (! config('chronicle.signing.enforce_on_boot', false)) {
-            return;
-        }
-
-        if ($this->app->environment('testing')) {
-            return;
-        }
-
-        try {
-            $this->app->make(SigningProvider::class);
-        } catch (Throwable $e) {
-            throw new RuntimeException(
-                'Invalid Chronicle signing configuration. Configure CHRONICLE_PRIVATE_KEY and CHRONICLE_PUBLIC_KEY (or a valid custom signing provider).',
-                0,
-                $e
-            );
-        }
-    }
 }
