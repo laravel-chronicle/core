@@ -11,9 +11,7 @@ pest()->extends(TestCase::class)
     ->use(RefreshDatabase::class)
     ->in(__DIR__);
 
-pest()->extends(UiTestCase::class)
-    ->use(RefreshDatabase::class)
-    ->in(__DIR__.'/Feature/UI');
+uses(UiTestCase::class)->in(__DIR__.'/Feature/UI');
 
 /**
  * Create a plain object reference for use as an actor / subject in tests.
