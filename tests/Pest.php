@@ -5,6 +5,7 @@ use Chronicle\Tests\Feature\UI\UiTestCase;
 use Chronicle\Tests\TestCase;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 pest()->extends(TestCase::class)
@@ -68,7 +69,7 @@ function validEntryPayload(): array
 function seedUiEntries(int $count = 5): void
 {
     for ($i = 1; $i <= $count; $i++) {
-        \Illuminate\Support\Facades\DB::table(
+        DB::table(
             config('chronicle.tables.entries', 'chronicle_entries')
         )->insert([
             'id' => Str::ulid()->toString(),
