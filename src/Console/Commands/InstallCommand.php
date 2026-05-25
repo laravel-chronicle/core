@@ -47,7 +47,7 @@ class InstallCommand extends Command
             }
         }
 
-        if ($this->confirm('Would you like to publish Chronicle views (customisable Blade UI)?', false)) {
+        if ($this->confirm('Would you like to publish Chronicle views (customisable Blade UI)?')) {
             $this->call('vendor:publish', [
                 '--provider' => ChronicleServiceProvider::class,
                 '--tag' => 'chronicle-views',
@@ -56,19 +56,7 @@ class InstallCommand extends Command
         }
 
         if ($this->confirm('Would you like to star our repo on GitHub?')) {
-            $repoUrl = escapeshellarg('https://github.com/laravel-chronicle/core');
-
-            if (PHP_OS_FAMILY === 'Darwin') {
-                exec("open $repoUrl");
-            }
-
-            if (PHP_OS_FAMILY === 'Windows') {
-                exec("start $repoUrl");
-            }
-
-            if (PHP_OS_FAMILY === 'Linux') {
-                exec("xdg-open $repoUrl");
-            }
+            $this->line('⭐ https://github.com/laravel-chronicle/core');
         }
 
         $this->info('Chronicle installed successfully.');

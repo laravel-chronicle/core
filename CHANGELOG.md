@@ -46,6 +46,8 @@ breaking changes between any two versions — see upgrade notes per version.
   built a stub result with `html: ''`, passed it to `renderHtml()`, then rebuilt the result with the
   real HTML. Data is now collected once, HTML is rendered from the raw fields, and the result is
   constructed once.
+- `chronicle:install` no longer calls `exec()` to open a browser tab when the user accepts the
+  GitHub star prompt. The repo URL is printed to the console instead.
 
 ---
 
