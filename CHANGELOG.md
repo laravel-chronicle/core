@@ -10,6 +10,16 @@ breaking changes between any two versions — see upgrade notes per version.
 
 ## [Unreleased]
 
+### Changed
+
+- `ChronicleUiController` no longer calls `$this->middleware()` in its constructor — the pattern
+  was deprecated in Laravel 11. Middleware is now declared on the route group in `routes/ui.php`.
+- Removed intermediate `@var view-string` variable annotations in `ChronicleUiController`. Larastan
+  does not recognise `view-string` as a standalone variable type; the three known false-positive
+  errors are now suppressed via `phpstan-baseline.neon`.
+
+---
+
 ### Fixed
 
 - `PersistChronicleEntryJob` was reading `chronicle.database.connection` (non-existent key) instead
@@ -22,6 +32,8 @@ breaking changes between any two versions — see upgrade notes per version.
   logic in `ChronicleManager::runCommit()`. Any future refactor that called the full pipeline for all
   drivers would have dispatched two jobs per entry. `store()` now throws `LogicException` to make
   accidental direct calls immediately visible.
+- Stats controller null-dereferences `->count` on `null` when `$dailyActivity->get($date)` has no
+  entry for a given day. Changed to `?->count ?? 0`.
 
 ---
 

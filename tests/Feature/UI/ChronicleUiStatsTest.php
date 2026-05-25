@@ -61,3 +61,13 @@ it('top actions link back to filtered index', function () {
         ->assertOk()
         ->assertSee(route('chronicle.entries.index', ['action' => 'invoice.created']));
 });
+
+it('stats page renders correctly when no entries exist for some days in the window', function () {
+    // seed only one entry, leaving 29 days with no data
+    seedUiEntries(1);
+    $user = FakeUser::create(['name' => 'Admin']);
+
+    $this->actingAs($user)
+        ->get('/chronicle/stats')
+        ->assertOk();
+});

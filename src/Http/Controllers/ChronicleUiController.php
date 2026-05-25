@@ -6,22 +6,13 @@ use Chronicle\Checkpoints\Checkpoint;
 use Chronicle\Entry\Entry;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Routing\Controller;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 use Throwable;
 
-class ChronicleUiController extends Controller
+class ChronicleUiController
 {
-    public function __construct()
-    {
-        /** @var list<string> $middleware */
-        $middleware = config('chronicle.ui.middleware', ['web', 'auth']);
-
-        $this->middleware($middleware);
-    }
-
     public function index(Request $request): View
     {
         $query = Entry::query();
@@ -76,10 +67,7 @@ class ChronicleUiController extends Controller
 
         $entries = $query->paginate($perPage)->withQueryString();
 
-        /** @var view-string $view */
-        $view = 'chronicle::entries.index';
-
-        return view($view, [
+        return view('chronicle::entries.index', [
             'entries' => $entries,
             'filters' => $request->only(['action', 'actor_id', 'subject_type', 'subject_id', 'tag', 'from', 'to', 'sort']),
         ]);
@@ -99,10 +87,7 @@ class ChronicleUiController extends Controller
             ? Checkpoint::find($entry->checkpoint_id)
             : null;
 
-        /** @var view-string $view */
-        $view = 'chronicle::entries.show';
-
-        return view($view, [
+        return view('chronicle::entries.show', [
             'entry' => $entry,
             'checkpoint' => $checkpoint,
         ]);
@@ -154,10 +139,7 @@ class ChronicleUiController extends Controller
             ]);
         }
 
-        /** @var view-string $view */
-        $view = 'chronicle::stats.index';
-
-        return view($view, [
+        return view('chronicle::stats.index', [
             'total' => $aggregate->total ?? 0,
             'oldest' => $aggregate?->oldest ? Carbon::parse($aggregate->oldest) : null,
             'newest' => $aggregate?->newest ? Carbon::parse($aggregate->newest) : null,
