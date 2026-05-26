@@ -58,6 +58,7 @@ breaking changes between any two versions — see upgrade notes per version.
   will be removed in a future major version.
 - Added docblock to `ChronicleManager::query()` explaining the intentional bypass of
   `LedgerReaderContract`.
+- Policy classes (`AllowedActionsPolicy`, `ForbiddenActionsPolicy`, `RateLimitPolicy`, `ContextPolicy`) now read their config values once in the constructor rather than on every `enforce()` call.
 
 ---
 

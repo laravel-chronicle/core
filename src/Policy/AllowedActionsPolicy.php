@@ -8,15 +8,22 @@ use Illuminate\Support\Str;
 
 class AllowedActionsPolicy extends AbstractPolicy
 {
+    /** @var string[] */
+    private readonly array $allowedActions;
+
+    public function __construct()
+    {
+        /** @var string[] $actions */
+        $actions = config('chronicle.policy.allowed_actions', []);
+        $this->allowedActions = $actions;
+    }
+
     public function enforce(PendingEntry $entry): void
     {
-        /** @var string[] $allowed */
-        $allowed = config('chronicle.policy.allowed_actions', []);
-
         /** @var string $action */
         $action = $entry->attribute('action');
 
-        foreach ($allowed as $pattern) {
+        foreach ($this->allowedActions as $pattern) {
             if (Str::is($pattern, $action)) {
                 return;
             }
