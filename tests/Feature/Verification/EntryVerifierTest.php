@@ -87,3 +87,11 @@ it('returns chain_hash_mismatch when chain hash is tampered', function () {
     expect($result->isValid())->toBeFalse()
         ->and($result->failureCode())->toBe('chain_hash_mismatch');
 });
+
+it('uses hash_equals for hash comparisons (no timing side-channel)', function () {
+    // This is a static-analysis / code-level assertion.
+    // We verify the source does not contain !== for hash comparisons.
+    $source = file_get_contents(__DIR__.'/../../../src/Verification/EntryVerifier.php');
+    expect($source)->not->toContain('!== $entry->payload_hash')
+        ->not->toContain('!== $entry->chain_hash');
+});

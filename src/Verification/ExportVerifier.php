@@ -97,7 +97,7 @@ class ExportVerifier
         */
         $computedHash = $entriesInspection['dataset_hash'];
 
-        if ($computedHash !== $manifestDatasetHash) {
+        if (! hash_equals($computedHash, $manifestDatasetHash)) {
             return ExportVerificationResult::failure(
                 'dataset_hash_mismatch'
             );
@@ -195,7 +195,7 @@ class ExportVerifier
             }
 
             $computedChain = hash('sha256', $previousChain.$payloadHash);
-            if ($computedChain !== $chainHash) {
+            if (! hash_equals($computedChain, $chainHash)) {
                 fclose($handle);
 
                 return 'chain_invalid';
@@ -219,7 +219,7 @@ class ExportVerifier
             }
 
             $computedPayloadHash = hash('sha256', $canonical);
-            if ($computedPayloadHash !== $payloadHash) {
+            if (! hash_equals($computedPayloadHash, $payloadHash)) {
                 fclose($handle);
 
                 return 'payload_hash_mismatch';

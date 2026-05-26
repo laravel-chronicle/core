@@ -31,7 +31,7 @@ class EntryVerifier
         $canonical = $this->serializer->serialize($entry->payload);
         $expectedPayloadHash = hash('sha256', $canonical);
 
-        if ($expectedPayloadHash !== $entry->payload_hash) {
+        if (! hash_equals($expectedPayloadHash, (string) $entry->payload_hash)) {
             return EntryVerificationResult::failure($entry, 'payload_hash_mismatch');
         }
 
@@ -50,7 +50,7 @@ class EntryVerifier
 
         $expectedChainHash = $this->chainHasher->hash($previousChainHash, $entry->payload_hash);
 
-        if ($expectedChainHash !== $entry->chain_hash) {
+        if (! hash_equals($expectedChainHash, (string) $entry->chain_hash)) {
             return EntryVerificationResult::failure($entry, 'chain_hash_mismatch');
         }
 

@@ -56,7 +56,7 @@ class IntegrityVerifier
 
             $payloadHash = hash('sha256', $canonical);
 
-            if ($payloadHash !== $entry->payload_hash) {
+            if (! hash_equals($payloadHash, (string) $entry->payload_hash)) {
                 $result->fail(
                     'payload_hash_mismatch',
                     $entry->id
@@ -71,7 +71,7 @@ class IntegrityVerifier
                 $payloadHash
             );
 
-            if ($expectedChain !== $entry->chain_hash) {
+            if (! hash_equals($expectedChain, (string) $entry->chain_hash)) {
                 $result->fail(
                     'chain_hash_mismatch',
                     $entry->id
