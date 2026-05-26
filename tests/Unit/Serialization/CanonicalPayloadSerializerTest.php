@@ -52,3 +52,48 @@ it('normalizes datetime objects', function () {
 
     expect($json)->toContain('T');
 });
+
+it('casts Stringable objects to string', function () {
+    $serializer = new CanonicalPayloadSerializer;
+
+    $obj = new class implements Stringable
+    {
+        public function __toString(): string
+        {
+            return 'hello';
+        }
+    };
+
+    $result = $serializer->normalize($obj);
+    expect($result)->toBe('hello');
+});
+
+it('casts backed enums to their value', function () {
+    $serializer = new CanonicalPayloadSerializer;
+
+    // Use a simple local-backed enum
+    enum Color: string
+    {
+        case Red = 'red';
+    }
+
+    $result = $serializer->normalize(Color::Red);
+    expect($result)->toBe('red');
+});
+
+it('uses the name for unit enums', function () {
+    $serializer = new CanonicalPayloadSerializer;
+
+    enum Status
+    {
+        case Active;
+    }
+
+    $result = $serializer->normalize(Status::Active);
+    expect($result)->toBe('Active');
+});
+
+it('throws for unhandled object types', function () {
+    $serializer = new CanonicalPayloadSerializer;
+    $serializer->normalize(new stdClass);
+})->throws(UnexpectedValueException::class);
