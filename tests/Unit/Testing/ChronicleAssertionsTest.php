@@ -72,3 +72,17 @@ it('entries() returns all recorded entries', function () {
     $assertions = new ChronicleAssertions($driver);
     expect($assertions->entries())->toHaveCount(2);
 });
+
+it('entries() delegates to the injected driver instance', function () {
+    $driver = new ArrayDriver;
+    $driver->store(validEntryPayload());
+
+    $assertions = new ChronicleAssertions($driver);
+
+    // Should reflect the specific driver instance, not global static state
+    ArrayDriver::flush(); // clear static state
+
+    // With instance calls, the entry stored in $driver is still accessible
+    // via $driver->all() — but we need ChronicleAssertions to use instance methods
+    expect($assertions->entries())->toHaveCount(1);
+});
