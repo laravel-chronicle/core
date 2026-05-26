@@ -89,6 +89,7 @@ breaking changes between any two versions — see upgrade notes per version.
 - `CanonicalPayloadSerializer::normalize()` now explicitly handles `Stringable` objects, backed enums (cast to their value), and unit enums (cast to their name). Non-serializable objects now throw `UnexpectedValueException` instead of silently passing through.
 - `VerifyEntryCommand` no longer uses `assert()` (disabled in production by default) to guard against a null entry. An explicit check with a descriptive error message is used instead.
 - Chain hash creation and verification now order by `id` only (ULID, monotonically sortable). The previous mixed `created_at + id` ordering could select different predecessor entries when two rows shared an identical `created_at` timestamp, producing false `chain_hash_mismatch` errors.
+- `LedgerQuery::stream()` and `LedgerQuery::first()` now apply the same default `ORDER BY id ASC` ordering as `get()` and `cursorPaginate()`. Previously they returned rows in undefined database order.
 
 ---
 

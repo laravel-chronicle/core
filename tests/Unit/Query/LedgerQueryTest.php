@@ -2,6 +2,7 @@
 
 use Carbon\CarbonInterface;
 use Chronicle\Entry\Entry;
+use Chronicle\Facades\Chronicle;
 use Chronicle\Query\LedgerQuery;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
@@ -279,6 +280,7 @@ it('exists() delegates to the builder exists()', function () {
 it('first() delegates to the builder first()', function () {
     $entry = Mockery::mock(Entry::class);
     $builder = mockBuilder();
+    $builder->shouldReceive('orderBy')->once()->with('id')->andReturnSelf();
     $builder->shouldReceive('first')->once()->andReturn($entry);
 
     $query = new LedgerQuery($builder);
@@ -288,6 +290,7 @@ it('first() delegates to the builder first()', function () {
 
 it('stream() calls cursor() on the builder', function () {
     $builder = mockBuilder();
+    $builder->shouldReceive('orderBy')->once()->with('id')->andReturnSelf();
     $builder->shouldReceive('cursor')
         ->once()
         ->andReturn(new LazyCollection([]));
@@ -296,4 +299,23 @@ it('stream() calls cursor() on the builder', function () {
     $result = $query->stream();
 
     expect($result)->toBeInstanceOf(LazyCollection::class);
+});
+
+it('stream() returns entries in id order by default', function () {
+    Chronicle::record()->actor('system')->action('q.a')->subject(ref('ledger'))->commit();
+    Chronicle::record()->actor('system')->action('q.b')->subject(ref('ledger'))->commit();
+
+    $ids = Chronicle::query()->stream()->map(fn ($e) => $e->id)->values()->all();
+
+    expect($ids)->toBe(collect($ids)->sort()->values()->all());
+});
+
+it('first() and get().first() return the same entry', function () {
+    Chronicle::record()->actor('system')->action('q.x')->subject(ref('ledger'))->commit();
+    Chronicle::record()->actor('system')->action('q.y')->subject(ref('ledger'))->commit();
+
+    $first = Chronicle::query()->first();
+    $getFirst = Chronicle::query()->get()->first();
+
+    expect($first?->id)->toBe($getFirst?->id);
 });

@@ -220,6 +220,8 @@ class LedgerQuery
      */
     public function first(): ?Entry
     {
+        $this->applyDefaultOrder();
+
         return $this->query->first();
     }
 
@@ -244,6 +246,8 @@ class LedgerQuery
      */
     public function stream(): LazyCollection
     {
+        $this->applyDefaultOrder();
+
         return $this->query->cursor();
     }
 
