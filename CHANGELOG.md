@@ -85,6 +85,7 @@ breaking changes between any two versions — see upgrade notes per version.
 - `ChronicleUiController::show()` validates the `$id` parameter as a ULID before use, returning HTTP 404 for invalid values and preventing unvalidated input from appearing in flash messages.
 - `ChainHashEntry` now asserts it is running inside an open database transaction. A `LogicException` is thrown if called outside a transaction, preventing silent chain-fork bugs when custom storage drivers bypass the transaction wrapper.
 - `PayloadSerializableValidator` now uses `JSON_THROW_ON_ERROR` per project convention, replacing the `json_last_error_msg()` check that is not safe under concurrency.
+- Removed misleading `@var string` annotations on nullable locals in `ComplianceReport::collectStats()`. The variables are `string|null` for an empty ledger.
 
 ---
 

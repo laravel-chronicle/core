@@ -83,11 +83,11 @@ class ComplianceReport
         }
 
         $entryCount = (clone $query)->count();
-        /** @var string $chainHead */
+        /** @var string|null $chainHead */
         $chainHead = (clone $query)->orderByDesc('id')->value('chain_hash');
-        /** @var string $firstEntryId */
+        /** @var string|null $firstEntryId */
         $firstEntryId = (clone $query)->orderBy('id')->value('id');
-        /** @var string $lastEntryId */
+        /** @var string|null $lastEntryId */
         $lastEntryId = (clone $query)->orderByDesc('id')->value('id');
 
         return [$entryCount, $chainHead, $firstEntryId, $lastEntryId];
