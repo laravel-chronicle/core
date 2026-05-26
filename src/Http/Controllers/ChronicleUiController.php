@@ -75,6 +75,10 @@ class ChronicleUiController
 
     public function show(string $id): View|RedirectResponse
     {
+        if (! preg_match('/^[0-7][0-9A-HJKMNP-TV-Z]{25}$/i', $id)) {
+            abort(404);
+        }
+
         $entry = Entry::find($id);
 
         if ($entry === null) {
