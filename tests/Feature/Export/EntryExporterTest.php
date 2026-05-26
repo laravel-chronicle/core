@@ -39,3 +39,18 @@ it('includes metadata and context columns in the exported entry', function () {
         ->and($entry)->toHaveKey('context')
         ->and($entry['metadata'])->toBe(['key' => 'value']);
 });
+
+it('returns the dataset hash as part of the export result', function () {
+    Chronicle::record()
+        ->actor('system')
+        ->action('export.hash')
+        ->subject(ref('ledger'))
+        ->commit();
+
+    $path = storage_path('chronicle-hash-test-'.Str::uuid().'.ndjson');
+    $result = app(EntryExporter::class)->export($path);
+
+    expect($result->datasetHash)
+        ->toBeString()
+        ->toHaveLength(64); // SHA-256 hex
+});

@@ -79,6 +79,8 @@ breaking changes between any two versions — see upgrade notes per version.
   `ChronicleManager::resetDriver()` is exposed as an `@internal` method for the same purpose.
 - `ChronicleServiceProvider` now validates that the configured signing provider implements `SigningProvider` before instantiation, preventing arbitrary class construction from `.env` values.
 - `enforce_on_boot = false` now correctly allows the app to boot without signing keys. Signing calls on a misconfigured instance throw at call time, not at boot. A `NullSigningProvider` wraps the original exception so the root cause is preserved.
+- `ExportManager` no longer re-hashes the export file after writing it. The dataset hash is now computed inline during the write pass by `EntryExporter`, eliminating the TOCTOU window between write and hash.
+- Export directory is now created with mode `0700` (owner-only) instead of `0755`.
 
 ---
 

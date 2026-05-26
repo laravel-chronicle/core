@@ -9,24 +9,12 @@ use Chronicle\Exceptions\ExportWriteException;
  */
 class ExportManager
 {
-    protected EntryExporter $entryExporter;
-
-    protected ExportHasher $hasher;
-
-    protected ExportManifestBuilder $manifestBuilder;
-
-    protected ExportSigner $signer;
-
     public function __construct(
-        EntryExporter $entryExporter,
-        ExportHasher $hasher,
-        ExportManifestBuilder $manifestBuilder,
-        ExportSigner $signer
+        protected readonly EntryExporter $entryExporter,
+        protected readonly ExportManifestBuilder $manifestBuilder,
+        protected readonly ExportSigner $signer
     ) {
-        $this->entryExporter = $entryExporter;
-        $this->hasher = $hasher;
-        $this->manifestBuilder = $manifestBuilder;
-        $this->signer = $signer;
+        //
     }
 
     /**
@@ -41,7 +29,7 @@ class ExportManager
      */
     public function export(string $path): ExportResult
     {
-        if (! is_dir($path) && ! @mkdir($path, 0755, true) && ! is_dir($path)) {
+        if (! is_dir($path) && ! @mkdir($path, 0700, true) && ! is_dir($path)) {
             $error = error_get_last();
 
             throw ExportWriteException::directoryCreationFailed($path, $error['message'] ?? null);
@@ -51,7 +39,7 @@ class ExportManager
 
         $export = $this->entryExporter->export($entriesPath);
 
-        $datasetHash = $this->hasher->hashFile($entriesPath);
+        $datasetHash = $export->datasetHash;
 
         $manifest = $this->manifestBuilder->build(
             entryCount: $export->entryCount,

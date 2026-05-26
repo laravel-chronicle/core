@@ -19,7 +19,6 @@ use Chronicle\Contracts\SigningProvider;
 use Chronicle\Contracts\StorageDriver;
 use Chronicle\Entry\EloquentLedgerReader;
 use Chronicle\Exports\EntryExporter;
-use Chronicle\Exports\ExportHasher;
 use Chronicle\Exports\ExportManager;
 use Chronicle\Exports\ExportManifestBuilder;
 use Chronicle\Exports\ExportSigner;
@@ -206,7 +205,6 @@ class ChronicleServiceProvider extends ServiceProvider
     protected function registerExports(): void
     {
         $this->app->singleton(EntryExporter::class);
-        $this->app->singleton(ExportHasher::class);
         $this->app->singleton(ExportManifestBuilder::class);
         $this->app->singleton(ExportSigner::class);
         $this->app->singleton(ExportVerifier::class);
@@ -216,7 +214,6 @@ class ChronicleServiceProvider extends ServiceProvider
         $this->app->singleton(ExportManager::class, function ($app) {
             return new ExportManager(
                 $app->make(EntryExporter::class),
-                $app->make(ExportHasher::class),
                 $app->make(ExportManifestBuilder::class),
                 $app->make(ExportSigner::class),
             );
