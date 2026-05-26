@@ -10,6 +10,7 @@ use Chronicle\Facades\Chronicle;
 use Chronicle\Pipeline\EntryExtensionRegistry;
 use Chronicle\Pipeline\EntryPipeline;
 use Chronicle\Pipeline\ExtensionStage;
+use Chronicle\Signing\NullSigningProvider;
 use Chronicle\Storage\ArrayDriver;
 use Chronicle\Storage\DatabaseDriver;
 use Chronicle\Storage\DriverResolver;
@@ -114,3 +115,14 @@ it('throws when signing provider does not implement SigningProvider', function (
 
     app(SigningProvider::class);
 })->throws(RuntimeException::class, 'must implement');
+
+it('boots successfully when enforce_on_boot is false and keys are missing', function () {
+    config()->set('chronicle.signing.enforce_on_boot', false);
+    config()->set('chronicle.signing.private_key');
+    config()->set('chronicle.signing.public_key');
+    app()->forgetInstance(SigningProvider::class);
+
+    $provider = app(SigningProvider::class);
+
+    expect($provider)->toBeInstanceOf(NullSigningProvider::class);
+});

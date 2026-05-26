@@ -31,6 +31,7 @@ use Chronicle\Pipeline\HashPayload;
 use Chronicle\Pipeline\PersistEntry;
 use Chronicle\Pipeline\RunExtensions;
 use Chronicle\Reports\ComplianceReport;
+use Chronicle\Signing\NullSigningProvider;
 use Chronicle\Storage\DriverResolver;
 use Chronicle\Storage\QueuedDriver;
 use Chronicle\Support\CanonicalPayloadSerializer;
@@ -167,15 +168,15 @@ class ChronicleServiceProvider extends ServiceProvider
             /** @var array{provider: class-string, private_key: ?string, public_key: ?string, key_id: string} $config */
             $config = $app['config']->get('chronicle.signing', []);
 
+            $providerClass = $config['provider'];
+
+            if (! is_a($providerClass, SigningProvider::class, true)) {
+                throw new RuntimeException(
+                    "Chronicle signing provider [$providerClass] must implement ".SigningProvider::class.'.'
+                );
+            }
+
             try {
-                $providerClass = $config['provider'];
-
-                if (! is_a($providerClass, SigningProvider::class, true)) {
-                    throw new RuntimeException(
-                        "Chronicle signing provider [$providerClass] must implement ".SigningProvider::class.'.'
-                    );
-                }
-
                 return new $config['provider'](
                     privateKey: $config['private_key'],
                     publicKey: $config['public_key'],
@@ -192,7 +193,7 @@ class ChronicleServiceProvider extends ServiceProvider
                     );
                 }
 
-                throw $e;
+                return new NullSigningProvider($e);
             }
         });
     }
