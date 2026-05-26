@@ -95,7 +95,11 @@ class VerifyEntryCommand extends Command
         }
 
         $entry = $result->entry;
-        assert($entry !== null);
+        if ($entry === null) {
+            $this->error("Unexpected: result has no entry for code [{$result->failureCode()}].");
+
+            return self::FAILURE;
+        }
 
         $this->line("  Action:   <comment>$entry->action</comment>");
         $this->line("  Subject:  <comment>$entry->subject_type#$entry->subject_id</comment>");

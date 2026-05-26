@@ -87,6 +87,7 @@ breaking changes between any two versions — see upgrade notes per version.
 - `PayloadSerializableValidator` now uses `JSON_THROW_ON_ERROR` per project convention, replacing the `json_last_error_msg()` check that is not safe under concurrency.
 - Removed misleading `@var string` annotations on nullable locals in `ComplianceReport::collectStats()`. The variables are `string|null` for an empty ledger.
 - `CanonicalPayloadSerializer::normalize()` now explicitly handles `Stringable` objects, backed enums (cast to their value), and unit enums (cast to their name). Non-serializable objects now throw `UnexpectedValueException` instead of silently passing through.
+- `VerifyEntryCommand` no longer uses `assert()` (disabled in production by default) to guard against a null entry. An explicit check with a descriptive error message is used instead.
 
 ---
 
