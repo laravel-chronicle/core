@@ -40,7 +40,7 @@ class CheckpointCreator
                 ->lockForUpdate()
                 ->value('chain_hash');
 
-            if (! $chainHash) {
+            if ($chainHash === null) {
                 throw new RuntimeException(
                     'Cannot create checkpoint: ledger is empty.'
                 );

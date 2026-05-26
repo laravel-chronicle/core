@@ -90,6 +90,8 @@ breaking changes between any two versions — see upgrade notes per version.
 - `VerifyEntryCommand` no longer uses `assert()` (disabled in production by default) to guard against a null entry. An explicit check with a descriptive error message is used instead.
 - Chain hash creation and verification now order by `id` only (ULID, monotonically sortable). The previous mixed `created_at + id` ordering could select different predecessor entries when two rows shared an identical `created_at` timestamp, producing false `chain_hash_mismatch` errors.
 - `LedgerQuery::stream()` and `LedgerQuery::first()` now apply the same default `ORDER BY id ASC` ordering as `get()` and `cursorPaginate()`. Previously they returned rows in undefined database order.
+- `CheckpointCreator` now uses a strict `=== null` check for the chain hash; a corrupt row with `chain_hash = '0'` no longer falsely triggers the "ledger is empty" error.
+- `CanonicalPayloadSerializer::isAssoc()` now correctly classifies empty arrays as sequential (returns `false`), matching `json_encode` behaviour.
 
 ---
 
