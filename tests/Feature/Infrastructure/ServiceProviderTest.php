@@ -2,6 +2,7 @@
 
 use Chronicle\Contracts\EntryExtension;
 use Chronicle\Contracts\ReferenceResolver;
+use Chronicle\Contracts\SigningProvider;
 use Chronicle\Contracts\StorageDriver;
 use Chronicle\Entry\PendingEntry;
 use Chronicle\Exceptions\InvalidActionException;
@@ -106,3 +107,10 @@ it('rejects persisted actions without dot notation', function () {
         ->subject(ref('ledger'))
         ->commit();
 })->throws(InvalidActionException::class);
+
+it('throws when signing provider does not implement SigningProvider', function () {
+    config()->set('chronicle.signing.provider', stdClass::class);
+    app()->forgetInstance(SigningProvider::class);
+
+    app(SigningProvider::class);
+})->throws(RuntimeException::class, 'must implement');

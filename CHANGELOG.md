@@ -77,6 +77,7 @@ breaking changes between any two versions — see upgrade notes per version.
   unknowingly resolve `ArrayDriver` instead of the real driver.
   `ChronicleAssertions::restore()` is now available to clear the binding and reset the manager.
   `ChronicleManager::resetDriver()` is exposed as an `@internal` method for the same purpose.
+- `ChronicleServiceProvider` now validates that the configured signing provider implements `SigningProvider` before instantiation, preventing arbitrary class construction from `.env` values.
 
 ---
 

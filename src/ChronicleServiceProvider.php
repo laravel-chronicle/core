@@ -168,6 +168,14 @@ class ChronicleServiceProvider extends ServiceProvider
             $config = $app['config']->get('chronicle.signing', []);
 
             try {
+                $providerClass = $config['provider'];
+
+                if (! is_a($providerClass, SigningProvider::class, true)) {
+                    throw new RuntimeException(
+                        "Chronicle signing provider [$providerClass] must implement ".SigningProvider::class.'.'
+                    );
+                }
+
                 return new $config['provider'](
                     privateKey: $config['private_key'],
                     publicKey: $config['public_key'],

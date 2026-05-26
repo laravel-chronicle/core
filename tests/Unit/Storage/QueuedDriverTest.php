@@ -11,5 +11,5 @@ it('has tries set to 1 on the dispatched job', function () {
 it('store() throws LogicException because dispatch is handled by ChronicleManager', function () {
     $driver = new QueuedDriver;
     expect(fn () => $driver->store(validEntryPayload()))
-        ->toThrow(\LogicException::class, 'QueuedDriver::store() must not be called directly');
+        ->toThrow(LogicException::class, 'QueuedDriver::store() must not be called directly');
 });
