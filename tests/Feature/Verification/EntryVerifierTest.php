@@ -95,3 +95,18 @@ it('uses hash_equals for hash comparisons (no timing side-channel)', function ()
     expect($source)->not->toContain('!== $entry->payload_hash')
         ->not->toContain('!== $entry->chain_hash');
 });
+
+it('correctly verifies two entries with the same created_at timestamp', function () {
+    // Simulate two entries sharing the same created_at (same-second insert)
+    Chronicle::record()->actor('system')->action('order.a')->subject(ref('ledger'))->commit();
+    Chronicle::record()->actor('system')->action('order.b')->subject(ref('ledger'))->commit();
+
+    // Force identical created_at on both
+    Entry::query()->update(['created_at' => now()]);
+
+    $entry = Entry::orderBy('id')->skip(1)->first();
+    $verifier = app(EntryVerifier::class);
+    $result = $verifier->verify($entry->id);
+
+    expect($result->isValid())->toBeTrue();
+});

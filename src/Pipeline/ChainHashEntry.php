@@ -36,7 +36,6 @@ class ChainHashEntry implements EntryProcessor
 
         /** @var string $previous */
         $previous = Entry::query()
-            ->orderByDesc('created_at')
             ->orderByDesc('id')
             ->lockForUpdate()
             ->value('chain_hash') ?? '0';

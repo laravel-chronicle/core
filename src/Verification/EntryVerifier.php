@@ -5,7 +5,6 @@ namespace Chronicle\Verification;
 use Chronicle\Entry\Entry;
 use Chronicle\Hashing\ChainHasher;
 use Chronicle\Support\CanonicalPayloadSerializer;
-use Illuminate\Database\Eloquent\Builder;
 use JsonException;
 
 class EntryVerifier
@@ -37,14 +36,7 @@ class EntryVerifier
 
         /** @var string $previousChainHash */
         $previousChainHash = Entry::query()
-            ->where(function (Builder $q) use ($entry): void {
-                $q->where('created_at', '<', $entry->created_at)
-                    ->orWhere(function (Builder $q) use ($entry): void {
-                        $q->where('created_at', $entry->created_at)
-                            ->where('id', '<', $entry->id);
-                    });
-            })
-            ->orderByDesc('created_at')
+            ->where('id', '<', $entry->id)
             ->orderByDesc('id')
             ->value('chain_hash') ?? '0';
 

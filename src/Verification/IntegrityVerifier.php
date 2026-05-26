@@ -48,7 +48,7 @@ class IntegrityVerifier
         $verifiedCheckpoints = [];
 
         /** @var Entry $entry */
-        foreach (Entry::query()->orderBy('created_at')->orderBy('id')->cursor() as $entry) {
+        foreach (Entry::query()->orderBy('id')->cursor() as $entry) {
             // Payload verification
             $canonical = $this->serializer->serialize(
                 $entry->payload

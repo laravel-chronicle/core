@@ -36,7 +36,6 @@ class CheckpointCreator
 
         return DB::connection($connection)->transaction(function () {
             $chainHash = Entry::query()
-                ->orderByDesc('created_at')
                 ->orderByDesc('id')
                 ->lockForUpdate()
                 ->value('chain_hash');
