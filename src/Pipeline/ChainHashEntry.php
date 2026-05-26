@@ -6,6 +6,8 @@ use Chronicle\Contracts\EntryProcessor;
 use Chronicle\Entry\Entry;
 use Chronicle\Entry\PendingEntry;
 use Chronicle\Hashing\ChainHasher;
+use Illuminate\Support\Facades\DB;
+use LogicException;
 
 /**
  * Pipeline processor that attaches the entry chain hash.
@@ -25,6 +27,13 @@ class ChainHashEntry implements EntryProcessor
 
     public function process(PendingEntry $entry): PendingEntry
     {
+        /** @var string|null $connection */
+        $connection = config('chronicle.connection');
+
+        if (DB::connection($connection)->transactionLevel() === 0) {
+            throw new LogicException('ChainHashEntry must run inside an open DB transaction.');
+        }
+
         /** @var string $previous */
         $previous = Entry::query()
             ->orderByDesc('created_at')

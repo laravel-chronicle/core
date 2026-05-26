@@ -83,6 +83,7 @@ breaking changes between any two versions — see upgrade notes per version.
 - Export directory is now created with mode `0700` (owner-only) instead of `0755`.
 - All hash equality checks in the verification layer now use `hash_equals()` to prevent timing side-channel attacks.
 - `ChronicleUiController::show()` validates the `$id` parameter as a ULID before use, returning HTTP 404 for invalid values and preventing unvalidated input from appearing in flash messages.
+- `ChainHashEntry` now asserts it is running inside an open database transaction. A `LogicException` is thrown if called outside a transaction, preventing silent chain-fork bugs when custom storage drivers bypass the transaction wrapper.
 
 ---
 
