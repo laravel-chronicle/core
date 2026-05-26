@@ -34,26 +34,26 @@ class ExportVerifier
 
         if (! file_exists($entriesPath)) {
             return ExportVerificationResult::failure(
-                'entries_missing'
+                VerificationFailure::EntriesMissing->value
             );
         }
 
         if (! file_exists($manifestPath)) {
             return ExportVerificationResult::failure(
-                'manifest_missing'
+                VerificationFailure::ManifestMissing->value
             );
         }
 
         if (! file_exists($signaturePath)) {
             return ExportVerificationResult::failure(
-                'signature_missing'
+                VerificationFailure::SignatureMissing->value
             );
         }
 
         $manifest = $this->decodeJsonFile(
             path: $manifestPath,
-            unreadableFailure: 'manifest_unreadable',
-            invalidJsonFailure: 'manifest_invalid_json'
+            unreadableFailure: VerificationFailure::ManifestUnreadable->value,
+            invalidJsonFailure: VerificationFailure::ManifestInvalidJson->value,
         );
         if (is_string($manifest)) {
             return ExportVerificationResult::failure($manifest);
@@ -73,8 +73,8 @@ class ExportVerifier
 
         $signature = $this->decodeJsonFile(
             path: $signaturePath,
-            unreadableFailure: 'signature_unreadable',
-            invalidJsonFailure: 'signature_invalid_json'
+            unreadableFailure: VerificationFailure::SignatureUnreadable->value,
+            invalidJsonFailure: VerificationFailure::SignatureInvalidJson->value,
         );
         if (is_string($signature)) {
             return ExportVerificationResult::failure($signature);
@@ -99,7 +99,7 @@ class ExportVerifier
 
         if (! hash_equals($computedHash, $manifestDatasetHash)) {
             return ExportVerificationResult::failure(
-                'dataset_hash_mismatch'
+                VerificationFailure::DatasetHashMismatch->value
             );
         }
 
@@ -118,7 +118,7 @@ class ExportVerifier
 
         if (! $validSignature) {
             return ExportVerificationResult::failure(
-                'signature_invalid'
+                VerificationFailure::SignatureInvalid->value
             );
         }
 
@@ -140,13 +140,13 @@ class ExportVerifier
         array $manifest,
     ): array|string {
         if (! is_file($entriesPath) || ! is_readable($entriesPath)) {
-            return 'entries_unreadable';
+            return VerificationFailure::EntriesUnreadable->value;
         }
 
         $handle = @fopen($entriesPath, 'rb');
 
         if (! $handle) {
-            return 'entries_unreadable';
+            return VerificationFailure::EntriesUnreadable->value;
         }
 
         $hashContext = hash_init('sha256');
@@ -169,13 +169,13 @@ class ExportVerifier
             } catch (JsonException) {
                 fclose($handle);
 
-                return 'entries_invalid_json';
+                return VerificationFailure::EntriesInvalidJson->value;
             }
 
             if (! is_array($decoded)) {
                 fclose($handle);
 
-                return 'entries_invalid_format';
+                return VerificationFailure::EntriesInvalidFormat->value;
             }
 
             $entryId = $decoded['id'] ?? null;
@@ -185,20 +185,20 @@ class ExportVerifier
             if (! is_string($entryId) || $entryId === '') {
                 fclose($handle);
 
-                return 'entries_invalid_format';
+                return VerificationFailure::EntriesInvalidFormat->value;
             }
 
             if (! is_string($payloadHash) || ! is_string($chainHash)) {
                 fclose($handle);
 
-                return 'entries_invalid_format';
+                return VerificationFailure::EntriesInvalidFormat->value;
             }
 
             $computedChain = hash('sha256', $previousChain.$payloadHash);
             if (! hash_equals($computedChain, $chainHash)) {
                 fclose($handle);
 
-                return 'chain_invalid';
+                return VerificationFailure::ChainInvalid->value;
             }
 
             // Re-derive payload hash from the exported payload to detect tampered payload data.
@@ -207,7 +207,7 @@ class ExportVerifier
             if (! is_array($payload)) {
                 fclose($handle);
 
-                return 'entries_invalid_format';
+                return VerificationFailure::EntriesInvalidFormat->value;
             }
 
             try {
@@ -215,14 +215,14 @@ class ExportVerifier
             } catch (JsonException) {
                 fclose($handle);
 
-                return 'entries_invalid_format';
+                return VerificationFailure::EntriesInvalidFormat->value;
             }
 
             $computedPayloadHash = hash('sha256', $canonical);
             if (! hash_equals($computedPayloadHash, $payloadHash)) {
                 fclose($handle);
 
-                return 'payload_hash_mismatch';
+                return VerificationFailure::PayloadHashMismatch->value;
             }
 
             if ($count === 0) {
@@ -241,19 +241,19 @@ class ExportVerifier
         $datasetHash = hash_final($hashContext);
 
         if ($count !== $manifest['entry_count']) {
-            return 'entry_count_mismatch';
+            return VerificationFailure::EntryCountMismatch->value;
         }
 
         if ($first !== $manifest['first_entry_id']) {
-            return 'first_entry_mismatch';
+            return VerificationFailure::FirstEntryMismatch->value;
         }
 
         if ($last !== $manifest['last_entry_id']) {
-            return 'last_entry_mismatch';
+            return VerificationFailure::LastEntryMismatch->value;
         }
 
         if ($chainHead !== $manifest['chain_head']) {
-            return 'chain_head_mismatch';
+            return VerificationFailure::ChainHeadMismatch->value;
         }
 
         return [
@@ -304,31 +304,31 @@ class ExportVerifier
         $lastEntryId = $manifest['last_entry_id'] ?? null;
 
         if (! is_string($datasetHash) || $datasetHash === '') {
-            return 'manifest_invalid';
+            return VerificationFailure::ManifestInvalid->value;
         }
 
         if (! is_int($entryCount) || $entryCount < 0) {
-            return 'manifest_invalid';
+            return VerificationFailure::ManifestInvalid->value;
         }
 
         if ($entryCount === 0) {
             if ($firstEntryId !== null || $lastEntryId !== null || $chainHead !== null) {
-                return 'manifest_invalid';
+                return VerificationFailure::ManifestInvalid->value;
             }
 
             return null;
         }
 
         if (! is_string($chainHead) || $chainHead === '') {
-            return 'manifest_invalid';
+            return VerificationFailure::ManifestInvalid->value;
         }
 
         if (! is_string($firstEntryId) || $firstEntryId === '') {
-            return 'manifest_invalid';
+            return VerificationFailure::ManifestInvalid->value;
         }
 
         if (! is_string($lastEntryId) || $lastEntryId === '') {
-            return 'manifest_invalid';
+            return VerificationFailure::ManifestInvalid->value;
         }
 
         return null;
@@ -342,7 +342,7 @@ class ExportVerifier
         $value = $signature['signature'] ?? null;
 
         if (! is_string($value) || $value === '') {
-            return 'signature_invalid_format';
+            return VerificationFailure::SignatureInvalidFormat->value;
         }
 
         return null;

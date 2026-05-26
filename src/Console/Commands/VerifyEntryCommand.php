@@ -5,6 +5,7 @@ namespace Chronicle\Console\Commands;
 use Chronicle\Entry\Entry;
 use Chronicle\Verification\EntryVerifier;
 use Chronicle\Verification\IntegrityVerifier;
+use Chronicle\Verification\VerificationFailure;
 use Illuminate\Console\Command;
 use JsonException;
 
@@ -88,7 +89,7 @@ class VerifyEntryCommand extends Command
 
         $result = $entryVerifier->verify($id);
 
-        if ($result->failureCode() === 'not_found') {
+        if ($result->failureCode() === VerificationFailure::NotFound->value) {
             $this->error("Entry [$id] not found.");
 
             return self::FAILURE;
@@ -122,7 +123,7 @@ class VerifyEntryCommand extends Command
         ];
 
         $code = $result->failureCode() ?? 'unknown';
-        $label = $messages[$code] ?? $code;
+        $label = $messages[$code] ?? 'Unknown integrity failure.';
 
         $this->line("  ✗ $label [$code]");
         $this->newLine();

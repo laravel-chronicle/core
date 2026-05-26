@@ -4,6 +4,7 @@ use Chronicle\Entry\Entry;
 use Chronicle\Facades\Chronicle;
 use Chronicle\Verification\EntryVerificationResult;
 use Chronicle\Verification\EntryVerifier;
+use Chronicle\Verification\VerificationFailure;
 
 it('constructs an ok result and exposes its properties', function () {
     Chronicle::record()->actor('system')->action('ver.test')->subject(ref('ledger'))->commit();
@@ -109,4 +110,9 @@ it('correctly verifies two entries with the same created_at timestamp', function
     $result = $verifier->verify($entry->id);
 
     expect($result->isValid())->toBeTrue();
+});
+
+it('failure codes are VerificationFailure enum values', function () {
+    $result = EntryVerificationResult::notFound('01FAKE');
+    expect($result->failureCode())->toBe(VerificationFailure::NotFound->value);
 });

@@ -31,7 +31,7 @@ class EntryVerifier
         $expectedPayloadHash = hash('sha256', $canonical);
 
         if (! hash_equals($expectedPayloadHash, (string) $entry->payload_hash)) {
-            return EntryVerificationResult::failure($entry, 'payload_hash_mismatch');
+            return EntryVerificationResult::failure($entry, VerificationFailure::PayloadHashMismatch->value);
         }
 
         /** @var string $previousChainHash */
@@ -43,7 +43,7 @@ class EntryVerifier
         $expectedChainHash = $this->chainHasher->hash($previousChainHash, $entry->payload_hash);
 
         if (! hash_equals($expectedChainHash, (string) $entry->chain_hash)) {
-            return EntryVerificationResult::failure($entry, 'chain_hash_mismatch');
+            return EntryVerificationResult::failure($entry, VerificationFailure::ChainHashMismatch->value);
         }
 
         return EntryVerificationResult::ok($entry);

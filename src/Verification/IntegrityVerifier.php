@@ -58,7 +58,7 @@ class IntegrityVerifier
 
             if (! hash_equals($payloadHash, (string) $entry->payload_hash)) {
                 $result->fail(
-                    'payload_hash_mismatch',
+                    VerificationFailure::PayloadHashMismatch->value,
                     $entry->id
                 );
 
@@ -73,7 +73,7 @@ class IntegrityVerifier
 
             if (! hash_equals($expectedChain, (string) $entry->chain_hash)) {
                 $result->fail(
-                    'chain_hash_mismatch',
+                    VerificationFailure::ChainHashMismatch->value,
                     $entry->id
                 );
 
@@ -86,7 +86,7 @@ class IntegrityVerifier
 
                 if (! $checkpoint) {
                     $result->fail(
-                        'checkpoint_missing',
+                        VerificationFailure::CheckpointMissing->value,
                         $entry->id
                     );
 
@@ -100,7 +100,7 @@ class IntegrityVerifier
 
                 if (! $valid) {
                     $result->fail(
-                        'checkpoint_signature_invalid',
+                        VerificationFailure::CheckpointSignatureInvalid->value,
                         $entry->id
                     );
 

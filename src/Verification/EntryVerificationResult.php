@@ -40,7 +40,7 @@ class EntryVerificationResult
         return new EntryVerificationResult(
             valid: false,
             entry: null,
-            failureCode: 'not_found',
+            failureCode: VerificationFailure::NotFound->value,
             missingId: $id,
         );
     }

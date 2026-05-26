@@ -10,6 +10,12 @@ breaking changes between any two versions — see upgrade notes per version.
 
 ## [Unreleased]
 
+### Added
+
+- `VerificationFailure` enum centralises all verification failure code strings. Static analysis can now catch typos in failure code comparisons.
+
+---
+
 ### Changed
 
 - `ChronicleUiController` no longer calls `$this->middleware()` in its constructor — the pattern
