@@ -8,6 +8,7 @@ use Chronicle\Entry\PendingEntry;
 use Chronicle\Exceptions\UnserializablePayloadException;
 use Chronicle\Pipeline\ExtensionStage;
 use Closure;
+use JsonException;
 
 class PayloadSerializableValidator implements EntryExtension, PrioritizedEntryExtension
 {
@@ -50,10 +51,10 @@ class PayloadSerializableValidator implements EntryExtension, PrioritizedEntryEx
             'diff' => $diff,
         ];
 
-        $encoded = json_encode($combined);
-
-        if ($encoded === false) {
-            throw UnserializablePayloadException::notJsonSerializable(json_last_error_msg());
+        try {
+            json_encode($combined, JSON_THROW_ON_ERROR);
+        } catch (JsonException $e) {
+            throw UnserializablePayloadException::notJsonSerializable($e->getMessage());
         }
 
         return $entry;

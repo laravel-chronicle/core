@@ -259,3 +259,13 @@ it('rejects a non-array diff containing INF', function () {
         makePayloadValidatorPending(diff: INF)
     );
 })->throws(UnserializablePayloadException::class);
+
+it('throws UnserializablePayloadException when json_encode fails (INF value)', function () {
+    $validator = new PayloadSerializableValidator;
+    $entry = new PendingEntry([
+        'id' => 'test',
+        'metadata' => ['value' => INF],
+    ]);
+
+    $validator->process($entry);
+})->throws(UnserializablePayloadException::class);
