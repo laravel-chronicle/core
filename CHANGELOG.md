@@ -92,6 +92,7 @@ breaking changes between any two versions — see upgrade notes per version.
 - `LedgerQuery::stream()` and `LedgerQuery::first()` now apply the same default `ORDER BY id ASC` ordering as `get()` and `cursorPaginate()`. Previously they returned rows in undefined database order.
 - `CheckpointCreator` now uses a strict `=== null` check for the chain hash; a corrupt row with `chain_hash = '0'` no longer falsely triggers the "ledger is empty" error.
 - `CanonicalPayloadSerializer::isAssoc()` now correctly classifies empty arrays as sequential (returns `false`), matching `json_encode` behaviour.
+- `ExportVerifier` now skips blank lines for both the dataset hash and the chain check. Previously blank lines were included in the hash but skipped for chain verification, causing false dataset-hash-mismatch failures on exports with a trailing newline.
 
 ---
 

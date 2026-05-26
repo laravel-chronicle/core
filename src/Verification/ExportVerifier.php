@@ -158,11 +158,11 @@ class ExportVerifier
         $count = 0;
 
         while (($line = fgets($handle)) !== false) {
-            hash_update($hashContext, $line);
-
             if (trim($line) === '') {
                 continue;
             }
+
+            hash_update($hashContext, $line);
 
             try {
                 $decoded = json_decode($line, true, 512, JSON_THROW_ON_ERROR);

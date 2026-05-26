@@ -343,3 +343,17 @@ it('fails when an exported entry payload has been tampered with', function () {
     expect($result->isValid())->toBeFalse()
         ->and($result->failureCode())->toBe('payload_hash_mismatch');
 });
+
+it('verifies an export whose entries file has a trailing blank line', function () {
+    // Create a normal export, then append a trailing newline
+    Chronicle::record()->actor('system')->action('export.blank')->subject(ref('ledger'))->commit();
+
+    $dir = storage_path('chronicle-blank-test-'.Str::uuid());
+    app(ExportManager::class)->export($dir);
+
+    file_put_contents($dir.'/entries.ndjson', "\n", FILE_APPEND);
+
+    $result = app(ExportVerifier::class)->verify($dir);
+
+    expect($result->isValid())->toBeTrue();
+});
