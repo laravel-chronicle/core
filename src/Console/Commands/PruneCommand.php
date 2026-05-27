@@ -5,6 +5,7 @@ namespace Chronicle\Console\Commands;
 use Carbon\Carbon;
 use Chronicle\Entry\Entry;
 use Illuminate\Console\Command;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
 use Throwable;
 
@@ -52,7 +53,7 @@ class PruneCommand extends Command
             }
         }
 
-        $query = Entry::query()->where('created_at', '<', $cutoff);
+        $query = $this->buildPruneQuery($cutoff, $force, $respectCheckpoints);
 
         if (! $force && $respectCheckpoints) {
             $query->whereNull('checkpoint_id');
@@ -60,9 +61,7 @@ class PruneCommand extends Command
 
         if ($dryRun) {
             /** @var object{count: int, oldest: string|null, newest: string|null}|null $preview */
-            $preview = Entry::query()
-                ->where('created_at', '<', $cutoff)
-                ->when(! $force && $respectCheckpoints, fn ($q) => $q->whereNull('checkpoint_id'))
+            $preview = $this->buildPruneQuery($cutoff, $force, $respectCheckpoints)
                 ->selectRaw('COUNT(*) as count, MIN(created_at) as oldest, MAX(created_at) as newest')
                 ->first();
 
@@ -89,9 +88,7 @@ class PruneCommand extends Command
         $deleted = 0;
 
         do {
-            $ids = Entry::query()
-                ->where('created_at', '<', $cutoff)
-                ->when(! $force && $respectCheckpoints, fn ($q) => $q->whereNull('checkpoint_id'))
+            $ids = $this->buildPruneQuery($cutoff, $force, $respectCheckpoints)
                 ->orderBy('id')
                 ->limit(1000)
                 ->pluck('id');
@@ -139,5 +136,19 @@ class PruneCommand extends Command
         }
 
         return null;
+    }
+
+    /**
+     * @return Builder<Entry>
+     */
+    protected function buildPruneQuery(Carbon $cutoff, bool $force, bool $respectCheckpoints): Builder
+    {
+        $query = Entry::query()->where('created_at', '<', $cutoff);
+
+        if (! $force && $respectCheckpoints) {
+            $query->whereNull('checkpoint_id');
+        }
+
+        return $query;
     }
 }
