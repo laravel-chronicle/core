@@ -64,6 +64,7 @@ breaking changes between any two versions — see upgrade notes per version.
 - `ComplianceReport::collectStats()` now fetches `first_entry_id` and `last_entry_id` in a single `SELECT MIN/MAX` query, reducing four DB round-trips to three.
 - Removed `@` error-suppression operator from `ComplianceReport::generate()` file write; PHP warnings now propagate to the configured error handler.
 - `HasChronicle` now declares `$chronicleEvents` and `$chronicleIgnore` as trait properties with defaults, removing `property_exists()` duck-typing. Models override these properties normally. Ignored-field detection now uses `static::CREATED_AT` / `static::UPDATED_AT` so custom timestamp constants are respected.
+- Diff-building logic extracted to `ModelDiffBuilder::build()` and shared by `HasChronicle` and `ChronicleModelObserver`. Previously both classes maintained identical (and drift-prone) copies.
 
 ---
 
@@ -106,6 +107,7 @@ breaking changes between any two versions — see upgrade notes per version.
 - `CanonicalPayloadSerializer::isAssoc()` now correctly classifies empty arrays as sequential (returns `false`), matching `json_encode` behaviour.
 - `ExportVerifier` now skips blank lines for both the dataset hash and the chain check. Previously blank lines were included in the hash but skipped for chain verification, causing false dataset-hash-mismatch failures on exports with a trailing newline.
 - `ChronicleAssertions` now calls `$this->driver->allEntries()` (instance method) instead of `ArrayDriver::all()` (static). The constructor parameter is now functional rather than dead code, enabling test isolation when multiple `ArrayDriver` instances are used.
+- `ChronicleModelObserver` now uses `$model::CREATED_AT` and `$model::UPDATED_AT` when building diffs, so models with custom timestamp constants are handled correctly.
 
 ---
 

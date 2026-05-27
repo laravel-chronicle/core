@@ -38,27 +38,11 @@ trait HasChronicle
                     return;
                 }
 
-                // Skip if only auto-managed timestamp columns changed (e.g. touch()).
-                $dirty = array_diff_key($model->getDirty(), array_flip(['created_at', 'updated_at']));
-
-                if (empty($dirty)) {
+                if (! ModelDiffBuilder::hasRelevantChanges($model)) {
                     return;
                 }
 
-                $ignored = $model->chronicleIgnoredFields();
-
-                $diff = [];
-
-                foreach ($dirty as $field => $newValue) {
-                    if (in_array($field, $ignored, true)) {
-                        continue;
-                    }
-
-                    $diff[$field] = [
-                        'old' => $model->getOriginal($field),
-                        'new' => $newValue,
-                    ];
-                }
+                $diff = ModelDiffBuilder::build($model, $model->chronicleIgnoredFields());
 
                 $builder = Chronicle::record()
                     ->actor($model->chronicleActor())
@@ -70,7 +54,8 @@ trait HasChronicle
                 }
 
                 $builder->commit();
-            });
+            }
+        );
 
         static::deleted(
             /** @throws Throwable */
@@ -103,7 +88,7 @@ trait HasChronicle
     }
 
     /**
-     * @return array<int, string>
+     * @return list<string>
      */
     protected function chronicleIgnoredFields(): array
     {

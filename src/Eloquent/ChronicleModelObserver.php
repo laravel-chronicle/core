@@ -56,24 +56,11 @@ class ChronicleModelObserver
             return;
         }
 
-        $dirty = array_diff_key($model->getDirty(), array_flip(['created_at', 'updated_at']));
-
-        if (empty($dirty)) {
+        if (! ModelDiffBuilder::hasRelevantChanges($model)) {
             return;
         }
 
-        $ignored = $this->ignoredFields($model);
-        $diff = [];
-
-        foreach ($dirty as $field => $newValue) {
-            if (in_array($field, $ignored, true)) {
-                continue;
-            }
-            $diff[$field] = [
-                'old' => $model->getOriginal($field),
-                'new' => $newValue,
-            ];
-        }
+        $diff = ModelDiffBuilder::build($model, $this->ignoredFields($model));
 
         $builder = Chronicle::record()
             ->actor($this->resolveActor($model))
@@ -85,6 +72,7 @@ class ChronicleModelObserver
         }
 
         $builder->commit();
+
     }
 
     /**
@@ -145,6 +133,9 @@ class ChronicleModelObserver
      */
     protected function ignoredFields(Model $model): array
     {
-        return array_merge(['created_at', 'updated_at'], $this->ignoredFields);
+        return array_merge(
+            [$model::CREATED_AT ?? 'created_at', $model::UPDATED_AT ?? 'updated_at'],
+            $this->ignoredFields,
+        );
     }
 }
