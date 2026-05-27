@@ -59,6 +59,7 @@ breaking changes between any two versions — see upgrade notes per version.
 - Added docblock to `ChronicleManager::query()` explaining the intentional bypass of
   `LedgerReaderContract`.
 - Policy classes (`AllowedActionsPolicy`, `ForbiddenActionsPolicy`, `RateLimitPolicy`, `ContextPolicy`) now read their config values once in the constructor rather than on every `enforce()` call.
+- `ExportVerifier` now uses PHP 8.0+ constructor property promotion, consistent with all other classes in the package.
 
 ---
 

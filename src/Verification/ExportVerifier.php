@@ -11,16 +11,11 @@ use JsonException;
  */
 class ExportVerifier
 {
-    protected SigningProvider $signer;
-
-    protected CanonicalPayloadSerializer $serializer;
-
     public function __construct(
-        SigningProvider $signer,
-        CanonicalPayloadSerializer $serializer,
+        protected readonly SigningProvider $signer,
+        protected readonly CanonicalPayloadSerializer $serializer,
     ) {
-        $this->signer = $signer;
-        $this->serializer = $serializer;
+        //
     }
 
     /**
