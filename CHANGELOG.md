@@ -61,6 +61,9 @@ breaking changes between any two versions — see upgrade notes per version.
 - Policy classes (`AllowedActionsPolicy`, `ForbiddenActionsPolicy`, `RateLimitPolicy`, `ContextPolicy`) now read their config values once in the constructor rather than on every `enforce()` call.
 - `ExportVerifier` now uses PHP 8.0+ constructor property promotion, consistent with all other classes in the package.
 - `PruneCommand` now builds the base prune query in a single private `buildPruneQuery()` helper, eliminating the three separate identical query constructions.
+- `ComplianceReport::collectStats()` now fetches `first_entry_id` and `last_entry_id` in a single `SELECT MIN/MAX` query, reducing four DB round-trips to three.
+- Removed `@` error-suppression operator from `ComplianceReport::generate()` file write; PHP warnings now propagate to the configured error handler.
+- `HasChronicle` now declares `$chronicleEvents` and `$chronicleIgnore` as trait properties with defaults, removing `property_exists()` duck-typing. Models override these properties normally. Ignored-field detection now uses `static::CREATED_AT` / `static::UPDATED_AT` so custom timestamp constants are respected.
 
 ---
 

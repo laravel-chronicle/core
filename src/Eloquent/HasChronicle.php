@@ -9,6 +9,12 @@ use Throwable;
 
 trait HasChronicle
 {
+    /** @var list<string> */
+    protected array $chronicleEvents = ['created', 'updated', 'deleted'];
+
+    /** @var list<string> */
+    protected array $chronicleIgnore = [];
+
     public static function bootHasChronicle(): void
     {
         static::created(
@@ -93,11 +99,7 @@ trait HasChronicle
 
     protected function shouldChronicleEvent(string $event): bool
     {
-        $events = property_exists($this, 'chronicleEvents')
-            ? $this->chronicleEvents
-            : ['created', 'updated', 'deleted'];
-
-        return in_array($event, $events, true);
+        return in_array($event, $this->chronicleEvents, true);
     }
 
     /**
@@ -105,10 +107,9 @@ trait HasChronicle
      */
     protected function chronicleIgnoredFields(): array
     {
-        $extra = property_exists($this, 'chronicleIgnore')
-            ? $this->chronicleIgnore
-            : [];
-
-        return array_merge(['created_at', 'updated_at'], $extra);
+        return array_merge(
+            [static::CREATED_AT ?? 'created_at', static::UPDATED_AT ?? 'updated_at'],
+            $this->chronicleIgnore,
+        );
     }
 }

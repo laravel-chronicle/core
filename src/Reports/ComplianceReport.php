@@ -60,7 +60,7 @@ class ComplianceReport
             html: $html,
         );
 
-        if (@file_put_contents($path, $html) === false) {
+        if (file_put_contents($path, $html) === false) {
             throw new RuntimeException("Chronicle: failed to write compliance report to [$path].");
         }
 
@@ -85,10 +85,14 @@ class ComplianceReport
         $entryCount = (clone $query)->count();
         /** @var string|null $chainHead */
         $chainHead = (clone $query)->orderByDesc('id')->value('chain_hash');
-        /** @var string|null $firstEntryId */
-        $firstEntryId = (clone $query)->orderBy('id')->value('id');
-        /** @var string|null $lastEntryId */
-        $lastEntryId = (clone $query)->orderByDesc('id')->value('id');
+
+        /** @var object{first_id: string|null, last_id: string|null}|null $bounds */
+        $bounds = (clone $query)
+            ->selectRaw('MIN(id) as first_id, MAX(id) as last_id')
+            ->first();
+
+        $firstEntryId = $bounds?->first_id;
+        $lastEntryId = $bounds?->last_id;
 
         return [$entryCount, $chainHead, $firstEntryId, $lastEntryId];
     }

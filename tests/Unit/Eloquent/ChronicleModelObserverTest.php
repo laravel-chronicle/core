@@ -29,3 +29,8 @@ it('subclass can extend ignoredFields via $ignoredFields property', function () 
         ->and($ignored)->toContain('internal_notes')
         ->and($ignored)->toContain('cache_bust');
 });
+
+it('HasChronicle uses declared properties, not property_exists()', function () {
+    $source = file_get_contents(__DIR__.'/../../../src/Eloquent/HasChronicle.php');
+    expect($source)->not->toContain('property_exists(');
+});
