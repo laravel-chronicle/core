@@ -130,6 +130,7 @@ breaking changes between any two versions — see upgrade notes per version.
 - `SerializesEntryAttributes` now stores a `null` diff as SQL `NULL` instead of the JSON string `"null"`. `WHERE diff IS NULL` queries now correctly identify entries that have no diff.
 - `DefaultReferenceResolver` now throws a clear `InvalidArgumentException` when passed an unsaved Eloquent model (one with no primary key), instead of silently producing a reference with a `null` ID.
 - `TagsValidator` now rejects tags containing non-printable or non-ASCII characters. This prevents Unicode homoglyph attacks (e.g. Cyrillic characters visually identical to ASCII) from bypassing the tag-uniqueness check.
+- `DatabaseDriver` and `ChainHashEntry` now apply the same defensive `DB::connection()` guard used elsewhere in the codebase: a missing or empty `chronicle.connection` config value correctly falls back to the default connection.
 
 ---
 

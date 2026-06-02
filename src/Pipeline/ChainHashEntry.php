@@ -27,10 +27,14 @@ class ChainHashEntry implements EntryProcessor
 
     public function process(PendingEntry $entry): PendingEntry
     {
-        /** @var string|null $connection */
-        $connection = config('chronicle.connection');
+        /** @var string|null $configured */
+        $configured = config('chronicle.connection');
 
-        if (DB::connection($connection)->transactionLevel() === 0) {
+        $db = is_string($configured) && $configured !== ''
+            ? DB::connection($configured)
+            : DB::connection();
+
+        if ($db->transactionLevel() === 0) {
             throw new LogicException('ChainHashEntry must run inside an open DB transaction.');
         }
 

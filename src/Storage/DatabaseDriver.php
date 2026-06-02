@@ -29,12 +29,16 @@ class DatabaseDriver implements StorageDriver
         /** @var string $table */
         $table = config('chronicle.tables.entries', 'chronicle_entries');
 
-        /** @var string $connection */
-        $connection = config('chronicle.connection');
+        /** @var string|null $configured */
+        $configured = config('chronicle.connection');
+
+        $db = is_string($configured) && $configured !== ''
+            ? DB::connection($configured)
+            : DB::connection();
 
         $attributes = $this->toEntryAttributes($entry);
 
-        DB::connection($connection)->table($table)->insert($attributes);
+        $db->table($table)->insert($attributes);
 
         $model = new Entry;
 
