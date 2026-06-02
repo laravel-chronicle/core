@@ -174,3 +174,23 @@ it('reads max length from config', function () {
 
     app(TagsValidator::class)->process(makeTagsValidatorPending(['abcd']));
 })->throws(InvalidTagsException::class);
+
+// ---------------------------------------------------------------------------
+// Must contain only ASCII printable characters
+// ---------------------------------------------------------------------------
+
+it('rejects a tag containing a non-ASCII character', function () {
+    // Cyrillic 'а' (U+0430) looks identical to ASCII 'a' but is a different byte
+    app(TagsValidator::class)->process(makeTagsValidatorPending(['аdmin']));
+})->throws(InvalidTagsException::class, 'ASCII');
+
+it('rejects tags that are visually identical homoglyphs', function () {
+    // Both look like "admin" but one uses Cyrillic 'а'
+    app(TagsValidator::class)->process(makeTagsValidatorPending(['admin', 'аdmin']));
+})->throws(InvalidTagsException::class, 'ASCII');
+
+it('accepts a tag with only printable ASCII characters', function () {
+    $entry = makeTagsValidatorPending(['billing-2026', 'admin_user', 'tag.with.dots']);
+
+    expect(app(TagsValidator::class)->process($entry))->toBe($entry);
+});
