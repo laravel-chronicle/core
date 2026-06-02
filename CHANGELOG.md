@@ -70,6 +70,12 @@ breaking changes between any two versions — see upgrade notes per version.
 - `RequestContextResolver` now receives `Illuminate\Http\Request` via constructor injection instead of pulling it from the global container with `app('request')`.
 - `ChronicleModelObserver::resolveActor()` return type narrowed from `mixed` to `Model|string`.
 - `ChronicleServiceProvider::registerSigning()` now uses `$app['config']->get()` consistently throughout the closure instead of mixing `$app['config']->get()` and the global `config()` helper.
+- `src/README.md` removed.
+
+---
+
+### Deprecated
+- `EntryBuilder::modelChanges()` now emits a `E_USER_DEPRECATED` notice and is marked for removal in v2.0. Use `modelDiff()` instead.
 
 ---
 
