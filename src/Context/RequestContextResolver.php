@@ -65,19 +65,32 @@ class RequestContextResolver extends AbstractContextResolver
     {
         $parsed = parse_url($url);
 
-        if (! is_array($parsed) || ! isset($parsed['query'])) {
+        if (! is_array($parsed)) {
             return $url;
         }
 
-        parse_str($parsed['query'], $params);
+        if (isset($parsed['query'])) {
+            parse_str($parsed['query'], $params);
 
-        foreach (self::SENSITIVE_PARAMS as $sensitive) {
-            if (array_key_exists($sensitive, $params)) {
-                $params[$sensitive] = '[redacted]';
+            foreach (self::SENSITIVE_PARAMS as $sensitive) {
+                if (array_key_exists($sensitive, $params)) {
+                    $params[$sensitive] = '[redacted]';
+                }
             }
+
+            $parsed['query'] = http_build_query($params);
         }
 
-        $parsed['query'] = http_build_query($params);
+        if (isset($parsed['fragment'])) {
+            parse_str($parsed['fragment'], $fragmentParams);
+
+            foreach (self::SENSITIVE_PARAMS as $sensitive) {
+                if (array_key_exists($sensitive, $fragmentParams)) {
+                    $fragmentParams[$sensitive] = '[redacted]';
+                }
+            }
+            $parsed['fragment'] = http_build_query($fragmentParams);
+        }
 
         return $this->rebuildUrl($parsed);
     }

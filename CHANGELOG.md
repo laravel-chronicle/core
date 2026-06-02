@@ -125,6 +125,7 @@ breaking changes between any two versions — see upgrade notes per version.
 - `ChronicleModelObserver` now uses `$model::CREATED_AT` and `$model::UPDATED_AT` when building diffs, so models with custom timestamp constants are handled correctly.
 - `LedgerStats::compute()` — `dailyActivity()` no longer applies a hardcoded 30-day lower bound when a `$from` bound is supplied. The daily activity window now honors the full requested range.
 - `LedgerStats::compute()` — `checkpointCount()` now respects the `$from`/`$to` bounds. Previously it always returned the total checkpoint count across all time.
+- `RequestContextResolver` now redacts sensitive parameters (e.g. `access_token`, `token`) from URL fragments in addition to query strings, preventing OAuth implicit-flow and OIDC tokens from being stored verbatim in the audit log.
 
 ---
 

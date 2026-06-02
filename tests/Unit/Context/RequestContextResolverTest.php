@@ -156,3 +156,35 @@ it('strips password and token query parameters from the stored URL', function ()
         ->and($result['url'])->not->toContain('abc123')
         ->and($result['url'])->toContain('action=export');
 });
+
+// Fragments are stripped by the HTTP layer before they reach the server, so
+// $request->fullUrl() never contains them. sanitizeUrl() is tested directly
+// here to verify the fragment-redaction logic without relying on fullUrl().
+function makeFragmentSanitizer(): RequestContextResolver
+{
+    return new class(app(Request::class)) extends RequestContextResolver
+    {
+        public function sanitize(string $url): string
+        {
+            return $this->sanitizeUrl($url);
+        }
+    };
+}
+
+it('redacts sensitive token parameters in the URL fragment', function () {
+    $sanitizer = makeFragmentSanitizer();
+
+    $result = $sanitizer->sanitize('https://example.com/callback#access_token=secret-token&state=abc');
+
+    expect($result)->not->toContain('secret-token')
+        ->and($result)->toContain('state=abc');
+});
+
+it('preserves the fragment when it contains no sensitive parameters', function () {
+    $sanitizer = makeFragmentSanitizer();
+
+    $result = $sanitizer->sanitize('https://example.com/page#section=overview&tab=details');
+
+    expect($result)->toContain('section=overview')
+        ->and($result)->toContain('tab=details');
+});
