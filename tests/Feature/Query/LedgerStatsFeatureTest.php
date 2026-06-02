@@ -78,12 +78,22 @@ it('dailyActivity() contains entries from the last 30 days', function () {
         ->and($stats->dailyActivity()[0])->toHaveKey('count');
 });
 
-it('dailyActivity() excludes entries older than 30 days', function () {
+it('dailyActivity() includes all entries when no from bound is given', function () {
     Carbon::setTestNow(now()->subDays(31));
     Chronicle::record()->actor('system')->action('old.entry')->subject(ref('ledger'))->commit();
     Carbon::setTestNow();
 
     $stats = LedgerStats::compute();
+
+    expect($stats->dailyActivity())->not->toBe([]);
+});
+
+it('dailyActivity() excludes entries before the from bound', function () {
+    Carbon::setTestNow(now()->subDays(31));
+    Chronicle::record()->actor('system')->action('old.entry')->subject(ref('ledger'))->commit();
+    Carbon::setTestNow();
+
+    $stats = LedgerStats::compute(from: now()->subDays(30)->startOfDay());
 
     expect($stats->dailyActivity())->toBe([]);
 });

@@ -77,3 +77,30 @@ it('topActions() is scoped by from/to', function () {
     expect($actions)->toContain('new.action')
         ->and($actions)->not->toContain('old.action');
 });
+
+it('dailyActivity() is scoped to the full from/to window, not capped at 30 days', function () {
+    // Insert an entry 60 days ago — outside the hardcoded 30-day window
+    insertRawEntry(
+        Carbon::now()->subDays(60)->format('Y-m-d H:i:s'),
+        'old.action'
+    );
+
+    $stats = LedgerStats::compute(from: Carbon::now()->subDays(90));
+
+    $dates = collect($stats->dailyActivity())->pluck('date')->all();
+
+    expect($dates)->not->toBeEmpty('dailyActivity should include entries from 60 days ago');
+});
+
+it('checkpointCount() is scoped by the from/to window', function () {
+    // chronicle:checkpoint requires at least one entry to exist
+    Chronicle::record()->actor('system')->action('cp.test')->subject(ref('x'))->commit();
+    $this->artisan('chronicle:checkpoint')->assertExitCode(0);
+
+    $stats = LedgerStats::compute(
+        from: Carbon::now()->addMinute(),  // window starts in the future
+        to: Carbon::now()->addHour(),
+    );
+
+    expect($stats->checkpointCount())->toBe(0);
+});

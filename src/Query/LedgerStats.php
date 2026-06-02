@@ -128,12 +128,9 @@ class LedgerStats
             ->values()
             ->all();
 
-        $activityCutoff = $to ?? now();
-
         /** @var list<array{date: string, count: int}> $dailyActivity */
         $dailyActivity = (clone $baseQuery)
             ->selectRaw('DATE(created_at) as date, COUNT(*) as count')
-            ->where('created_at', '>=', $activityCutoff->copy()->subDays(30)->startOfDay())
             ->groupByRaw('DATE(created_at)')
             ->orderBy('date')
             ->get()
@@ -141,7 +138,17 @@ class LedgerStats
             ->values()
             ->all();
 
-        $checkpointCount = $db->table($checkpointsTable)->count();
+        $cpQuery = $db->table($checkpointsTable);
+
+        if ($from !== null) {
+            $cpQuery->where('created_at', '>=', $from);
+        }
+
+        if ($to !== null) {
+            $cpQuery->where('created_at', '<=', $to);
+        }
+
+        $checkpointCount = $cpQuery->count();
 
         return new self(
             totalEntries: $totalEntries,
