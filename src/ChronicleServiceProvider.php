@@ -182,7 +182,7 @@ class ChronicleServiceProvider extends ServiceProvider
                     keyId: $config['key_id'],
                 );
             } catch (Throwable $e) {
-                if (config('chronicle.signing.enforce_on_boot', false)
+                if ($app['config']->get('chronicle.signing.enforce_on_boot', false)
                     && ! $app->environment('testing')
                 ) {
                     throw new RuntimeException(

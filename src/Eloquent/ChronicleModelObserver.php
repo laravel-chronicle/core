@@ -112,7 +112,7 @@ class ChronicleModelObserver
     /**
      * Resolve the actor. Defaults to the authenticated user, or 'system'.
      */
-    protected function resolveActor(Model $model): mixed
+    protected function resolveActor(Model $model): Model|string
     {
         return Auth::user() ?? 'system';
     }

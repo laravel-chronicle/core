@@ -68,6 +68,8 @@ breaking changes between any two versions — see upgrade notes per version.
 - `ExportVerifier::decodeJsonFile()` renamed to `tryDecodeJsonFile()` to make the "string return means failure code" contract explicit at the call site.
 - Export file names (`entries.ndjson`, `manifest.json`, `signature.json`) are now defined as constants in `ExportFormat` rather than as magic strings in each class.
 - `RequestContextResolver` now receives `Illuminate\Http\Request` via constructor injection instead of pulling it from the global container with `app('request')`.
+- `ChronicleModelObserver::resolveActor()` return type narrowed from `mixed` to `Model|string`.
+- `ChronicleServiceProvider::registerSigning()` now uses `$app['config']->get()` consistently throughout the closure instead of mixing `$app['config']->get()` and the global `config()` helper.
 
 ---
 
