@@ -3,6 +3,7 @@
 namespace Chronicle\Verification;
 
 use Chronicle\Contracts\SigningProvider;
+use Chronicle\Exports\ExportFormat;
 use Chronicle\Support\CanonicalPayloadSerializer;
 use JsonException;
 
@@ -23,9 +24,9 @@ class ExportVerifier
      */
     public function verify(string $path): ExportVerificationResult
     {
-        $entriesPath = $path.'/entries.ndjson';
-        $manifestPath = $path.'/manifest.json';
-        $signaturePath = $path.'/signature.json';
+        $entriesPath = $path.'/'.ExportFormat::ENTRIES;
+        $manifestPath = $path.'/'.ExportFormat::MANIFEST;
+        $signaturePath = $path.'/'.ExportFormat::SIGNATURE;
 
         if (! file_exists($entriesPath)) {
             return ExportVerificationResult::failure(

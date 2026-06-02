@@ -66,6 +66,7 @@ breaking changes between any two versions — see upgrade notes per version.
 - `HasChronicle` now declares `$chronicleEvents` and `$chronicleIgnore` as trait properties with defaults, removing `property_exists()` duck-typing. Models override these properties normally. Ignored-field detection now uses `static::CREATED_AT` / `static::UPDATED_AT` so custom timestamp constants are respected.
 - Diff-building logic extracted to `ModelDiffBuilder::build()` and shared by `HasChronicle` and `ChronicleModelObserver`. Previously both classes maintained identical (and drift-prone) copies.
 - `ExportVerifier::decodeJsonFile()` renamed to `tryDecodeJsonFile()` to make the "string return means failure code" contract explicit at the call site.
+- Export file names (`entries.ndjson`, `manifest.json`, `signature.json`) are now defined as constants in `ExportFormat` rather than as magic strings in each class.
 
 ---
 

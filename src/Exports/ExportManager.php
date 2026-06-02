@@ -35,7 +35,7 @@ class ExportManager
             throw ExportWriteException::directoryCreationFailed($path, $error['message'] ?? null);
         }
 
-        $entriesPath = $path.'/entries.ndjson';
+        $entriesPath = $path.'/'.ExportFormat::ENTRIES;
 
         $export = $this->entryExporter->export($entriesPath);
 
@@ -49,11 +49,11 @@ class ExportManager
             lastEntryId: $export->lastEntryId,
         );
 
-        $this->manifestBuilder->write($path.'/manifest.json', $manifest);
+        $this->manifestBuilder->write($path.'/'.ExportFormat::MANIFEST, $manifest);
 
         $signature = $this->signer->sign($datasetHash);
 
-        $this->signer->write($path.'/signature.json', $signature);
+        $this->signer->write($path.'/'.ExportFormat::SIGNATURE, $signature);
 
         return new ExportResult(
             entryCount: $export->entryCount,
