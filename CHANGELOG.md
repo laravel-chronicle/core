@@ -128,6 +128,7 @@ breaking changes between any two versions — see upgrade notes per version.
 - `RequestContextResolver` now redacts sensitive parameters (e.g. `access_token`, `token`) from URL fragments in addition to query strings, preventing OAuth implicit-flow and OIDC tokens from being stored verbatim in the audit log.
 - `RateLimitPolicy` now uses an atomic increment-then-check pattern (`RateLimiter::hit()` before comparing against the limit) to prevent concurrent requests from briefly exceeding the configured rate limit.
 - `SerializesEntryAttributes` now stores a `null` diff as SQL `NULL` instead of the JSON string `"null"`. `WHERE diff IS NULL` queries now correctly identify entries that have no diff.
+- `DefaultReferenceResolver` now throws a clear `InvalidArgumentException` when passed an unsaved Eloquent model (one with no primary key), instead of silently producing a reference with a `null` ID.
 
 ---
 
