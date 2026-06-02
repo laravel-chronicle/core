@@ -78,3 +78,20 @@ it('uses a separate limit bucket per actor', function () {
 
     $policy->enforce($secondEntry);
 })->throwsNoExceptions();
+
+it('increments the attempt counter even when the limit is exceeded', function () {
+    config(['chronicle.policy.rate_limit' => ['max_entries' => 1, 'decay_seconds' => 60]]);
+
+    $policy = new RateLimitPolicy;
+    $policy->enforce(makePolicyPending()); // first call, count becomes 1, passes
+
+    try {
+        $policy->enforce(makePolicyPending()); // second call, should throw
+    } catch (RateLimitExceededException) {
+        // expected
+    }
+
+    // With hit-first, the counter is 2 even after the thrown exception
+    $key = 'chronicle:rate:'.sha1('App\\Models\\User/42');
+    expect(RateLimiter::attempts($key))->toBe(2);
+});

@@ -32,12 +32,12 @@ class RateLimitPolicy extends AbstractPolicy
 
         $key = 'chronicle:rate:'.sha1($actorType.'/'.$actorId);
 
-        if (RateLimiter::tooManyAttempts($key, $this->maxEntries)) {
+        $attempts = RateLimiter::hit($key, $this->decaySeconds);
+
+        if ($attempts > $this->maxEntries) {
             throw RateLimitExceededException::exceededLimit(
                 RateLimiter::availableIn($key)
             );
         }
-
-        RateLimiter::hit($key, $this->decaySeconds);
     }
 }
