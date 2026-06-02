@@ -73,6 +73,7 @@ breaking changes between any two versions — see upgrade notes per version.
 - `src/README.md` removed.
 - Chronicle UI default middleware changed from `['web', 'auth']` to `['web', 'auth', 'can:view-chronicle']`. The gate must be defined in your application. Set `chronicle.ui.middleware` back to `['web', 'auth']` to restore the previous permissive default.
 - **Breaking:** The export signature now covers a canonical JSON payload containing all manifest fields (`dataset_hash`, `entry_count`, `first_entry_id`, `last_entry_id`, `chain_head`) instead of `dataset_hash` alone. Existing `signature.json` files produced by previous versions will fail verification — re-export to regenerate.
+- `Entry` model `@property` docblocks now accurately reflect cast return types: `$tags` is `array<int, string>`, `$diff` is `array<string, array{old: mixed, new: mixed}>|null`, and `$created_at` is `\Carbon\CarbonImmutable`.
 
 ---
 

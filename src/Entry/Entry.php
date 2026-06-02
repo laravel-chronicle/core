@@ -2,6 +2,7 @@
 
 namespace Chronicle\Entry;
 
+use Carbon\CarbonImmutable;
 use Carbon\CarbonInterface;
 use Chronicle\Checkpoints\Checkpoint;
 use Chronicle\Exceptions\ImmutabilityViolationException;
@@ -10,7 +11,6 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Support\Carbon;
 use Illuminate\Support\LazyCollection;
 
 /**
@@ -28,16 +28,16 @@ use Illuminate\Support\LazyCollection;
  * @property string $actor_type
  * @property string $actor_id
  * @property string $action
- * @property string $subject_type
- * @property string $subject_id
- * @property array<string,mixed> $payload
+ * @property string|null $subject_type
+ * @property string|null $subject_id
+ * @property array<string, mixed> $payload
  * @property string $payload_hash
  * @property string $chain_hash
- * @property string $checkpoint_id
- * @property string[] $tags
- * @property string $correlation_id
- * @property string[]|null $diff
- * @property Carbon $created_at
+ * @property string|null $checkpoint_id
+ * @property array<int, string> $tags
+ * @property string|null $correlation_id
+ * @property array<string, array{old: mixed, new: mixed}>|null $diff
+ * @property CarbonImmutable $created_at
  * @property array<string,mixed> $metadata
  * @property array<string,mixed> $context
  */
