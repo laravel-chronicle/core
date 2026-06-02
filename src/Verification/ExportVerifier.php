@@ -45,7 +45,7 @@ class ExportVerifier
             );
         }
 
-        $manifest = $this->decodeJsonFile(
+        $manifest = $this->tryDecodeJsonFile(
             path: $manifestPath,
             unreadableFailure: VerificationFailure::ManifestUnreadable->value,
             invalidJsonFailure: VerificationFailure::ManifestInvalidJson->value,
@@ -66,7 +66,7 @@ class ExportVerifier
         /** @var string|null $manifestChainHead */
         $manifestChainHead = $manifest['chain_head'];
 
-        $signature = $this->decodeJsonFile(
+        $signature = $this->tryDecodeJsonFile(
             path: $signaturePath,
             unreadableFailure: VerificationFailure::SignatureUnreadable->value,
             invalidJsonFailure: VerificationFailure::SignatureInvalidJson->value,
@@ -257,9 +257,11 @@ class ExportVerifier
     }
 
     /**
-     * @return array<string, mixed>|string
+     * Attempt to decode a JSON file.
+     *
+     * @return array<string, mixed>|string — array on success, failure-code string on failure
      */
-    protected function decodeJsonFile(
+    protected function tryDecodeJsonFile(
         string $path,
         string $unreadableFailure,
         string $invalidJsonFailure,
