@@ -127,6 +127,7 @@ breaking changes between any two versions — see upgrade notes per version.
 - `LedgerStats::compute()` — `checkpointCount()` now respects the `$from`/`$to` bounds. Previously it always returned the total checkpoint count across all time.
 - `RequestContextResolver` now redacts sensitive parameters (e.g. `access_token`, `token`) from URL fragments in addition to query strings, preventing OAuth implicit-flow and OIDC tokens from being stored verbatim in the audit log.
 - `RateLimitPolicy` now uses an atomic increment-then-check pattern (`RateLimiter::hit()` before comparing against the limit) to prevent concurrent requests from briefly exceeding the configured rate limit.
+- `SerializesEntryAttributes` now stores a `null` diff as SQL `NULL` instead of the JSON string `"null"`. `WHERE diff IS NULL` queries now correctly identify entries that have no diff.
 
 ---
 

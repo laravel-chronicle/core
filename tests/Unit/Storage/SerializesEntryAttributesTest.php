@@ -52,3 +52,40 @@ it('serializes all entry fields with json-encoded array columns', function () {
         ->and($attrs['checkpoint_id'])->toBeNull()
         ->and($attrs['created_at'])->toBe($now);
 });
+
+it('stores null diff as SQL NULL, not the JSON string "null"', function () {
+    $driver = new class
+    {
+        use SerializesEntryAttributes;
+
+        /** @param array<string, mixed> $entry
+         *  @return array<string, mixed> */
+        public function expose(array $entry): array
+        {
+            return $this->toEntryAttributes($entry);
+        }
+    };
+
+    $entry = [
+        'id' => '01JMQP5M2M0P0X2A9BTD3M7D02',
+        'actor_type' => 'App\\Models\\User',
+        'actor_id' => '1',
+        'action' => 'order.created',
+        'subject_type' => 'App\\Models\\Order',
+        'subject_id' => '1',
+        'payload' => [],
+        'payload_hash' => 'abc',
+        'chain_hash' => 'def',
+        'metadata' => [],
+        'context' => [],
+        'tags' => [],
+        'diff' => null,
+        'correlation_id' => null,
+        'checkpoint_id' => null,
+        'created_at' => Carbon::parse('2026-01-01'),
+    ];
+
+    $attrs = $driver->expose($entry);
+
+    expect($attrs['diff'])->toBeNull('diff should be SQL NULL, not the string "null"');
+});

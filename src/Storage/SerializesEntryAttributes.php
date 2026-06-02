@@ -27,7 +27,7 @@ trait SerializesEntryAttributes
             'metadata' => json_encode($entry['metadata'], JSON_THROW_ON_ERROR),
             'context' => json_encode($entry['context'], JSON_THROW_ON_ERROR),
             'tags' => json_encode($entry['tags'], JSON_THROW_ON_ERROR),
-            'diff' => json_encode($entry['diff'], JSON_THROW_ON_ERROR),
+            'diff' => $entry['diff'] !== null ? json_encode($entry['diff'], JSON_THROW_ON_ERROR) : null,
             'correlation_id' => $entry['correlation_id'],
             'checkpoint_id' => $entry['checkpoint_id'],
             'created_at' => $entry['created_at'],
