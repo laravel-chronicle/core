@@ -73,6 +73,9 @@ breaking changes between any two versions — see upgrade notes per version.
 
 ### Fixed
 
+- `chronicle:install` now honours the `--migrate` flag to skip the interactive confirmation in non-TTY environments.
+- `publishMigrations()` uses a fixed base date (`2026-01-01`) for migration timestamps instead of the current wall clock, making repeated installs produce deterministic file names.
+- `chronicle:install` now skips the "publish views" and "star on GitHub" confirmation prompts when `--no-interaction` is set.
 - `PersistChronicleEntryJob` was reading `chronicle.database.connection` (non-existent key) instead
   of `chronicle.connection`. On apps with a dedicated Chronicle database connection, the job silently
   wrote to the wrong database, corrupting the chain.

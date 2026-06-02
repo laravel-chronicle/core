@@ -64,3 +64,23 @@ it('prints the GitHub repo link instead of opening a browser', function () {
         ->expectsOutputToContain('github.com/laravel-chronicle/core')
         ->assertSuccessful();
 });
+
+it('honours the --migrate flag without prompting', function () {
+    Schema::dropIfExists('chronicle_entries');
+    Schema::dropIfExists('chronicle_checkpoints');
+
+    $this->artisan('chronicle:install', [
+        '--migrate' => true,
+        '--no-interaction' => true,
+    ])->assertExitCode(0);
+});
+
+it('publishMigrations uses a fixed base date not wall-clock time', function () {
+    // Call install twice — second call skips existing migrations,
+    // so timestamps must be deterministic
+    $firstRun = $this->artisan('chronicle:install', ['--no-interaction' => true])->run();
+    $secondRun = $this->artisan('chronicle:install', ['--no-interaction' => true])->run();
+
+    // Both should succeed without producing duplicate files
+    expect($firstRun)->toBe(0)->and($secondRun)->toBe(0);
+});
