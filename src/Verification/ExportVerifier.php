@@ -107,8 +107,22 @@ class ExportVerifier
         /** @var string $sign */
         $sign = $signature['signature'];
 
+        /** @var string|null $manifestFirstEntryId */
+        $manifestFirstEntryId = $manifest['first_entry_id'];
+
+        /** @var string|null $manifestLastEntryId */
+        $manifestLastEntryId = $manifest['last_entry_id'];
+
+        $canonical = json_encode([
+            'dataset_hash' => $manifestDatasetHash,
+            'entry_count' => $manifestEntryCount,
+            'first_entry_id' => $manifestFirstEntryId,
+            'last_entry_id' => $manifestLastEntryId,
+            'chain_head' => $manifestChainHead,
+        ], JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES);
+
         $validSignature = $this->signer->verify(
-            $manifestDatasetHash,
+            $canonical,
             $sign,
         );
 

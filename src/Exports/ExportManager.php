@@ -51,7 +51,13 @@ class ExportManager
 
         $this->manifestBuilder->write($path.'/'.ExportFormat::MANIFEST, $manifest);
 
-        $signature = $this->signer->sign($datasetHash);
+        $signature = $this->signer->sign(
+            datasetHash: $datasetHash,
+            entryCount: $export->entryCount,
+            firstEntryId: $export->firstEntryId,
+            lastEntryId: $export->lastEntryId,
+            chainHead: $export->chainHead,
+        );
 
         $this->signer->write($path.'/'.ExportFormat::SIGNATURE, $signature);
 

@@ -72,6 +72,7 @@ breaking changes between any two versions — see upgrade notes per version.
 - `ChronicleServiceProvider::registerSigning()` now uses `$app['config']->get()` consistently throughout the closure instead of mixing `$app['config']->get()` and the global `config()` helper.
 - `src/README.md` removed.
 - Chronicle UI default middleware changed from `['web', 'auth']` to `['web', 'auth', 'can:view-chronicle']`. The gate must be defined in your application. Set `chronicle.ui.middleware` back to `['web', 'auth']` to restore the previous permissive default.
+- **Breaking:** The export signature now covers a canonical JSON payload containing all manifest fields (`dataset_hash`, `entry_count`, `first_entry_id`, `last_entry_id`, `chain_head`) instead of `dataset_hash` alone. Existing `signature.json` files produced by previous versions will fail verification — re-export to regenerate.
 
 ---
 

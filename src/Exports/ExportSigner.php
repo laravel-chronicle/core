@@ -19,13 +19,28 @@ class ExportSigner
     }
 
     /**
-     * Sign the dataset hash.
+     * Sign a canonical payload containing all manifest fields.
      *
      * @return array<string, mixed>
+     *
+     * @throws JsonException
      */
-    public function sign(string $datasetHash): array
-    {
-        $signature = $this->signer->sign($datasetHash);
+    public function sign(
+        string $datasetHash,
+        int $entryCount,
+        ?string $firstEntryId,
+        ?string $lastEntryId,
+        ?string $chainHead,
+    ): array {
+        $canonical = json_encode([
+            'dataset_hash' => $datasetHash,
+            'entry_count' => $entryCount,
+            'first_entry_id' => $firstEntryId,
+            'last_entry_id' => $lastEntryId,
+            'chain_head' => $chainHead,
+        ], JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES);
+
+        $signature = $this->signer->sign($canonical);
 
         return [
             'signature' => $signature,
