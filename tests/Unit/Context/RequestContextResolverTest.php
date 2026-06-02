@@ -27,7 +27,7 @@ function makeRequestPending(mixed $context = []): PendingEntry
 // Helper: resolver that bypasses console detection (simulates HTTP context in tests).
 function makeHttpResolver(): RequestContextResolver
 {
-    return new class extends RequestContextResolver
+    return new class(app(Request::class)) extends RequestContextResolver
     {
         protected function isRunningInConsole(): bool
         {
@@ -45,7 +45,7 @@ it('runs in the resolve_context stage', function () {
 });
 
 it('returns the entry unmodified when running in console', function () {
-    $resolver = new class extends RequestContextResolver
+    $resolver = new class(app(Request::class)) extends RequestContextResolver
     {
         protected function isRunningInConsole(): bool
         {
