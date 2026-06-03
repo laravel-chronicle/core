@@ -33,7 +33,7 @@ class IntegrityVerifier
     /**
      * Verify the entire ledger.
      *
-     * @param  callable(int $processed, int $total): void|null  $onProgress
+     * @param  callable(int $processed): void|null  $onProgress
      *
      * @throws JsonException
      */
@@ -41,7 +41,6 @@ class IntegrityVerifier
     {
         $previousChain = '0';
         $count = 0;
-        $total = Entry::query()->count();
 
         $result = new VerificationResult;
 
@@ -49,7 +48,7 @@ class IntegrityVerifier
         $verifiedCheckpoints = [];
 
         /** @var Entry $entry */
-        foreach (Entry::query()->orderBy('created_at')->orderBy('id')->cursor() as $entry) {
+        foreach (Entry::query()->orderBy('id')->cursor() as $entry) {
             // Payload verification
             $canonical = $this->serializer->serialize(
                 $entry->payload
@@ -57,9 +56,9 @@ class IntegrityVerifier
 
             $payloadHash = hash('sha256', $canonical);
 
-            if ($payloadHash !== $entry->payload_hash) {
+            if (! hash_equals($payloadHash, (string) $entry->payload_hash)) {
                 $result->fail(
-                    'payload_hash_mismatch',
+                    VerificationFailure::PayloadHashMismatch->value,
                     $entry->id
                 );
 
@@ -72,9 +71,9 @@ class IntegrityVerifier
                 $payloadHash
             );
 
-            if ($expectedChain !== $entry->chain_hash) {
+            if (! hash_equals($expectedChain, (string) $entry->chain_hash)) {
                 $result->fail(
-                    'chain_hash_mismatch',
+                    VerificationFailure::ChainHashMismatch->value,
                     $entry->id
                 );
 
@@ -87,7 +86,7 @@ class IntegrityVerifier
 
                 if (! $checkpoint) {
                     $result->fail(
-                        'checkpoint_missing',
+                        VerificationFailure::CheckpointMissing->value,
                         $entry->id
                     );
 
@@ -101,7 +100,7 @@ class IntegrityVerifier
 
                 if (! $valid) {
                     $result->fail(
-                        'checkpoint_signature_invalid',
+                        VerificationFailure::CheckpointSignatureInvalid->value,
                         $entry->id
                     );
 
@@ -115,7 +114,7 @@ class IntegrityVerifier
             $count++;
 
             if ($onProgress) {
-                $onProgress($count, $total);
+                $onProgress($count);
             }
         }
 

@@ -28,7 +28,7 @@ it('renders the entry detail page', function () {
     $user = FakeUser::create(['name' => 'Admin']);
 
     $this->actingAs($user)
-        ->get("/chronicle/entries/{$entry->id}")
+        ->get("/chronicle/entries/$entry->id")
         ->assertOk()
         ->assertViewIs('chronicle::entries.show')
         ->assertSee($entry->id)
@@ -40,7 +40,7 @@ it('redirects to index when entry is not found', function () {
     $user = FakeUser::create(['name' => 'Admin']);
 
     $this->actingAs($user)
-        ->get('/chronicle/entries/nonexistent-id')
+        ->get('/chronicle/entries/01KSHVDA9QJNC1Y3KGYMGT75HC')
         ->assertRedirect('/chronicle');
 });
 
@@ -74,4 +74,9 @@ it('shows diff section when entry has a diff', function () {
         ->assertSee('amount')
         ->assertSee('100')
         ->assertSee('200');
+});
+
+it('returns 404 for a non-ULID id in show()', function () {
+    $response = $this->get(route('chronicle.entries.show', ['id' => '<script>alert(1)</script>']));
+    $response->assertStatus(404);
 });

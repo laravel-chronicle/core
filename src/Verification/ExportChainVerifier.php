@@ -57,7 +57,7 @@ class ExportChainVerifier
 
             $computed = hash('sha256', $previousHash.$payloadHash);
 
-            if ($computed !== $chainHash) {
+            if (! hash_equals($computed, $chainHash)) {
                 fclose($handle);
 
                 return false;

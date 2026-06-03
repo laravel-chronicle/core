@@ -2,6 +2,7 @@
 
 use Chronicle\Contracts\EntryExtension;
 use Chronicle\Contracts\ReferenceResolver;
+use Chronicle\Contracts\SigningProvider;
 use Chronicle\Contracts\StorageDriver;
 use Chronicle\Entry\PendingEntry;
 use Chronicle\Exceptions\InvalidActionException;
@@ -9,6 +10,7 @@ use Chronicle\Facades\Chronicle;
 use Chronicle\Pipeline\EntryExtensionRegistry;
 use Chronicle\Pipeline\EntryPipeline;
 use Chronicle\Pipeline\ExtensionStage;
+use Chronicle\Signing\NullSigningProvider;
 use Chronicle\Storage\ArrayDriver;
 use Chronicle\Storage\DatabaseDriver;
 use Chronicle\Storage\DriverResolver;
@@ -106,3 +108,21 @@ it('rejects persisted actions without dot notation', function () {
         ->subject(ref('ledger'))
         ->commit();
 })->throws(InvalidActionException::class);
+
+it('throws when signing provider does not implement SigningProvider', function () {
+    config()->set('chronicle.signing.provider', stdClass::class);
+    app()->forgetInstance(SigningProvider::class);
+
+    app(SigningProvider::class);
+})->throws(RuntimeException::class, 'must implement');
+
+it('boots successfully when enforce_on_boot is false and keys are missing', function () {
+    config()->set('chronicle.signing.enforce_on_boot', false);
+    config()->set('chronicle.signing.private_key');
+    config()->set('chronicle.signing.public_key');
+    app()->forgetInstance(SigningProvider::class);
+
+    $provider = app(SigningProvider::class);
+
+    expect($provider)->toBeInstanceOf(NullSigningProvider::class);
+});

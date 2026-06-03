@@ -5,7 +5,9 @@ namespace Chronicle\Console\Commands;
 use Carbon\Carbon;
 use Chronicle\Entry\Entry;
 use Illuminate\Console\Command;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
+use Throwable;
 
 class PruneCommand extends Command
 {
@@ -51,19 +53,21 @@ class PruneCommand extends Command
             }
         }
 
-        $query = Entry::query()->where('created_at', '<', $cutoff);
+        $query = $this->buildPruneQuery($cutoff, $force, $respectCheckpoints);
 
         if (! $force && $respectCheckpoints) {
             $query->whereNull('checkpoint_id');
         }
 
-        $count = $query->count();
-
         if ($dryRun) {
-            /** @var string|null $oldest */
-            $oldest = Entry::query()->where('created_at', '<', $cutoff)->min('created_at');
-            /** @var string|null $newest */
-            $newest = Entry::query()->where('created_at', '<', $cutoff)->max('created_at');
+            /** @var object{count: int, oldest: string|null, newest: string|null}|null $preview */
+            $preview = $this->buildPruneQuery($cutoff, $force, $respectCheckpoints)
+                ->selectRaw('COUNT(*) as count, MIN(created_at) as oldest, MAX(created_at) as newest')
+                ->first();
+
+            $count = $preview->count ?? 0;
+            $oldest = $preview->oldest ?? null;
+            $newest = $preview->newest ?? null;
 
             $this->info(sprintf(
                 '[dry run] Would prune %d entries (oldest: %s, newest: %s).',
@@ -84,9 +88,7 @@ class PruneCommand extends Command
         $deleted = 0;
 
         do {
-            $ids = Entry::query()
-                ->where('created_at', '<', $cutoff)
-                ->when(! $force && $respectCheckpoints, fn ($q) => $q->whereNull('checkpoint_id'))
+            $ids = $this->buildPruneQuery($cutoff, $force, $respectCheckpoints)
                 ->orderBy('id')
                 ->limit(1000)
                 ->pluck('id');
@@ -117,7 +119,13 @@ class PruneCommand extends Command
             /** @var string $before */
             $before = $this->option('before');
 
-            return Carbon::parse($before);
+            try {
+                return Carbon::parse($before);
+            } catch (Throwable) {
+                $this->error("Invalid date format for --before: \"$before\". Expected Y-m-d.");
+
+                return null;
+            }
         }
 
         /** @var int|null $configured */
@@ -128,5 +136,19 @@ class PruneCommand extends Command
         }
 
         return null;
+    }
+
+    /**
+     * @return Builder<Entry>
+     */
+    protected function buildPruneQuery(Carbon $cutoff, bool $force, bool $respectCheckpoints): Builder
+    {
+        $query = Entry::query()->where('created_at', '<', $cutoff);
+
+        if (! $force && $respectCheckpoints) {
+            $query->whereNull('checkpoint_id');
+        }
+
+        return $query;
     }
 }

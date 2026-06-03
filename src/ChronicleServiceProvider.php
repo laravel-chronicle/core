@@ -19,7 +19,6 @@ use Chronicle\Contracts\SigningProvider;
 use Chronicle\Contracts\StorageDriver;
 use Chronicle\Entry\EloquentLedgerReader;
 use Chronicle\Exports\EntryExporter;
-use Chronicle\Exports\ExportHasher;
 use Chronicle\Exports\ExportManager;
 use Chronicle\Exports\ExportManifestBuilder;
 use Chronicle\Exports\ExportSigner;
@@ -31,6 +30,7 @@ use Chronicle\Pipeline\HashPayload;
 use Chronicle\Pipeline\PersistEntry;
 use Chronicle\Pipeline\RunExtensions;
 use Chronicle\Reports\ComplianceReport;
+use Chronicle\Signing\NullSigningProvider;
 use Chronicle\Storage\DriverResolver;
 use Chronicle\Storage\QueuedDriver;
 use Chronicle\Support\CanonicalPayloadSerializer;
@@ -167,6 +167,14 @@ class ChronicleServiceProvider extends ServiceProvider
             /** @var array{provider: class-string, private_key: ?string, public_key: ?string, key_id: string} $config */
             $config = $app['config']->get('chronicle.signing', []);
 
+            $providerClass = $config['provider'];
+
+            if (! is_a($providerClass, SigningProvider::class, true)) {
+                throw new RuntimeException(
+                    "Chronicle signing provider [$providerClass] must implement ".SigningProvider::class.'.'
+                );
+            }
+
             try {
                 return new $config['provider'](
                     privateKey: $config['private_key'],
@@ -174,7 +182,7 @@ class ChronicleServiceProvider extends ServiceProvider
                     keyId: $config['key_id'],
                 );
             } catch (Throwable $e) {
-                if (config('chronicle.signing.enforce_on_boot', false)
+                if ($app['config']->get('chronicle.signing.enforce_on_boot', false)
                     && ! $app->environment('testing')
                 ) {
                     throw new RuntimeException(
@@ -184,7 +192,7 @@ class ChronicleServiceProvider extends ServiceProvider
                     );
                 }
 
-                throw $e;
+                return new NullSigningProvider($e);
             }
         });
     }
@@ -197,7 +205,6 @@ class ChronicleServiceProvider extends ServiceProvider
     protected function registerExports(): void
     {
         $this->app->singleton(EntryExporter::class);
-        $this->app->singleton(ExportHasher::class);
         $this->app->singleton(ExportManifestBuilder::class);
         $this->app->singleton(ExportSigner::class);
         $this->app->singleton(ExportVerifier::class);
@@ -207,7 +214,6 @@ class ChronicleServiceProvider extends ServiceProvider
         $this->app->singleton(ExportManager::class, function ($app) {
             return new ExportManager(
                 $app->make(EntryExporter::class),
-                $app->make(ExportHasher::class),
                 $app->make(ExportManifestBuilder::class),
                 $app->make(ExportSigner::class),
             );
@@ -274,27 +280,6 @@ class ChronicleServiceProvider extends ServiceProvider
 
         if (config('chronicle.ui.enabled', false)) {
             $this->loadRoutesFrom(__DIR__.'/../routes/ui.php');
-        }
-    }
-
-    protected function assertSigningConfiguration(): void
-    {
-        if (! config('chronicle.signing.enforce_on_boot', false)) {
-            return;
-        }
-
-        if ($this->app->environment('testing')) {
-            return;
-        }
-
-        try {
-            $this->app->make(SigningProvider::class);
-        } catch (Throwable $e) {
-            throw new RuntimeException(
-                'Invalid Chronicle signing configuration. Configure CHRONICLE_PRIVATE_KEY and CHRONICLE_PUBLIC_KEY (or a valid custom signing provider).',
-                0,
-                $e
-            );
         }
     }
 }

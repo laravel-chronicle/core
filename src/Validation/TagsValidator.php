@@ -62,6 +62,10 @@ class TagsValidator implements EntryExtension, PrioritizedEntryExtension
                 throw InvalidTagsException::mustNotBeEmpty((int) $index);
             }
 
+            if (preg_match('/[^\x20-\x7E]/', $tag) === 1) {
+                throw InvalidTagsException::mustContainOnlyAscii($tag);
+            }
+
             if (array_key_exists($tag, $seen)) {
                 throw InvalidTagsException::mustBeUnique($tag);
             }

@@ -2,6 +2,8 @@
 
 namespace Chronicle\Testing;
 
+use Chronicle\ChronicleManager;
+use Chronicle\Contracts\StorageDriver;
 use Chronicle\Storage\ArrayDriver;
 use Illuminate\Support\Collection;
 use PHPUnit\Framework\Assert;
@@ -21,7 +23,7 @@ class ChronicleAssertions
      */
     public function entries(): Collection
     {
-        return ArrayDriver::all();
+        return $this->driver->allEntries();
     }
 
     /**
@@ -30,7 +32,7 @@ class ChronicleAssertions
      */
     public function assertRecorded(?callable $filter = null): static
     {
-        $entries = ArrayDriver::all();
+        $entries = $this->driver->allEntries();
 
         if ($filter !== null) {
             $entries = $entries->filter($filter);
@@ -52,7 +54,7 @@ class ChronicleAssertions
      */
     public function assertRecordedCount(int $count, ?callable $filter = null): static
     {
-        $entries = ArrayDriver::all();
+        $entries = $this->driver->allEntries();
 
         if ($filter !== null) {
             $entries = $entries->filter($filter);
@@ -74,7 +76,7 @@ class ChronicleAssertions
     {
         Assert::assertCount(
             0,
-            ArrayDriver::all()->all(),
+            $this->driver->allEntries()->all(),
             'Failed asserting that no Chronicle entries were recorded.'
         );
 
@@ -86,7 +88,7 @@ class ChronicleAssertions
      */
     public function assertNotRecorded(callable $filter): static
     {
-        $matching = ArrayDriver::all()->filter($filter);
+        $matching = $this->driver->allEntries()->filter($filter);
 
         Assert::assertTrue(
             $matching->isEmpty(),
@@ -94,5 +96,24 @@ class ChronicleAssertions
         );
 
         return $this;
+    }
+
+    /**
+     * Restore the real StorageDriver after a fake() call.
+     *
+     * Clears the ArrayDriver container binding and resets the ChronicleManager
+     * so the next Chronicle call resolves the driver from config.
+     *
+     * Call in afterEach() when test ordering matters:
+     *
+     *   afterEach(fn () => $fake->restore());
+     */
+    public function restore(): void
+    {
+        app()->forgetInstance(StorageDriver::class);
+
+        /** @var ChronicleManager $manager */
+        $manager = app('chronicle');
+        $manager->resetDriver();
     }
 }

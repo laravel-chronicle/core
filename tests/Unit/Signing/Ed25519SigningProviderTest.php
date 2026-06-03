@@ -35,3 +35,21 @@ it('signs and verifies payloads', function () {
     expect($provider->verify($payload, $signature))->toBeTrue()
         ->and($provider->verify($payload, 'not-base64'))->toBeFalse();
 });
+
+it('destructor does not throw when privateKey is null', function () {
+    // Simulate construction failure leaving $privateKey null.
+    // We do this by constructing with a bad public key, catching the exception,
+    // then verifying the destructor does not throw when the object is destroyed.
+    $threw = false;
+    try {
+        $provider = new Ed25519SigningProvider(
+            privateKey: 'RcSfC2MuYTPnkrL/MIA4/l/sAjirGXXIFXZEPokdwh1Lcz+SvNE7bjvgCsDotjnlHfJyZ4XW/kUXemtoyaa92Q==',
+            publicKey: base64_encode('tooshort'),
+        );
+    } catch (InvalidArgumentException) {
+        $threw = true;
+    }
+    expect($threw)->toBeTrue();
+    // If destructor throws on null, the test process itself would fatal-error here.
+    gc_collect_cycles();
+});

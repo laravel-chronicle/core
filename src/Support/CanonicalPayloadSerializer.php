@@ -2,8 +2,12 @@
 
 namespace Chronicle\Support;
 
+use BackedEnum;
 use DateTimeInterface;
 use JsonException;
+use Stringable;
+use UnexpectedValueException;
+use UnitEnum;
 
 /**
  * Class CanonicalPayloadSerializer
@@ -78,10 +82,26 @@ class CanonicalPayloadSerializer
             return null;
         }
 
-        /** @var string $returnValue */
-        $returnValue = $value;
+        if ($value instanceof BackedEnum) {
+            return (string) $value->value;
+        }
 
-        return $returnValue;
+        if ($value instanceof Stringable) {
+            return (string) $value;
+        }
+
+        if ($value instanceof UnitEnum) {
+            return $value->name;
+        }
+
+        if (is_string($value)) {
+            return $value;
+        }
+
+        throw new UnexpectedValueException(sprintf(
+            'CanonicalPayloadSerializer cannot normalize value of type %s',
+            get_debug_type($value)
+        ));
     }
 
     /**
@@ -91,6 +111,10 @@ class CanonicalPayloadSerializer
      */
     protected function isAssoc(array $array): bool
     {
+        if ($array === []) {
+            return false;
+        }
+
         return array_keys($array) !== range(0, count($array) - 1);
     }
 }

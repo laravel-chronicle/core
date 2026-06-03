@@ -52,14 +52,18 @@ class DefaultReferenceResolver implements ReferenceResolver
      */
     protected function resolveModel(Model $model): Reference
     {
-        /** @var string $key */
+        /** @var int|null $key */
         $key = $model->getKey();
 
-        $id = $key;
+        if ($key === null) {
+            throw new InvalidArgumentException(
+                sprintf('Chronicle: model %s has no primary key — pass a persisted model.', $model::class)
+            );
+        }
 
         return new Reference(
             $model::class,
-            $id,
+            (string) $key,
         );
     }
 }

@@ -29,36 +29,38 @@ class ComplianceReport
         );
 
         $signature = $this->signer->sign($reportHash);
+        $algorithm = $this->signer->algorithm();
+        $keyId = $this->signer->keyId();
+
+        $fromCarbon = $from instanceof Carbon ? $from : ($from !== null ? Carbon::instance($from) : null);
+        $toCarbon = $to instanceof Carbon ? $to : ($to !== null ? Carbon::instance($to) : null);
+
+        $html = $this->renderHtml(
+            entryCount: $entryCount,
+            chainHead: $chainHead,
+            reportHash: $reportHash,
+            signature: $signature,
+            algorithm: $algorithm,
+            keyId: $keyId,
+            generatedAt: $generatedAt,
+            from: $fromCarbon,
+            to: $toCarbon,
+        );
 
         $result = new ComplianceReportResult(
             entryCount: $entryCount,
             chainHead: $chainHead,
             reportHash: $reportHash,
             signature: $signature,
-            algorithm: $this->signer->algorithm(),
-            keyId: $this->signer->keyId(),
+            algorithm: $algorithm,
+            keyId: $keyId,
             generatedAt: $generatedAt,
-            from: $from instanceof Carbon ? $from : ($from !== null ? Carbon::instance($from) : null),
-            to: $to instanceof Carbon ? $to : ($to !== null ? Carbon::instance($to) : null),
-            html: '',
-        );
-
-        $html = $this->renderHtml($result);
-
-        $result = new ComplianceReportResult(
-            entryCount: $result->entryCount,
-            chainHead: $result->chainHead,
-            reportHash: $result->reportHash,
-            signature: $result->signature,
-            algorithm: $result->algorithm,
-            keyId: $result->keyId,
-            generatedAt: $result->generatedAt,
-            from: $result->from,
-            to: $result->to,
+            from: $fromCarbon,
+            to: $toCarbon,
             html: $html,
         );
 
-        if (@file_put_contents($path, $html) === false) {
+        if (file_put_contents($path, $html) === false) {
             throw new RuntimeException("Chronicle: failed to write compliance report to [$path].");
         }
 
@@ -81,12 +83,16 @@ class ComplianceReport
         }
 
         $entryCount = (clone $query)->count();
-        /** @var string $chainHead */
+        /** @var string|null $chainHead */
         $chainHead = (clone $query)->orderByDesc('id')->value('chain_hash');
-        /** @var string $firstEntryId */
-        $firstEntryId = (clone $query)->orderBy('id')->value('id');
-        /** @var string $lastEntryId */
-        $lastEntryId = (clone $query)->orderByDesc('id')->value('id');
+
+        /** @var object{first_id: string|null, last_id: string|null}|null $bounds */
+        $bounds = (clone $query)
+            ->selectRaw('MIN(id) as first_id, MAX(id) as last_id')
+            ->first();
+
+        $firstEntryId = $bounds?->first_id;
+        $lastEntryId = $bounds?->last_id;
 
         return [$entryCount, $chainHead, $firstEntryId, $lastEntryId];
     }
@@ -117,15 +123,24 @@ class ComplianceReport
         return hash('sha256', $canonical);
     }
 
-    protected function renderHtml(ComplianceReportResult $result): string
-    {
+    protected function renderHtml(
+        int $entryCount,
+        ?string $chainHead,
+        string $reportHash,
+        string $signature,
+        string $algorithm,
+        ?string $keyId,
+        Carbon $generatedAt,
+        ?Carbon $from,
+        ?Carbon $to,
+    ): string {
         $e = fn ($value): string => htmlspecialchars(($value ?? '—'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
 
-        $period = $result->from !== null || $result->to !== null
-            ? $e($result->from?->toDateString() ?? '∞').' – '.$e($result->to?->toDateString() ?? '∞')
+        $period = $from !== null || $to !== null
+            ? $e($from?->toDateString() ?? '∞').' – '.$e($to?->toDateString() ?? '∞')
             : 'All entries';
 
-        $chainHead = $result->chainHead !== null ? $e($result->chainHead) : '<em>empty ledger</em>';
+        $chainHeadHtml = $chainHead !== null ? $e($chainHead) : '<em>empty ledger</em>';
 
         return <<<HTML
     <!DOCTYPE html>
@@ -150,17 +165,17 @@ class ComplianceReport
     <body>
       <h1>Chronicle Compliance Report</h1>
       <table>
-        <tr><th class="label">Generated</th><td>{$e($result->generatedAt->toIso8601String())}</td></tr>
-        <tr><th class="label">Period</th><td>{$period}</td></tr>
-        <tr><th class="label">Entry count</th><td>{$e($result->entryCount)}</td></tr>
-        <tr><th class="label">Chain head</th><td>{$chainHead}</td></tr>
-        <tr><th class="label">Report hash (SHA-256)</th><td>{$e($result->reportHash)}</td></tr>
+        <tr><th class="label">Generated</th><td>{$e($generatedAt->toIso8601String())}</td></tr>
+        <tr><th class="label">Period</th><td>$period</td></tr>
+        <tr><th class="label">Entry count</th><td>{$e($entryCount)}</td></tr>
+        <tr><th class="label">Chain head</th><td>$chainHeadHtml</td></tr>
+        <tr><th class="label">Report hash (SHA-256)</th><td>{$e($reportHash)}</td></tr>
       </table>
       <div class="sig-block">
         <strong>Signature block</strong>
-        <div><b>Algorithm:</b> {$e($result->algorithm)}</div>
-        <div><b>Key ID:</b> {$e($result->keyId)}</div>
-        <div style="margin-top:8px;word-break:break-all;"><b>Signature:</b> {$e($result->signature)}</div>
+        <div><b>Algorithm:</b> {$e($algorithm)}</div>
+        <div><b>Key ID:</b> {$e($keyId)}</div>
+        <div style="margin-top:8px;word-break:break-all;"><b>Signature:</b> {$e($signature)}</div>
       </div>
     </body>
     </html>

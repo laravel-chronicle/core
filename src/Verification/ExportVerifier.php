@@ -3,6 +3,7 @@
 namespace Chronicle\Verification;
 
 use Chronicle\Contracts\SigningProvider;
+use Chronicle\Exports\ExportFormat;
 use Chronicle\Support\CanonicalPayloadSerializer;
 use JsonException;
 
@@ -11,16 +12,11 @@ use JsonException;
  */
 class ExportVerifier
 {
-    protected SigningProvider $signer;
-
-    protected CanonicalPayloadSerializer $serializer;
-
     public function __construct(
-        SigningProvider $signer,
-        CanonicalPayloadSerializer $serializer,
+        protected readonly SigningProvider $signer,
+        protected readonly CanonicalPayloadSerializer $serializer,
     ) {
-        $this->signer = $signer;
-        $this->serializer = $serializer;
+        //
     }
 
     /**
@@ -28,32 +24,32 @@ class ExportVerifier
      */
     public function verify(string $path): ExportVerificationResult
     {
-        $entriesPath = $path.'/entries.ndjson';
-        $manifestPath = $path.'/manifest.json';
-        $signaturePath = $path.'/signature.json';
+        $entriesPath = $path.'/'.ExportFormat::ENTRIES;
+        $manifestPath = $path.'/'.ExportFormat::MANIFEST;
+        $signaturePath = $path.'/'.ExportFormat::SIGNATURE;
 
         if (! file_exists($entriesPath)) {
             return ExportVerificationResult::failure(
-                'entries_missing'
+                VerificationFailure::EntriesMissing->value
             );
         }
 
         if (! file_exists($manifestPath)) {
             return ExportVerificationResult::failure(
-                'manifest_missing'
+                VerificationFailure::ManifestMissing->value
             );
         }
 
         if (! file_exists($signaturePath)) {
             return ExportVerificationResult::failure(
-                'signature_missing'
+                VerificationFailure::SignatureMissing->value
             );
         }
 
-        $manifest = $this->decodeJsonFile(
+        $manifest = $this->tryDecodeJsonFile(
             path: $manifestPath,
-            unreadableFailure: 'manifest_unreadable',
-            invalidJsonFailure: 'manifest_invalid_json'
+            unreadableFailure: VerificationFailure::ManifestUnreadable->value,
+            invalidJsonFailure: VerificationFailure::ManifestInvalidJson->value,
         );
         if (is_string($manifest)) {
             return ExportVerificationResult::failure($manifest);
@@ -71,10 +67,10 @@ class ExportVerifier
         /** @var string|null $manifestChainHead */
         $manifestChainHead = $manifest['chain_head'];
 
-        $signature = $this->decodeJsonFile(
+        $signature = $this->tryDecodeJsonFile(
             path: $signaturePath,
-            unreadableFailure: 'signature_unreadable',
-            invalidJsonFailure: 'signature_invalid_json'
+            unreadableFailure: VerificationFailure::SignatureUnreadable->value,
+            invalidJsonFailure: VerificationFailure::SignatureInvalidJson->value,
         );
         if (is_string($signature)) {
             return ExportVerificationResult::failure($signature);
@@ -97,9 +93,9 @@ class ExportVerifier
         */
         $computedHash = $entriesInspection['dataset_hash'];
 
-        if ($computedHash !== $manifestDatasetHash) {
+        if (! hash_equals($computedHash, $manifestDatasetHash)) {
             return ExportVerificationResult::failure(
-                'dataset_hash_mismatch'
+                VerificationFailure::DatasetHashMismatch->value
             );
         }
 
@@ -111,14 +107,28 @@ class ExportVerifier
         /** @var string $sign */
         $sign = $signature['signature'];
 
+        /** @var string|null $manifestFirstEntryId */
+        $manifestFirstEntryId = $manifest['first_entry_id'];
+
+        /** @var string|null $manifestLastEntryId */
+        $manifestLastEntryId = $manifest['last_entry_id'];
+
+        $canonical = json_encode([
+            'dataset_hash' => $manifestDatasetHash,
+            'entry_count' => $manifestEntryCount,
+            'first_entry_id' => $manifestFirstEntryId,
+            'last_entry_id' => $manifestLastEntryId,
+            'chain_head' => $manifestChainHead,
+        ], JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES);
+
         $validSignature = $this->signer->verify(
-            $manifestDatasetHash,
+            $canonical,
             $sign,
         );
 
         if (! $validSignature) {
             return ExportVerificationResult::failure(
-                'signature_invalid'
+                VerificationFailure::SignatureInvalid->value
             );
         }
 
@@ -140,13 +150,13 @@ class ExportVerifier
         array $manifest,
     ): array|string {
         if (! is_file($entriesPath) || ! is_readable($entriesPath)) {
-            return 'entries_unreadable';
+            return VerificationFailure::EntriesUnreadable->value;
         }
 
         $handle = @fopen($entriesPath, 'rb');
 
         if (! $handle) {
-            return 'entries_unreadable';
+            return VerificationFailure::EntriesUnreadable->value;
         }
 
         $hashContext = hash_init('sha256');
@@ -158,24 +168,24 @@ class ExportVerifier
         $count = 0;
 
         while (($line = fgets($handle)) !== false) {
-            hash_update($hashContext, $line);
-
             if (trim($line) === '') {
                 continue;
             }
+
+            hash_update($hashContext, $line);
 
             try {
                 $decoded = json_decode($line, true, 512, JSON_THROW_ON_ERROR);
             } catch (JsonException) {
                 fclose($handle);
 
-                return 'entries_invalid_json';
+                return VerificationFailure::EntriesInvalidJson->value;
             }
 
             if (! is_array($decoded)) {
                 fclose($handle);
 
-                return 'entries_invalid_format';
+                return VerificationFailure::EntriesInvalidFormat->value;
             }
 
             $entryId = $decoded['id'] ?? null;
@@ -185,20 +195,20 @@ class ExportVerifier
             if (! is_string($entryId) || $entryId === '') {
                 fclose($handle);
 
-                return 'entries_invalid_format';
+                return VerificationFailure::EntriesInvalidFormat->value;
             }
 
             if (! is_string($payloadHash) || ! is_string($chainHash)) {
                 fclose($handle);
 
-                return 'entries_invalid_format';
+                return VerificationFailure::EntriesInvalidFormat->value;
             }
 
             $computedChain = hash('sha256', $previousChain.$payloadHash);
-            if ($computedChain !== $chainHash) {
+            if (! hash_equals($computedChain, $chainHash)) {
                 fclose($handle);
 
-                return 'chain_invalid';
+                return VerificationFailure::ChainInvalid->value;
             }
 
             // Re-derive payload hash from the exported payload to detect tampered payload data.
@@ -207,7 +217,7 @@ class ExportVerifier
             if (! is_array($payload)) {
                 fclose($handle);
 
-                return 'entries_invalid_format';
+                return VerificationFailure::EntriesInvalidFormat->value;
             }
 
             try {
@@ -215,14 +225,14 @@ class ExportVerifier
             } catch (JsonException) {
                 fclose($handle);
 
-                return 'entries_invalid_format';
+                return VerificationFailure::EntriesInvalidFormat->value;
             }
 
             $computedPayloadHash = hash('sha256', $canonical);
-            if ($computedPayloadHash !== $payloadHash) {
+            if (! hash_equals($computedPayloadHash, $payloadHash)) {
                 fclose($handle);
 
-                return 'payload_hash_mismatch';
+                return VerificationFailure::PayloadHashMismatch->value;
             }
 
             if ($count === 0) {
@@ -241,19 +251,19 @@ class ExportVerifier
         $datasetHash = hash_final($hashContext);
 
         if ($count !== $manifest['entry_count']) {
-            return 'entry_count_mismatch';
+            return VerificationFailure::EntryCountMismatch->value;
         }
 
         if ($first !== $manifest['first_entry_id']) {
-            return 'first_entry_mismatch';
+            return VerificationFailure::FirstEntryMismatch->value;
         }
 
         if ($last !== $manifest['last_entry_id']) {
-            return 'last_entry_mismatch';
+            return VerificationFailure::LastEntryMismatch->value;
         }
 
         if ($chainHead !== $manifest['chain_head']) {
-            return 'chain_head_mismatch';
+            return VerificationFailure::ChainHeadMismatch->value;
         }
 
         return [
@@ -262,9 +272,11 @@ class ExportVerifier
     }
 
     /**
-     * @return array<string, mixed>|string
+     * Attempt to decode a JSON file.
+     *
+     * @return array<string, mixed>|string — array on success, failure-code string on failure
      */
-    protected function decodeJsonFile(
+    protected function tryDecodeJsonFile(
         string $path,
         string $unreadableFailure,
         string $invalidJsonFailure,
@@ -304,31 +316,31 @@ class ExportVerifier
         $lastEntryId = $manifest['last_entry_id'] ?? null;
 
         if (! is_string($datasetHash) || $datasetHash === '') {
-            return 'manifest_invalid';
+            return VerificationFailure::ManifestInvalid->value;
         }
 
         if (! is_int($entryCount) || $entryCount < 0) {
-            return 'manifest_invalid';
+            return VerificationFailure::ManifestInvalid->value;
         }
 
         if ($entryCount === 0) {
             if ($firstEntryId !== null || $lastEntryId !== null || $chainHead !== null) {
-                return 'manifest_invalid';
+                return VerificationFailure::ManifestInvalid->value;
             }
 
             return null;
         }
 
         if (! is_string($chainHead) || $chainHead === '') {
-            return 'manifest_invalid';
+            return VerificationFailure::ManifestInvalid->value;
         }
 
         if (! is_string($firstEntryId) || $firstEntryId === '') {
-            return 'manifest_invalid';
+            return VerificationFailure::ManifestInvalid->value;
         }
 
         if (! is_string($lastEntryId) || $lastEntryId === '') {
-            return 'manifest_invalid';
+            return VerificationFailure::ManifestInvalid->value;
         }
 
         return null;
@@ -342,7 +354,7 @@ class ExportVerifier
         $value = $signature['signature'] ?? null;
 
         if (! is_string($value) || $value === '') {
-            return 'signature_invalid_format';
+            return VerificationFailure::SignatureInvalidFormat->value;
         }
 
         return null;

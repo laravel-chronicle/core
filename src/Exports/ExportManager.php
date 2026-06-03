@@ -9,24 +9,12 @@ use Chronicle\Exceptions\ExportWriteException;
  */
 class ExportManager
 {
-    protected EntryExporter $entryExporter;
-
-    protected ExportHasher $hasher;
-
-    protected ExportManifestBuilder $manifestBuilder;
-
-    protected ExportSigner $signer;
-
     public function __construct(
-        EntryExporter $entryExporter,
-        ExportHasher $hasher,
-        ExportManifestBuilder $manifestBuilder,
-        ExportSigner $signer
+        protected readonly EntryExporter $entryExporter,
+        protected readonly ExportManifestBuilder $manifestBuilder,
+        protected readonly ExportSigner $signer
     ) {
-        $this->entryExporter = $entryExporter;
-        $this->hasher = $hasher;
-        $this->manifestBuilder = $manifestBuilder;
-        $this->signer = $signer;
+        //
     }
 
     /**
@@ -41,17 +29,17 @@ class ExportManager
      */
     public function export(string $path): ExportResult
     {
-        if (! is_dir($path) && ! @mkdir($path, 0755, true) && ! is_dir($path)) {
+        if (! is_dir($path) && ! @mkdir($path, 0700, true) && ! is_dir($path)) {
             $error = error_get_last();
 
             throw ExportWriteException::directoryCreationFailed($path, $error['message'] ?? null);
         }
 
-        $entriesPath = $path.'/entries.ndjson';
+        $entriesPath = $path.'/'.ExportFormat::ENTRIES;
 
         $export = $this->entryExporter->export($entriesPath);
 
-        $datasetHash = $this->hasher->hashFile($entriesPath);
+        $datasetHash = $export->datasetHash;
 
         $manifest = $this->manifestBuilder->build(
             entryCount: $export->entryCount,
@@ -61,11 +49,17 @@ class ExportManager
             lastEntryId: $export->lastEntryId,
         );
 
-        $this->manifestBuilder->write($path.'/manifest.json', $manifest);
+        $this->manifestBuilder->write($path.'/'.ExportFormat::MANIFEST, $manifest);
 
-        $signature = $this->signer->sign($datasetHash);
+        $signature = $this->signer->sign(
+            datasetHash: $datasetHash,
+            entryCount: $export->entryCount,
+            firstEntryId: $export->firstEntryId,
+            lastEntryId: $export->lastEntryId,
+            chainHead: $export->chainHead,
+        );
 
-        $this->signer->write($path.'/signature.json', $signature);
+        $this->signer->write($path.'/'.ExportFormat::SIGNATURE, $signature);
 
         return new ExportResult(
             entryCount: $export->entryCount,

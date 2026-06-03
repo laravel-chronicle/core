@@ -109,6 +109,8 @@ class Ed25519SigningProvider implements SigningProvider
      */
     public function __destruct()
     {
-        sodium_memzero($this->privateKey);
+        if ($this->privateKey !== null) {
+            sodium_memzero($this->privateKey);
+        }
     }
 }

@@ -1,7 +1,9 @@
 <?php
 
+use Chronicle\Contracts\StorageDriver;
 use Chronicle\Entry\Entry;
 use Chronicle\Facades\Chronicle;
+use Chronicle\Storage\ArrayDriver;
 use Chronicle\Testing\ChronicleAssertions;
 
 it('Chronicle::fake() returns a ChronicleAssertions instance', function () {
@@ -53,4 +55,23 @@ it('assertRecorded inspects entry fields', function () {
 it('assertNothingRecorded passes before any commit', function () {
     $fake = Chronicle::fake();
     $fake->assertNothingRecorded();
+});
+
+it('restore() clears the ArrayDriver binding so the next resolution uses the real driver', function () {
+    $fake = Chronicle::fake();
+
+    Chronicle::record()
+        ->actor('system')
+        ->action('test.event')
+        ->subject(ref('x'))
+        ->commit();
+
+    $fake->assertRecordedCount(1);
+
+    $fake->restore();
+
+    // After restore, the container binding is cleared.
+    // Re-resolving the driver should NOT be ArrayDriver.
+    $driver = app(StorageDriver::class);
+    expect($driver)->not->toBeInstanceOf(ArrayDriver::class);
 });

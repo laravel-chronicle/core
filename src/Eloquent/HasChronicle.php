@@ -9,6 +9,12 @@ use Throwable;
 
 trait HasChronicle
 {
+    /** @var list<string> */
+    protected array $chronicleEvents = ['created', 'updated', 'deleted'];
+
+    /** @var list<string> */
+    protected array $chronicleIgnore = [];
+
     public static function bootHasChronicle(): void
     {
         static::created(
@@ -32,27 +38,11 @@ trait HasChronicle
                     return;
                 }
 
-                // Skip if only auto-managed timestamp columns changed (e.g. touch()).
-                $dirty = array_diff_key($model->getDirty(), array_flip(['created_at', 'updated_at']));
-
-                if (empty($dirty)) {
+                if (! ModelDiffBuilder::hasRelevantChanges($model)) {
                     return;
                 }
 
-                $ignored = $model->chronicleIgnoredFields();
-
-                $diff = [];
-
-                foreach ($dirty as $field => $newValue) {
-                    if (in_array($field, $ignored, true)) {
-                        continue;
-                    }
-
-                    $diff[$field] = [
-                        'old' => $model->getOriginal($field),
-                        'new' => $newValue,
-                    ];
-                }
+                $diff = ModelDiffBuilder::build($model, $model->chronicleIgnoredFields());
 
                 $builder = Chronicle::record()
                     ->actor($model->chronicleActor())
@@ -64,7 +54,8 @@ trait HasChronicle
                 }
 
                 $builder->commit();
-            });
+            }
+        );
 
         static::deleted(
             /** @throws Throwable */
@@ -93,22 +84,17 @@ trait HasChronicle
 
     protected function shouldChronicleEvent(string $event): bool
     {
-        $events = property_exists($this, 'chronicleEvents')
-            ? $this->chronicleEvents
-            : ['created', 'updated', 'deleted'];
-
-        return in_array($event, $events, true);
+        return in_array($event, $this->chronicleEvents, true);
     }
 
     /**
-     * @return array<int, string>
+     * @return list<string>
      */
     protected function chronicleIgnoredFields(): array
     {
-        $extra = property_exists($this, 'chronicleIgnore')
-            ? $this->chronicleIgnore
-            : [];
-
-        return array_merge(['created_at', 'updated_at'], $extra);
+        return array_merge(
+            [static::CREATED_AT ?? 'created_at', static::UPDATED_AT ?? 'updated_at'],
+            $this->chronicleIgnore,
+        );
     }
 }

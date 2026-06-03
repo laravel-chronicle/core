@@ -46,3 +46,10 @@ it('throws InvalidArgumentException when passed an integer', function () {
     expect(fn () => (new DefaultReferenceResolver)->resolve(123))
         ->toThrow(InvalidArgumentException::class);
 });
+
+it('throws a clear InvalidArgumentException when resolving an unsaved Eloquent model', function () {
+    $unsaved = new class extends Model {};
+
+    expect(fn () => (new DefaultReferenceResolver)->resolve($unsaved))
+        ->toThrow(InvalidArgumentException::class, 'no primary key');
+});

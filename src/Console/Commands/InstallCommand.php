@@ -2,6 +2,7 @@
 
 namespace Chronicle\Console\Commands;
 
+use Carbon\Carbon;
 use Chronicle\ChronicleServiceProvider;
 use Illuminate\Console\Command;
 
@@ -35,7 +36,8 @@ class InstallCommand extends Command
             return self::FAILURE;
         }
 
-        if ($this->confirm('Would you like to run migrations now?')) {
+        $shouldMigrate = $this->option('migrate') || (! $this->option('no-interaction') && $this->confirm('Would you like to run migrations now?'));
+        if ($shouldMigrate) {
             $this->comment('Running Migrations...');
 
             $migrated = $this->call('migrate');
@@ -47,7 +49,7 @@ class InstallCommand extends Command
             }
         }
 
-        if ($this->confirm('Would you like to publish Chronicle views (customisable Blade UI)?', false)) {
+        if (! $this->option('no-interaction') && $this->confirm('Would you like to publish Chronicle views (customisable Blade UI)?')) {
             $this->call('vendor:publish', [
                 '--provider' => ChronicleServiceProvider::class,
                 '--tag' => 'chronicle-views',
@@ -55,20 +57,8 @@ class InstallCommand extends Command
             ]);
         }
 
-        if ($this->confirm('Would you like to star our repo on GitHub?')) {
-            $repoUrl = escapeshellarg('https://github.com/laravel-chronicle/core');
-
-            if (PHP_OS_FAMILY === 'Darwin') {
-                exec("open $repoUrl");
-            }
-
-            if (PHP_OS_FAMILY === 'Windows') {
-                exec("start $repoUrl");
-            }
-
-            if (PHP_OS_FAMILY === 'Linux') {
-                exec("xdg-open $repoUrl");
-            }
+        if (! $this->option('no-interaction') && $this->confirm('Would you like to star our repo on GitHub?')) {
+            $this->line('⭐ https://github.com/laravel-chronicle/core');
         }
 
         $this->info('Chronicle installed successfully.');
@@ -81,7 +71,8 @@ class InstallCommand extends Command
         $source = __DIR__.'/../../../database/migrations';
         $destination = database_path('migrations');
         $force = (bool) $this->option('force');
-        $timestamp = now();
+        /** @var Carbon $timestamp */
+        $timestamp = Carbon::create(2026, 1, 1, 0, 0, 0, 'UTC');
 
         $files = glob($source.'/*.php');
         if ($files === false) {

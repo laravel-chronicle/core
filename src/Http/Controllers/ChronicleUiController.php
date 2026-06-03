@@ -4,24 +4,15 @@ namespace Chronicle\Http\Controllers;
 
 use Chronicle\Checkpoints\Checkpoint;
 use Chronicle\Entry\Entry;
+use Chronicle\Query\LedgerStats;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Routing\Controller;
 use Illuminate\Support\Carbon;
-use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 use Throwable;
 
-class ChronicleUiController extends Controller
+class ChronicleUiController
 {
-    public function __construct()
-    {
-        /** @var list<string> $middleware */
-        $middleware = config('chronicle.ui.middleware', ['web', 'auth']);
-
-        $this->middleware($middleware);
-    }
-
     public function index(Request $request): View
     {
         $query = Entry::query();
@@ -76,10 +67,7 @@ class ChronicleUiController extends Controller
 
         $entries = $query->paginate($perPage)->withQueryString();
 
-        /** @var view-string $view */
-        $view = 'chronicle::entries.index';
-
-        return view($view, [
+        return view('chronicle::entries.index', [
             'entries' => $entries,
             'filters' => $request->only(['action', 'actor_id', 'subject_type', 'subject_id', 'tag', 'from', 'to', 'sort']),
         ]);
@@ -87,6 +75,10 @@ class ChronicleUiController extends Controller
 
     public function show(string $id): View|RedirectResponse
     {
+        if (! preg_match('/^[0-7][0-9A-HJKMNP-TV-Z]{25}$/i', $id)) {
+            abort(404);
+        }
+
         $entry = Entry::find($id);
 
         if ($entry === null) {
@@ -99,10 +91,7 @@ class ChronicleUiController extends Controller
             ? Checkpoint::find($entry->checkpoint_id)
             : null;
 
-        /** @var view-string $view */
-        $view = 'chronicle::entries.show';
-
-        return view($view, [
+        return view('chronicle::entries.show', [
             'entry' => $entry,
             'checkpoint' => $checkpoint,
         ]);
@@ -110,39 +99,9 @@ class ChronicleUiController extends Controller
 
     public function stats(): View
     {
-        /** @var string|null $connection */
-        $connection = config('chronicle.connection');
+        $stats = LedgerStats::compute();
 
-        /** @var string $entriesTable */
-        $entriesTable = config('chronicle.tables.entries', 'chronicle_entries');
-
-        /** @var string $checkpointsTable */
-        $checkpointsTable = config('chronicle.tables.checkpoints', 'chronicle_checkpoints');
-
-        $db = DB::connection($connection);
-
-        /** @var object{total: int, oldest: string|null, newest: string|null}|null $aggregate */
-        $aggregate = $db->table($entriesTable)
-            ->selectRaw('COUNT(*) as total, MIN(created_at) as oldest, MAX(created_at) as newest')
-            ->first();
-
-        $topActions = $db->table($entriesTable)
-            ->selectRaw('action, COUNT(*) as count')
-            ->groupBy('action')
-            ->orderByDesc('count')
-            ->limit(10)
-            ->get();
-
-        $checkpointCount = $db->table($checkpointsTable)->count();
-
-        $dailyActivity = $db->table($entriesTable)
-            ->selectRaw('DATE(created_at) as date, COUNT(*) as count')
-            ->where('created_at', '>=', now()->subDays(29)->startOfDay())
-            ->groupByRaw('DATE(created_at)')
-            ->orderBy('date')
-            ->get()
-            ->keyBy('date');
-
+        $activityIndexed = collect($stats->dailyActivity())->keyBy('date');
         $activityByDay = collect();
 
         for ($i = 29; $i >= 0; $i--) {
@@ -150,19 +109,16 @@ class ChronicleUiController extends Controller
 
             $activityByDay->push([
                 'date' => $date,
-                'count' => $dailyActivity->get($date)->count ?? 0,
+                'count' => $activityIndexed->get($date)['count'] ?? 0,
             ]);
         }
 
-        /** @var view-string $view */
-        $view = 'chronicle::stats.index';
-
-        return view($view, [
-            'total' => $aggregate->total ?? 0,
-            'oldest' => $aggregate?->oldest ? Carbon::parse($aggregate->oldest) : null,
-            'newest' => $aggregate?->newest ? Carbon::parse($aggregate->newest) : null,
-            'checkpointCount' => $checkpointCount,
-            'topActions' => $topActions,
+        return view('chronicle::stats.index', [
+            'total' => $stats->totalEntries(),
+            'oldest' => $stats->oldestEntryAt(),
+            'newest' => $stats->newestEntryAt(),
+            'checkpointCount' => $stats->checkpointCount(),
+            'topActions' => collect($stats->topActions()),
             'activityByDay' => $activityByDay,
         ]);
     }

@@ -18,6 +18,7 @@ class EntryExportResult
         public ?string $chainHead,
         public ?string $firstEntryId,
         public ?string $lastEntryId,
+        public string $datasetHash = '',
     ) {
         //
     }

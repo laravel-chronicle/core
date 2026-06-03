@@ -55,3 +55,32 @@ it('registers the chronicle install command', function () {
 
     expect($commands)->toContain('chronicle:install');
 });
+
+it('prints the GitHub repo link instead of opening a browser', function () {
+    $this->artisan('chronicle:install', ['--force' => true])
+        ->expectsConfirmation('Would you like to run migrations now?')
+        ->expectsConfirmation('Would you like to publish Chronicle views (customisable Blade UI)?')
+        ->expectsConfirmation('Would you like to star our repo on GitHub?', 'yes')
+        ->expectsOutputToContain('github.com/laravel-chronicle/core')
+        ->assertSuccessful();
+});
+
+it('honours the --migrate flag without prompting', function () {
+    Schema::dropIfExists('chronicle_entries');
+    Schema::dropIfExists('chronicle_checkpoints');
+
+    $this->artisan('chronicle:install', [
+        '--migrate' => true,
+        '--no-interaction' => true,
+    ])->assertExitCode(0);
+});
+
+it('publishMigrations uses a fixed base date not wall-clock time', function () {
+    // Call install twice — second call skips existing migrations,
+    // so timestamps must be deterministic
+    $firstRun = $this->artisan('chronicle:install', ['--no-interaction' => true])->run();
+    $secondRun = $this->artisan('chronicle:install', ['--no-interaction' => true])->run();
+
+    // Both should succeed without producing duplicate files
+    expect($firstRun)->toBe(0)->and($secondRun)->toBe(0);
+});

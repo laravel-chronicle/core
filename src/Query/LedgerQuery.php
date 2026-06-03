@@ -220,6 +220,8 @@ class LedgerQuery
      */
     public function first(): ?Entry
     {
+        $this->applyDefaultOrder();
+
         return $this->query->first();
     }
 
@@ -230,7 +232,7 @@ class LedgerQuery
      *
      * @return CursorPaginator<int, Entry>
      */
-    public function paginate(int $perPage = 50, ?string $cursor = null): CursorPaginator
+    public function cursorPaginate(int $perPage = 50, ?string $cursor = null): CursorPaginator
     {
         $this->applyDefaultOrder();
 
@@ -244,6 +246,8 @@ class LedgerQuery
      */
     public function stream(): LazyCollection
     {
+        $this->applyDefaultOrder();
+
         return $this->query->cursor();
     }
 

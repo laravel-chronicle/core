@@ -24,6 +24,14 @@ use Throwable;
 class ChronicleModelObserver
 {
     /**
+     * Additional fields excluded from the updated diff.
+     * Override in subclasses to add model-specific ignored fields.
+     *
+     * @var list<string>
+     */
+    protected array $ignoredFields = [];
+
+    /**
      * @throws Throwable
      */
     public function created(Model $model): void
@@ -48,24 +56,11 @@ class ChronicleModelObserver
             return;
         }
 
-        $dirty = array_diff_key($model->getDirty(), array_flip(['created_at', 'updated_at']));
-
-        if (empty($dirty)) {
+        if (! ModelDiffBuilder::hasRelevantChanges($model)) {
             return;
         }
 
-        $ignored = $this->ignoredFields($model);
-        $diff = [];
-
-        foreach ($dirty as $field => $newValue) {
-            if (in_array($field, $ignored, true)) {
-                continue;
-            }
-            $diff[$field] = [
-                'old' => $model->getOriginal($field),
-                'new' => $newValue,
-            ];
-        }
+        $diff = ModelDiffBuilder::build($model, $this->ignoredFields($model));
 
         $builder = Chronicle::record()
             ->actor($this->resolveActor($model))
@@ -77,6 +72,7 @@ class ChronicleModelObserver
         }
 
         $builder->commit();
+
     }
 
     /**
@@ -116,7 +112,7 @@ class ChronicleModelObserver
     /**
      * Resolve the actor. Defaults to the authenticated user, or 'system'.
      */
-    protected function resolveActor(Model $model): mixed
+    protected function resolveActor(Model $model): Model|string
     {
         return Auth::user() ?? 'system';
     }
@@ -137,6 +133,9 @@ class ChronicleModelObserver
      */
     protected function ignoredFields(Model $model): array
     {
-        return ['created_at', 'updated_at'];
+        return array_merge(
+            [$model::CREATED_AT ?? 'created_at', $model::UPDATED_AT ?? 'updated_at'],
+            $this->ignoredFields,
+        );
     }
 }

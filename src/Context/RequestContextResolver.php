@@ -13,6 +13,12 @@ class RequestContextResolver extends AbstractContextResolver
 
     private const USER_AGENT_MAX_LENGTH = 512;
 
+    public function __construct(
+        private readonly Request $request,
+    ) {
+        //
+    }
+
     public function contextKey(): string
     {
         return 'request';
@@ -24,31 +30,28 @@ class RequestContextResolver extends AbstractContextResolver
             return null;
         }
 
-        /** @var Request $request */
-        $request = app('request');
-
-        $requestId = $request->header('X-Request-ID');
+        $requestId = $this->request->header('X-Request-ID');
 
         if ($requestId === null) {
-            $requestId = $request->attributes->get('_chronicle_request_id');
+            $requestId = $this->request->attributes->get('_chronicle_request_id');
 
             if ($requestId === null) {
                 $requestId = (string) Str::uuid();
-                $request->attributes->set('_chronicle_request_id', $requestId);
+                $this->request->attributes->set('_chronicle_request_id', $requestId);
             }
         }
 
-        $userAgent = $request->userAgent();
+        $userAgent = $this->request->userAgent();
 
         if (is_string($userAgent) && strlen($userAgent) > self::USER_AGENT_MAX_LENGTH) {
             $userAgent = substr($userAgent, 0, self::USER_AGENT_MAX_LENGTH);
         }
 
         return [
-            'ip_address' => $request->ip(),
+            'ip_address' => $this->request->ip(),
             'user_agent' => $userAgent,
-            'url' => $this->sanitizeUrl($request->fullUrl()),
-            'method' => $request->method(),
+            'url' => $this->sanitizeUrl($this->request->fullUrl()),
+            'method' => $this->request->method(),
             'request_id' => $requestId,
         ];
     }
@@ -62,19 +65,32 @@ class RequestContextResolver extends AbstractContextResolver
     {
         $parsed = parse_url($url);
 
-        if (! is_array($parsed) || ! isset($parsed['query'])) {
+        if (! is_array($parsed)) {
             return $url;
         }
 
-        parse_str($parsed['query'], $params);
+        if (isset($parsed['query'])) {
+            parse_str($parsed['query'], $params);
 
-        foreach (self::SENSITIVE_PARAMS as $sensitive) {
-            if (array_key_exists($sensitive, $params)) {
-                $params[$sensitive] = '[redacted]';
+            foreach (self::SENSITIVE_PARAMS as $sensitive) {
+                if (array_key_exists($sensitive, $params)) {
+                    $params[$sensitive] = '[redacted]';
+                }
             }
+
+            $parsed['query'] = http_build_query($params);
         }
 
-        $parsed['query'] = http_build_query($params);
+        if (isset($parsed['fragment'])) {
+            parse_str($parsed['fragment'], $fragmentParams);
+
+            foreach (self::SENSITIVE_PARAMS as $sensitive) {
+                if (array_key_exists($sensitive, $fragmentParams)) {
+                    $fragmentParams[$sensitive] = '[redacted]';
+                }
+            }
+            $parsed['fragment'] = http_build_query($fragmentParams);
+        }
 
         return $this->rebuildUrl($parsed);
     }

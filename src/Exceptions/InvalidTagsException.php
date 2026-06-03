@@ -98,4 +98,18 @@ class InvalidTagsException extends ChronicleException
             $count === 1 ? 'tag was' : 'tags were',
         ));
     }
+
+    /**
+     * Create an exception indicating a tag contains non-ASCII or non-printable characters.
+     *
+     * @param  string  $tag  The offending tag.
+     * @return self An exception stating the tag must contain only printable ASCII characters.
+     */
+    public static function mustContainOnlyAscii(string $tag): self
+    {
+        return new self(sprintf(
+            'Chronicle entry tags must contain only printable ASCII characters, [%s] contains non-ASCII or control characters.',
+            $tag,
+        ));
+    }
 }

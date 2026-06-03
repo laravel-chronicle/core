@@ -5,7 +5,6 @@ namespace Chronicle\Verification;
 use Chronicle\Entry\Entry;
 use Chronicle\Hashing\ChainHasher;
 use Chronicle\Support\CanonicalPayloadSerializer;
-use Illuminate\Database\Eloquent\Builder;
 use JsonException;
 
 class EntryVerifier
@@ -31,27 +30,20 @@ class EntryVerifier
         $canonical = $this->serializer->serialize($entry->payload);
         $expectedPayloadHash = hash('sha256', $canonical);
 
-        if ($expectedPayloadHash !== $entry->payload_hash) {
-            return EntryVerificationResult::failure($entry, 'payload_hash_mismatch');
+        if (! hash_equals($expectedPayloadHash, (string) $entry->payload_hash)) {
+            return EntryVerificationResult::failure($entry, VerificationFailure::PayloadHashMismatch->value);
         }
 
         /** @var string $previousChainHash */
         $previousChainHash = Entry::query()
-            ->where(function (Builder $q) use ($entry): void {
-                $q->where('created_at', '<', $entry->created_at)
-                    ->orWhere(function (Builder $q) use ($entry): void {
-                        $q->where('created_at', $entry->created_at)
-                            ->where('id', '<', $entry->id);
-                    });
-            })
-            ->orderByDesc('created_at')
+            ->where('id', '<', $entry->id)
             ->orderByDesc('id')
             ->value('chain_hash') ?? '0';
 
         $expectedChainHash = $this->chainHasher->hash($previousChainHash, $entry->payload_hash);
 
-        if ($expectedChainHash !== $entry->chain_hash) {
-            return EntryVerificationResult::failure($entry, 'chain_hash_mismatch');
+        if (! hash_equals($expectedChainHash, (string) $entry->chain_hash)) {
+            return EntryVerificationResult::failure($entry, VerificationFailure::ChainHashMismatch->value);
         }
 
         return EntryVerificationResult::ok($entry);

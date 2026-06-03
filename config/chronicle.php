@@ -69,7 +69,7 @@ return [
     |
     */
     'prune' => [
-        'default_retention_days' => env('CHRONICLE_RETENTION_DAYS', 365),
+        'default_retention_days' => env('CHRONICLE_RETENTION_DAYS'),
         'respect_checkpoints' => true,
     ],
 
@@ -177,7 +177,17 @@ return [
     'ui' => [
         'enabled' => env('CHRONICLE_UI_ENABLED', false),
         'prefix' => env('CHRONICLE_UI_PREFIX', 'chronicle'),
-        'middleware' => ['web', 'auth'],
+        /*
+        |--------------------------------------------------------------------------
+        | UI Middleware
+        |--------------------------------------------------------------------------
+        | The 'can:view-chronicle' gate must be defined in your AuthServiceProvider.
+        | Example:
+        |   Gate::define('view-chronicle', fn ($user) => $user->isAdmin());
+        |
+        | Set to ['web', 'auth'] to allow any authenticated user.
+        */
+        'middleware' => ['web', 'auth', 'can:view-chronicle'],
         'per_page' => env('CHRONICLE_UI_PER_PAGE', 25),
     ],
 ];

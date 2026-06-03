@@ -59,3 +59,8 @@ it('runs full ledger verification when --entry is not provided', function () {
         ->expectsOutput('Ledger integrity OK')
         ->assertExitCode(0);
 });
+
+it('does not use assert() for null-entry guard', function () {
+    $source = file_get_contents(__DIR__.'/../../../src/Console/Commands/VerifyEntryCommand.php');
+    expect($source)->not->toContain('assert(');
+});

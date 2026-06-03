@@ -27,6 +27,7 @@ class EntryExporter
         $chainHead = null;
         $firstEntryId = null;
         $lastEntryId = null;
+        $hashContext = hash_init('sha256');
 
         try {
             Entry::query()
@@ -38,16 +39,19 @@ class EntryExporter
                     &$chainHead,
                     &$firstEntryId,
                     &$lastEntryId,
+                    &$hashContext,
                     $path,
                 ) {
                     foreach ($entries as $entry) {
-                        if (! $firstEntryId) {
+                        if ($firstEntryId === null) {
                             $firstEntryId = $entry->id;
                         }
 
                         $lastEntryId = $entry->id;
 
                         $line = $this->serializeEntry($entry)."\n";
+                        hash_update($hashContext, $line);
+
                         $written = @fwrite($handle, $line);
 
                         if ($written === false || $written !== strlen($line)) {
@@ -67,7 +71,8 @@ class EntryExporter
             entryCount: $count,
             chainHead: $chainHead,
             firstEntryId: $firstEntryId,
-            lastEntryId: $lastEntryId
+            lastEntryId: $lastEntryId,
+            datasetHash: hash_final($hashContext),
         );
     }
 

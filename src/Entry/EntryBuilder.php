@@ -312,8 +312,16 @@ class EntryBuilder
         return $this;
     }
 
+    /**
+     * @deprecated since 1.x, will be removed in 2.0. Use modelDiff() instead.
+     */
     public function modelChanges(Model $model): EntryBuilder
     {
+        trigger_error(
+            'Chronicle: EntryBuilder::modelChanges() is deprecated since 1.x and will be removed in 2.0. Use EntryBuilder::modelDiff() instead.',
+            E_USER_DEPRECATED,
+        );
+
         return $this->modelDiff($model);
     }
 

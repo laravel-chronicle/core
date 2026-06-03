@@ -343,3 +343,34 @@ it('fails when an exported entry payload has been tampered with', function () {
     expect($result->isValid())->toBeFalse()
         ->and($result->failureCode())->toBe('payload_hash_mismatch');
 });
+
+it('verifies an export whose entries file has a trailing blank line', function () {
+    // Create a normal export, then append a trailing newline
+    Chronicle::record()->actor('system')->action('export.blank')->subject(ref('ledger'))->commit();
+
+    $dir = storage_path('chronicle-blank-test-'.Str::uuid());
+    app(ExportManager::class)->export($dir);
+
+    file_put_contents($dir.'/entries.ndjson', "\n", FILE_APPEND);
+
+    $result = app(ExportVerifier::class)->verify($dir);
+
+    expect($result->isValid())->toBeTrue();
+});
+
+it('rejects an export where entry_count in the manifest was tampered after signing', function () {
+    $path = storage_path('chronicle-test-export-sig-'.Str::uuid());
+    app(ExportManager::class)->export($path);
+
+    // Tamper entry_count — keep dataset_hash and entries.ndjson untouched
+    $manifestRaw = file_get_contents($path.'/manifest.json');
+    $manifest = json_decode($manifestRaw, true);
+    $manifest['entry_count'] = 999;
+    file_put_contents($path.'/manifest.json', json_encode($manifest));
+
+    $result = app(ExportVerifier::class)->verify($path);
+
+    // With old code: signature still valid (only dataset_hash is signed)
+    // With new code: signature fails (entry_count is part of signed payload)
+    expect($result->isValid())->toBeFalse();
+});

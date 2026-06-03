@@ -4,7 +4,10 @@ use Chronicle\Http\Controllers\ChronicleUiController;
 use Chronicle\Http\Middleware\ChronicleUiEnabled;
 use Illuminate\Support\Facades\Route;
 
-Route::middleware([ChronicleUiEnabled::class])
+/** @var list<string> $uiMiddleware */
+$uiMiddleware = config('chronicle.ui.middleware', ['web', 'auth']);
+
+Route::middleware([ChronicleUiEnabled::class, ...$uiMiddleware])
     ->prefix(config('chronicle.ui.prefix', 'chronicle'))
     ->name('chronicle.')
     ->group(function (): void {

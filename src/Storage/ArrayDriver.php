@@ -24,6 +24,9 @@ class ArrayDriver implements StorageDriver
     /** @var array<int|string, mixed> */
     private static array $entries = [];
 
+    /** @var array<int|string, mixed> */
+    private array $instanceEntries = [];
+
     /**
      * @param  array<string, mixed>  $entry
      *
@@ -32,6 +35,7 @@ class ArrayDriver implements StorageDriver
     public function store(array $entry): Entry
     {
         ArrayDriver::$entries[] = $entry;
+        $this->instanceEntries[] = $entry;
 
         $model = new Entry;
 
@@ -66,5 +70,13 @@ class ArrayDriver implements StorageDriver
     public static function flush(): void
     {
         ArrayDriver::$entries = [];
+    }
+
+    /**
+     * @return Collection<int|string, mixed>
+     */
+    public function allEntries(): Collection
+    {
+        return collect($this->instanceEntries);
     }
 }

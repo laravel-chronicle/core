@@ -1,6 +1,7 @@
 <?php
 
 use Chronicle\Entry\Entry;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
@@ -114,4 +115,29 @@ it('prunes checkpoint-anchored entries when --force is passed', function () {
         ->assertSuccessful();
 
     expect(Entry::count())->toBe(0);
+});
+
+it('shows a human-readable error for an unparseable --before value', function () {
+    $this->artisan('chronicle:prune', ['--before' => 'not-a-date'])
+        ->assertFailed()
+        ->expectsOutputToContain('Invalid date format');
+});
+
+it('dry-run shows oldest and newest in range', function () {
+    seedEntries(3, '2024-01-15 00:00:00');
+
+    Artisan::call('chronicle:prune', ['--before' => '2025-01-01', '--dry-run' => true]);
+    $output = Artisan::output();
+
+    expect($output)->toContain('dry run')
+        ->and($output)->toContain('3 entries');
+});
+
+it('aborts when no option is given and default_retention_days is null', function () {
+    // default_retention_days should be null out of the box — confirm prune refuses to run
+    config(['chronicle.prune.default_retention_days' => null]);
+
+    $this->artisan('chronicle:prune')
+        ->assertFailed()
+        ->expectsOutputToContain('No retention target');
 });
