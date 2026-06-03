@@ -10,6 +10,10 @@ breaking changes between any two versions — see upgrade notes per version.
 
 ## [Unreleased]
 
+---
+
+## [1.9.1] - 2026-06-03
+
 ### Added
 
 - `VerificationFailure` enum centralises all verification failure code strings. Static analysis can now catch typos in failure code comparisons.
