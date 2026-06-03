@@ -186,7 +186,7 @@ signature.json
 Example:
 
 ```bash
-php artisan chronicle:export
+php artisan chronicle:export storage/app/chronicle-export
 ```
 
 ---
@@ -196,7 +196,7 @@ php artisan chronicle:export
 Exported datasets can be independently verified.
 
 ```bash
-php artisan chronicle:verify-export
+php artisan chronicle:verify-export storage/app/chronicle-export
 ```
 
 Verification checks:
@@ -224,13 +224,11 @@ Hash Chain
 Ledger Storage
 ```
 
-See:
+See the [Chronicle documentation](https://laravel-chronicle.github.io) for full details:
 
-- [ARCHITECTURE](docs/ARCHITECTURE.md)
-- [DATA_MODEL](docs/DATA_MODEL.md)
-- [EXPORT_FORMAT](docs/EXPORT_FORMAT.md)
-
-for detailed documentation.
+- [Architecture](https://laravel-chronicle.github.io/docs/architecture)
+- [Data Model](https://laravel-chronicle.github.io/docs/data-model)
+- [Export Format](https://laravel-chronicle.github.io/docs/export-format)
 
 ---
 
