@@ -29,42 +29,32 @@ Chronicle is designed for systems that require reliable audit trails such as:
 - forensic analysis
 - operational observability
 
----
-
-# Why Chronicle?
-
-Most activity log packages store events in a database table.
-
-Those records can usually be:
-
-- modified
-- deleted
-- reordered
-
-This makes them unreliable for **security auditing or compliance purposes**.
-
-Chronicle takes a different approach.
-
-Chronicle records events in an **append-only ledger protected by cryptographic hashing**.
-
-Each entry is linked to the previous entry using a **hash chain**.
-
-If any entry is modified, deleted, or reordered, the ledger verification fails.
-
-This makes Chronicle logs **tamper-detectable**.
+📚 **Full documentation:** https://laravel-chronicle.github.io
 
 ---
 
-# Feature Comparison
+## Why Chronicle?
 
-| Feature            | Chronicle | Traditional Activity Logs  |
-|--------------------|-----------|----------------------------|
-| Append-only ledger | ✓         | ✗                          |
-| Immutable entries  | ✓         | ✗                          |
-| Hash chaining      | ✓         | ✗                          |
-| Tamper detection   | ✓         | ✗                          |
-| Verifiable exports | ✓         | ✗                          |
-| Signed checkpoints | ✓         | ✗                          |
+Most activity-log packages store events in a database table. Those records can usually be modified, deleted, or reordered — which makes them unreliable for security auditing or compliance.
+
+Chronicle takes a different approach. Events are recorded in an **append-only ledger protected by cryptographic hashing**, and each entry is linked to the previous one through a **hash chain**. If any entry is modified, deleted, or reordered, ledger verification fails. This makes Chronicle logs **tamper-detectable**.
+
+| Feature            | Chronicle | Traditional Activity Logs |
+|--------------------|-----------|---------------------------|
+| Append-only ledger | ✓         | ✗                         |
+| Immutable entries  | ✓         | ✗                         |
+| Hash chaining      | ✓         | ✗                         |
+| Tamper detection   | ✓         | ✗                         |
+| Verifiable exports | ✓         | ✗                         |
+| Signed checkpoints | ✓         | ✗                         |
+
+---
+
+## Requirements
+
+- PHP `^8.2`
+- Laravel `^11.0`, `^12.0`, or `^13.0`
+- The `ext-sodium` extension (Ed25519 signing)
 
 ---
 
@@ -75,11 +65,13 @@ composer require laravel-chronicle/core
 php artisan chronicle:install
 ```
 
+`chronicle:install` publishes the config file and migrations and offers to run them. See the [Installation guide](https://laravel-chronicle.github.io/docs/installation) for signing-key setup and the recommended production configuration.
+
 ---
 
-# Quick Example
+## Recording an entry
 
-Recording an audit entry:
+Every entry requires an `actor`, an `action`, and a `subject`:
 
 ```php
 use Chronicle\Facades\Chronicle;
@@ -92,203 +84,157 @@ Chronicle::record()
         'total' => 1000,
         'currency' => 'USD',
     ])
+    ->tags(['orders', 'billing'])
     ->commit();
 ```
 
-This records an immutable ledger entry.
+Chronicle generates a ULID, resolves the actor and subject, canonicalizes the payload, computes the payload and chain hashes, and persists an immutable entry inside a database transaction.
+
+### Automatic model auditing
+
+Add the `HasChronicle` trait to audit an Eloquent model's lifecycle events automatically:
+
+```php
+use Chronicle\Eloquent\HasChronicle;
+
+class Invoice extends Model
+{
+    use HasChronicle;
+}
+```
+
+`created`, `updated`, and `deleted` events are recorded automatically, with a structured diff for updates. For models you don't own, register an observer instead with `Chronicle::observe(Invoice::class)`. See [Auditing Eloquent Models](https://laravel-chronicle.github.io/docs/auditing-eloquent-models).
 
 ---
 
-# Hash Chaining
+## Hash chaining
 
-Chronicle protects the ledger using a **cryptographic hash chain**.
-
-Each entry references the previous entry:
+Chronicle protects the ledger with a cryptographic hash chain. Each entry references the previous one:
 
 `chain_hash(n) = SHA256(chain_hash(n-1) + payload_hash(n))`
 
-If any entry is modified or removed, the chain becomes invalid.
+If any entry is modified or removed, the chain becomes invalid. See [Hashing](https://laravel-chronicle.github.io/docs/hashing).
 
 ---
 
-# Querying Entries
+## Querying the ledger
 
-Chronicle provides expressive query scopes:
+Chronicle provides an expressive query API with database-indexed scopes:
 
 ```php
 use Chronicle\Entry\Entry;
 
-Entry::forActor($user);
-Entry::forSubject($order);
-Entry::action('order.created');
-Entry::withTag('orders');
+Entry::forActor($user)->get();
+Entry::forSubject($order)->get();
+Entry::action('order.created')->get();
+Entry::withTag('orders')->get();
 ```
 
-These queries are optimized with database indexes.
-
----
-
-# Streaming Large Ledgers
-
-Chronicle supports streaming entries using database cursors.
-
-This allows processing huge ledgers with constant memory usage.
+For large ledgers, Chronicle supports cursor pagination and constant-memory streaming:
 
 ```php
-use Chronicle\Entry\Entry;
-
-Entry::stream()->each(function ($entry) {
-    // process entry
-});
-```
-
----
-
-# Cursor Pagination
-
-Chronicle includes cursor pagination for efficient browsing of large audit logs.
-
-```php
-use Chronicle\Entry\Entry;
-
+Entry::stream()->each(fn ($entry) => /* process */);
 Entry::cursorPaginateLedger(50);
 ```
 
----
-
-# Checkpoints
-
-Chronicle can create cryptographic checkpoints that anchor the ledger.
-
-A checkpoint record:
-
-- current chain head
-- entry count
-- timestamp
-- cryptographic signature
-
-This allows auditors to verify ledger integrity even if the database is compromised.
+See the [Query API reference](https://laravel-chronicle.github.io/docs/query-api).
 
 ---
 
-# Verifiable Exports
+## Checkpoints
 
-Chronicle can export the ledger as a **verifiable dataset**.
+Chronicle can create cryptographic checkpoints that anchor the ledger. A checkpoint signs the current chain head along with an entry count and timestamp, so auditors can verify integrity even if the database is later compromised.
 
-Exports include:
-
-```
-entries.ndjson
-manifest.json
-signature.json
+```bash
+php artisan chronicle:checkpoint
 ```
 
-Example:
+See [Checkpoints](https://laravel-chronicle.github.io/docs/checkpoints).
+
+---
+
+## Verifiable exports
+
+Chronicle can export the ledger as a verifiable dataset (`entries.ndjson`, `manifest.json`, `signature.json`) that can be verified independently of the application:
 
 ```bash
 php artisan chronicle:export storage/app/chronicle-export
-```
-
----
-
-# Export Verification
-
-Exported datasets can be independently verified.
-
-```bash
 php artisan chronicle:verify-export storage/app/chronicle-export
 ```
 
-Verification checks:
-
-- dataset hash
-- digital signature
-- hash chain integrity
-- dataset boundaries
+Verification checks the dataset hash, digital signature, hash-chain integrity, and dataset boundaries. See [Exports](https://laravel-chronicle.github.io/docs/exports) and the [Export Format](https://laravel-chronicle.github.io/docs/export-format).
 
 ---
 
-# Architecture
+## Artisan commands
 
-Chronicle is designed as a deterministic ledger engine.
+| Command                          | Purpose                                                                                |
+|----------------------------------|----------------------------------------------------------------------------------------|
+| `chronicle:install`              | Publish config and migrations (`--force`, `--migrate`)                                 |
+| `chronicle:checkpoint`           | Create a signed checkpoint                                                             |
+| `chronicle:export {path}`        | Export the ledger as a verifiable dataset                                              |
+| `chronicle:verify`               | Verify the full ledger (or one entry with `--entry=<ULID>`)                            |
+| `chronicle:verify-export {path}` | Verify an exported dataset                                                             |
+| `chronicle:stats`                | Display ledger statistics (`--json`)                                                   |
+| `chronicle:show {id}`            | Display a single entry by ULID                                                         |
+| `chronicle:prune`                | Prune entries by retention policy (`--older-than`, `--before`, `--dry-run`, `--force`) |
+| `chronicle:report {path}`        | Generate a signed compliance report (`--from`, `--to`)                                 |
 
-```
-Application
-↓
-Chronicle API
-↓
-Entry Builder
-↓
-Hash Chain
-↓
-Ledger Storage
-```
-
-See the [Chronicle documentation](https://laravel-chronicle.github.io) for full details:
-
-- [Architecture](https://laravel-chronicle.github.io/docs/architecture)
-- [Data Model](https://laravel-chronicle.github.io/docs/data-model)
-- [Export Format](https://laravel-chronicle.github.io/docs/export-format)
+See the [Artisan Commands reference](https://laravel-chronicle.github.io/docs/artisan-commands).
 
 ---
 
-# Design Principles
+## Features at a glance
 
-Chronicle is built around several core principles.
-
-## Append-only
-
-Entries cannot be modified or deleted.
-
-## Explicit intent
-
-Every entry must include:
-
-- actor
-- action
-- subject
-
-## Cryptographic integrity
-
-Entries are protected using hash chaining and signatures.
-
-## Low magic
-
-Chronicle avoids automatic logging and hidden behavior.
-
-Entries are recorded explicitly.
-
-## Transport agnostic
-
-Chronicle works in:
-
-- HTTP request
-- queue workers
-- CLI commands
-- scheduled jobs
+- **Append-only ledger** with immutable Eloquent entries
+- **Hash chaining** and deterministic canonical-payload hashing
+- **Ed25519 signing**, signed checkpoints, and signed compliance reports
+- **Verifiable exports** with independent verification
+- **Automatic model auditing** via the `HasChronicle` trait or observers
+- **Transactions & correlation IDs** for grouping related events
+- **Diff engine** for capturing field-level changes
+- **Extensible pipeline** — validators, policies, and context resolvers
+- **Storage drivers** — `eloquent`/`database`, `queued`, `array`, `null`
+- **Retention & pruning** with checkpoint-aware deletion
+- **Read-only web UI** (optional Blade interface)
+- **Events** — `EntryRecorded` and `EntryRejected`
+- **Testing helpers** — `Chronicle::fake()` with fluent assertions
 
 ---
 
-# Roadmap
+## Design principles
 
-Planned improvements for future versions:
+- **Append-only.** Entries cannot be modified or deleted; corrections are recorded as new entries.
+- **Explicit intent.** Every entry names an actor, action, and subject — no ambiguous "something changed" logs.
+- **Cryptographic integrity.** Entries are protected with hash chaining and signatures.
+- **Low magic.** Automatic auditing is opt-in; nothing is logged behind your back.
+- **Transport agnostic.** Works in HTTP requests, queue workers, CLI commands, and scheduled jobs.
 
-- validation pipeline
-- context resolvers
-- policy enforcement
-- Filament admin UI
-- Nova integration
-- Chronicle Cloud
+Read more in [Philosophy](https://laravel-chronicle.github.io/docs/philosophy) and the [Architecture](https://laravel-chronicle.github.io/docs/architecture) and [Security Model](https://laravel-chronicle.github.io/docs/security-model) docs.
 
 ---
 
-# Contributing
+## Extending Chronicle
 
-Contributions are welcome.
+Chronicle is designed to be extended. You can write custom validators, policies, and context resolvers, swap in custom storage drivers or signing providers (for example, AWS KMS), and listen to ledger events. See the [Extending Chronicle](https://laravel-chronicle.github.io/docs/extending-chronicle) guide.
 
-Please read: [CONTRIBUTING](CONTRIBUTING.md)
+---
 
-before submitting pull requests.
+## Roadmap
+
+Planned for upcoming releases:
+
+- signing-key rotation with multi-key verification
+- external (KMS / Vault) signing providers
+- external anchoring of checkpoints
+- incremental, checkpoint-based verification
+- a dedicated Filament admin integration
+
+---
+
+## Contributing
+
+Contributions are welcome. Please read: [CONTRIBUTING](CONTRIBUTING.md) before submitting pull requests.
 
 ---
 
@@ -316,11 +262,7 @@ before submitting pull requests.
 
 # Security
 
-If you discover a security vulnerability, please report it responsibly.
-
-See: [SECURITY](SECURITY.md)
-
-for details.
+If you discover a security vulnerability, please report it responsibly. See: [SECURITY](SECURITY.md) for details.
 
 ---
 
