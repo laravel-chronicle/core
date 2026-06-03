@@ -13,6 +13,8 @@ breaking changes between any two versions — see upgrade notes per version.
 ### Added
 
 - `UnknownSigningKeyException` (extends `ChronicleException`) thrown by `ConfigKeyRing::resolve()` when no key in the ring matches the requested algorithm and key ID.
+- `KeyRing` interface with `active(): SigningProvider`, `resolve(string $algorithm, ?string $keyId): SigningProvider`, and `all(): array` — the registry seam for multi-key signing and rotation.
+- `LegacySigningConfigAdapter` detects the pre-1.10 flat `signing` config shape (no `signing.keys` key) and promotes it to a one-entry `signing.keys` ring at runtime. A one-time deprecation notice is logged. Apps on the old flat config upgrade with zero code changes.
 
 ---
 
