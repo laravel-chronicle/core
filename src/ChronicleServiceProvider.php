@@ -18,6 +18,7 @@ use Chronicle\Contracts\ReferenceResolver;
 use Chronicle\Contracts\SigningProvider;
 use Chronicle\Contracts\StorageDriver;
 use Chronicle\Entry\EloquentLedgerReader;
+use Chronicle\Exceptions\ChronicleException;
 use Chronicle\Exports\EntryExporter;
 use Chronicle\Exports\ExportManager;
 use Chronicle\Exports\ExportManifestBuilder;
@@ -188,6 +189,10 @@ class ChronicleServiceProvider extends ServiceProvider
             try {
                 return $app->make(KeyRing::class)->active();
             } catch (Throwable $e) {
+                if ($e instanceof RuntimeException && ! ($e instanceof ChronicleException)) {
+                    throw $e;
+                }
+
                 if ($enforce && ! $app->environment('testing')) {
                     throw new RuntimeException(
                         'Invalid Chronicle signing configuration. Configure CHRONICLE_PRIVATE_KEY and CHRONICLE_PUBLIC_KEY (or a valid custom signing provider).',
