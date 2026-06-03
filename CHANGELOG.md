@@ -16,6 +16,12 @@ breaking changes between any two versions — see upgrade notes per version.
 
 ---
 
+### Changed
+
+- `Ed25519SigningProvider` accepts an `array $config` constructor parameter for container-driven construction. When using the array-config path, `private_key` may be omitted or `null` to create a verify-only key. The existing positional constructor (`privateKey`, `publicKey`, `keyId`) is unchanged for direct/test use. `sign()` now throws `RuntimeException` with a clear message when called on a verify-only instance.
+
+---
+
 ## [1.9.1] - 2026-06-03
 
 ### Added

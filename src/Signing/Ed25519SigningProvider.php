@@ -4,6 +4,7 @@ namespace Chronicle\Signing;
 
 use Chronicle\Contracts\SigningProvider;
 use InvalidArgumentException;
+use RuntimeException;
 use SodiumException;
 
 /**
@@ -17,8 +18,24 @@ class Ed25519SigningProvider implements SigningProvider
 
     protected string $keyId = 'none';
 
-    public function __construct(?string $privateKey, ?string $publicKey, string $keyId = 'none')
-    {
+    /**
+     * Positional constructor — kept for direct/test use.
+     * Pass a non-empty $config array to use the array-config path instead.
+     *
+     * @param  array{private_key?: ?string, public_key?: string, key_id?: string}  $config
+     */
+    public function __construct(
+        ?string $privateKey = null,
+        ?string $publicKey = null,
+        string $keyId = 'none',
+        array $config = [],
+    ) {
+        if ($config !== []) {
+            $this->bootFromConfig($config);
+
+            return;
+        }
+
         $this->privateKey = $this->decodeBase64(
             $privateKey,
             'CHRONICLE_PRIVATE_KEY',
@@ -33,10 +50,42 @@ class Ed25519SigningProvider implements SigningProvider
     }
 
     /**
+     * @param  array{private_key?: ?string, public_key?: string, key_id?: string}  $config
+     */
+    private function bootFromConfig(array $config): void
+    {
+        // private_key is optional - null means verify-only
+        $rawPrivate = $config['private_key'] ?? null;
+
+        if ($rawPrivate !== null && $rawPrivate !== '') {
+            $this->privateKey = $this->decodeBase64(
+                $rawPrivate,
+                'private_key',
+                SODIUM_CRYPTO_SIGN_SECRETKEYBYTES,
+            );
+        }
+
+        $this->publicKey = $this->decodeBase64(
+            $config['public_key'] ?? null,
+            'public_key',
+            SODIUM_CRYPTO_SIGN_PUBLICKEYBYTES,
+        );
+
+        $this->keyId = (string) ($config['key_id'] ?? 'none');
+    }
+
+    /**
      * @throws SodiumException
+     * @throws RuntimeException when constructed as a verify-only key (no private key)
      */
     public function sign(string $payload): string
     {
+        if ($this->privateKey === null) {
+            throw new RuntimeException(
+                'Cannot sign: this Ed25519 provider was configured with no private key (verify-only).'
+            );
+        }
+
         /** @var non-empty-string $privateKey */
         $privateKey = $this->privateKey;
 
