@@ -10,6 +10,10 @@ breaking changes between any two versions — see upgrade notes per version.
 
 ## [Unreleased]
 
+### Added
+
+- `UnknownSigningKeyException` (extends `ChronicleException`) thrown by `ConfigKeyRing::resolve()` when no key in the ring matches the requested algorithm and key ID.
+
 ---
 
 ## [1.9.1] - 2026-06-03
