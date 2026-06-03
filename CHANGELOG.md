@@ -21,6 +21,7 @@ breaking changes between any two versions — see upgrade notes per version.
 ### Added
 
 - `VerificationFailure` enum centralises all verification failure code strings. Static analysis can now catch typos in failure code comparisons.
+- `KeyRing` interface with `active(): SigningProvider`, `resolve(string $algorithm, ?string $keyId): SigningProvider`, and `all(): array` — the registry seam for multi-key signing and rotation.
 
 ---
 
