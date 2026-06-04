@@ -18,6 +18,7 @@ use Chronicle\Contracts\ReferenceResolver;
 use Chronicle\Contracts\SigningProvider;
 use Chronicle\Contracts\StorageDriver;
 use Chronicle\Entry\EloquentLedgerReader;
+use Chronicle\Exceptions\ChronicleException;
 use Chronicle\Exports\EntryExporter;
 use Chronicle\Exports\ExportManager;
 use Chronicle\Exports\ExportManifestBuilder;
@@ -30,7 +31,11 @@ use Chronicle\Pipeline\HashPayload;
 use Chronicle\Pipeline\PersistEntry;
 use Chronicle\Pipeline\RunExtensions;
 use Chronicle\Reports\ComplianceReport;
+use Chronicle\Signing\ConfigKeyRing;
+use Chronicle\Signing\KeyRing;
+use Chronicle\Signing\LegacySigningConfigAdapter;
 use Chronicle\Signing\NullSigningProvider;
+use Chronicle\Signing\SigningProviderFactory;
 use Chronicle\Storage\DriverResolver;
 use Chronicle\Storage\QueuedDriver;
 use Chronicle\Support\CanonicalPayloadSerializer;
@@ -39,7 +44,6 @@ use Chronicle\Verification\ExportChainVerifier;
 use Chronicle\Verification\ExportVerifier;
 use Illuminate\Contracts\Container\BindingResolutionException;
 use Illuminate\Contracts\Events\Dispatcher;
-use Illuminate\Contracts\Queue\Job;
 use Illuminate\Queue\Events\JobExceptionOccurred;
 use Illuminate\Queue\Events\JobFailed;
 use Illuminate\Queue\Events\JobProcessed;
@@ -163,32 +167,37 @@ class ChronicleServiceProvider extends ServiceProvider
 
     protected function registerSigning(): void
     {
-        $this->app->singleton(SigningProvider::class, function ($app) {
-            /** @var array{provider: class-string, private_key: ?string, public_key: ?string, key_id: string} $config */
-            $config = $app['config']->get('chronicle.signing', []);
+        $this->app->singleton(SigningProviderFactory::class);
 
-            $providerClass = $config['provider'];
+        $this->app->singleton(KeyRing::class, function ($app) {
+            /** @var array{active: string, enforce_on_boot?: bool, keys: array<string, array<string, mixed>>} $config */
+            $config = (array) $app['config']->get('chronicle.signing', []);
 
-            if (! is_a($providerClass, SigningProvider::class, true)) {
-                throw new RuntimeException(
-                    "Chronicle signing provider [$providerClass] must implement ".SigningProvider::class.'.'
-                );
+            if (LegacySigningConfigAdapter::isLegacy($config)) {
+                $config = LegacySigningConfigAdapter::adapt($config);
             }
 
+            return new ConfigKeyRing(
+                config: $config,
+                factory: $app->make(SigningProviderFactory::class),
+            );
+        });
+
+        $this->app->singleton(SigningProvider::class, function ($app) {
+            $enforce = (bool) $app['config']->get('chronicle.signing.enforce_on_boot', false);
+
             try {
-                return new $config['provider'](
-                    privateKey: $config['private_key'],
-                    publicKey: $config['public_key'],
-                    keyId: $config['key_id'],
-                );
+                return $app->make(KeyRing::class)->active();
             } catch (Throwable $e) {
-                if ($app['config']->get('chronicle.signing.enforce_on_boot', false)
-                    && ! $app->environment('testing')
-                ) {
+                if ($e instanceof RuntimeException && ! ($e instanceof ChronicleException)) {
+                    throw $e;
+                }
+
+                if ($enforce && ! $app->environment('testing')) {
                     throw new RuntimeException(
                         'Invalid Chronicle signing configuration. Configure CHRONICLE_PRIVATE_KEY and CHRONICLE_PUBLIC_KEY (or a valid custom signing provider).',
                         0,
-                        $e
+                        $e,
                     );
                 }
 
@@ -231,7 +240,6 @@ class ChronicleServiceProvider extends ServiceProvider
         $events->listen(
             JobProcessing::class,
             function (JobProcessing $event): void {
-                /** @var Job $job */
                 $job = $event->job;
                 $this->app->make(QueueJobContext::class)->set($job);
             }

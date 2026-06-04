@@ -88,11 +88,54 @@ return [
     ],
 
     'signing' => [
-        'provider' => Ed25519SigningProvider::class,
-        'key_id' => env('CHRONICLE_KEY_ID', 'chronicle-dev-key'),
-        'private_key' => env('CHRONICLE_PRIVATE_KEY'),
-        'public_key' => env('CHRONICLE_PUBLIC_KEY'),
+        /*
+        |----------------------------------------------------------------------
+        | Signing Enforcement
+        |----------------------------------------------------------------------
+        |
+        | When true, Chronicle will throw a RuntimeException at boot if the
+        | active signing key cannot be resolved (e.g. missing private key).
+        | Only the active key is validated — verify-only keys are not checked.
+        |
+        */
         'enforce_on_boot' => env('CHRONICLE_SIGNING_ENFORCE_ON_BOOT', false),
+
+        /*
+        |----------------------------------------------------------------------
+        | Active Key
+        |----------------------------------------------------------------------
+        |
+        | The ID of the key used to sign new checkpoints and exports.
+        | Must match a key defined in `signing.keys`.
+        |
+        */
+        'active' => env('CHRONICLE_ACTIVE_KEY', 'chronicle-dev-key'),
+
+        /*
+        |----------------------------------------------------------------------
+        | Key Ring
+        |----------------------------------------------------------------------
+        |
+        | All signing keys, past and present. Chronicle resolves the correct
+        | verifier from this ring using the (algorithm, key_id) stored in each
+        | checkpoint/export, so retired keys must remain here with at least
+        | their public_key to allow historic verification.
+        |
+        | Each entry requires:
+        |   provider   — a class implementing Chronicle\Contracts\SigningProvider
+        |   algorithm  — e.g. 'ed25519', 'ecdsa-p256'
+        |   public_key — base64-encoded public key (always required)
+        |   private_key — base64-encoded private key (omit or null for verify-only)
+        |
+        */
+        'keys' => [
+            'chronicle-dev-key' => [
+                'provider' => Ed25519SigningProvider::class,
+                'algorithm' => 'ed25519',
+                'private_key' => env('CHRONICLE_PRIVATE_KEY'),
+                'public_key' => env('CHRONICLE_PUBLIC_KEY'),
+            ],
+        ],
     ],
 
     'validation' => [

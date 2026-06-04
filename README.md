@@ -53,7 +53,7 @@ Chronicle takes a different approach. Events are recorded in an **append-only le
 ## Requirements
 
 - PHP `^8.2`
-- Laravel `^11.0`, `^12.0`, or `^13.0`
+- Laravel `^12.0`, or `^13.0`
 - The `ext-sodium` extension (Ed25519 signing)
 
 ---
