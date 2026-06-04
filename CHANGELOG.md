@@ -22,6 +22,7 @@ breaking changes between any two versions — see upgrade notes per version.
 - `LocalVerifyProvider` — abstract `SigningProvider` base class that implements `verify()` locally via OpenSSL, dispatching on `algorithm()`. Designed for remote-sign / local-verify patterns (e.g. AWS KMS). Subclasses implement `sign()`, `algorithm()`, `keyId()`, and `cachedPublicKeyPem()`.
 - `EcdsaSigningProvider` — ECDSA P-256 signing provider. Signs locally with `openssl_sign` (when a private key PEM is present); verifies locally via `LocalVerifyProvider`. `algorithm()` returns `'ecdsa-p256'`. Constructed from array config (`private_key`, `public_key`, `key_id`) for `SigningProviderFactory` / container `makeWith` compatibility.
 - `chronicle:key:generate {--id=}` artisan command: generates an Ed25519 keypair and prints the base64-encoded private and public keys plus a ready-to-paste `signing.keys` config entry. Never writes to disk or environment. Warns to store the private key in a secret manager.
+- `chronicle:key:list {--with-counts}` artisan command: tabulates all keys in the `signing.keys` ring with their ID, algorithm, provider, and active/verify-only status. `--with-counts` adds a per-key checkpoint count column.
 
 ---
 

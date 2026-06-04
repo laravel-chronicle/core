@@ -6,6 +6,7 @@ use Chronicle\Console\Commands\CreateCheckpointCommand;
 use Chronicle\Console\Commands\ExportCommand;
 use Chronicle\Console\Commands\InstallCommand;
 use Chronicle\Console\Commands\KeyGenerateCommand;
+use Chronicle\Console\Commands\KeyListCommand;
 use Chronicle\Console\Commands\PruneCommand;
 use Chronicle\Console\Commands\ReportCommand;
 use Chronicle\Console\Commands\ShowEntryCommand;
@@ -92,6 +93,7 @@ class ChronicleServiceProvider extends ServiceProvider
                 ShowEntryCommand::class,
                 PruneCommand::class,
                 KeyGenerateCommand::class,
+                KeyListCommand::class,
             ]);
         }
     }
