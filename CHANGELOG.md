@@ -31,6 +31,7 @@ breaking changes between any two versions — see upgrade notes per version.
 - `IntegrityVerifier` resolves each checkpoint's verifier via `keyRing->resolve($checkpoint->algorithm, $checkpoint->key_id)` instead of the injected active signer. Ledgers whose checkpoints span multiple signing keys (before and after rotation) now verify end-to-end.
 - `ExportVerifier` resolves the signing key from `signature.json`'s `algorithm` and `key_id` fields via the `KeyRing`. Exports signed by a retired key continue to verify as long as the public key remains in the ring. An unknown algorithm/key ID pair returns `VerificationFailure::UnknownKey`.
 - `ComplianceReport` injects `KeyRing` instead of `SigningProvider`; `generate()` calls `keyRing->active()` for signing. Behavior is identical to callers; the class is now consistent with `IntegrityVerifier` and `ExportVerifier`.
+- `composer.json` now explicitly requires `ext-openssl` (already available in all standard PHP environments; needed for `EcdsaSigningProvider`).
 
 ---
 

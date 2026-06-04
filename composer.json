@@ -28,7 +28,8 @@
     "require": {
         "php": "^8.2",
         "illuminate/support": "^12.0||^13.0",
-        "ext-sodium": "*"
+        "ext-sodium": "*",
+        "ext-openssl": "*"
     },
     "require-dev": {
         "laravel/pint": "^1.14",
