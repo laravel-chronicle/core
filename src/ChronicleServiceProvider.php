@@ -7,6 +7,7 @@ use Chronicle\Console\Commands\ExportCommand;
 use Chronicle\Console\Commands\InstallCommand;
 use Chronicle\Console\Commands\KeyGenerateCommand;
 use Chronicle\Console\Commands\KeyListCommand;
+use Chronicle\Console\Commands\KeyRotateCommand;
 use Chronicle\Console\Commands\PruneCommand;
 use Chronicle\Console\Commands\ReportCommand;
 use Chronicle\Console\Commands\ShowEntryCommand;
@@ -94,6 +95,7 @@ class ChronicleServiceProvider extends ServiceProvider
                 PruneCommand::class,
                 KeyGenerateCommand::class,
                 KeyListCommand::class,
+                KeyRotateCommand::class,
             ]);
         }
     }

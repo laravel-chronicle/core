@@ -23,6 +23,7 @@ breaking changes between any two versions — see upgrade notes per version.
 - `EcdsaSigningProvider` — ECDSA P-256 signing provider. Signs locally with `openssl_sign` (when a private key PEM is present); verifies locally via `LocalVerifyProvider`. `algorithm()` returns `'ecdsa-p256'`. Constructed from array config (`private_key`, `public_key`, `key_id`) for `SigningProviderFactory` / container `makeWith` compatibility.
 - `chronicle:key:generate {--id=}` artisan command: generates an Ed25519 keypair and prints the base64-encoded private and public keys plus a ready-to-paste `signing.keys` config entry. Never writes to disk or environment. Warns to store the private key in a secret manager.
 - `chronicle:key:list {--with-counts}` artisan command: tabulates all keys in the `signing.keys` ring with their ID, algorithm, provider, and active/verify-only status. `--with-counts` adds a per-key checkpoint count column.
+- `chronicle:key:rotate {newKeyId}` artisan command: validates the target key exists in the ring and has signing material, creates a mandatory boundary checkpoint signed with the current active key (D3), then prints the `CHRONICLE_ACTIVE_KEY=<newKeyId>` instruction to complete the rotation. Refuses with actionable errors on empty ledger, unknown key, verify-only target, or already-active target.
 
 ---
 
