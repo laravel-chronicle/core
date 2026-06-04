@@ -27,6 +27,7 @@ breaking changes between any two versions — see upgrade notes per version.
 - `config/chronicle.php` signing block updated from a single flat key to `signing.active` (the key ID used to sign new artifacts) and `signing.keys[]` (the full key ring). Each key entry specifies `provider`, `algorithm`, `public_key`, and optionally `private_key`. Apps that have published the old flat config upgrade with zero changes via `LegacySigningConfigAdapter`.
 - `ChronicleServiceProvider::registerSigning()` rewritten to bind `SigningProviderFactory` and `KeyRing` (singleton). `SigningProvider::class` continues to resolve the active provider so all existing callers (`ExportSigner`, `CheckpointCreator`, etc.) require zero changes. `enforce_on_boot` now validates the active key only — verify-only keys without private material no longer trip it.
 - Dropped support for `Laravel 11`
+- `IntegrityVerifier` resolves each checkpoint's verifier via `keyRing->resolve($checkpoint->algorithm, $checkpoint->key_id)` instead of the injected active signer. Ledgers whose checkpoints span multiple signing keys (before and after rotation) now verify end-to-end.
 
 ---
 
