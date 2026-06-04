@@ -45,9 +45,7 @@ class EcdsaSigningProvider extends LocalVerifyProvider
             $this->privatePem = $privateKey;
         }
 
-        $this->keyId = isset($config['key_id']) && is_string($config['key_id'])
-            ? $config['key_id']
-            : 'none';
+        $this->keyId = $config['key_id'] ?? 'none';
     }
 
     public function sign(string $payload): string
