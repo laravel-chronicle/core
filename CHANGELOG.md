@@ -25,6 +25,7 @@ breaking changes between any two versions — see upgrade notes per version.
 - `Ed25519SigningProvider` accepts an `array $config` constructor parameter for container-driven construction. When using the array-config path, `private_key` may be omitted or `null` to create a verify-only key. The existing positional constructor (`privateKey`, `publicKey`, `keyId`) is unchanged for direct/test use. `sign()` now throws `RuntimeException` with a clear message when called on a verify-only instance.
 - `config/chronicle.php` signing block updated from a single flat key to `signing.active` (the key ID used to sign new artifacts) and `signing.keys[]` (the full key ring). Each key entry specifies `provider`, `algorithm`, `public_key`, and optionally `private_key`. Apps that have published the old flat config upgrade with zero changes via `LegacySigningConfigAdapter`.
 - `ChronicleServiceProvider::registerSigning()` rewritten to bind `SigningProviderFactory` and `KeyRing` (singleton). `SigningProvider::class` continues to resolve the active provider so all existing callers (`ExportSigner`, `CheckpointCreator`, etc.) require zero changes. `enforce_on_boot` now validates the active key only — verify-only keys without private material no longer trip it.
+- Dropped support for `Laravel 11`
 
 ---
 
