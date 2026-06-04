@@ -17,6 +17,7 @@ breaking changes between any two versions — see upgrade notes per version.
 - `LegacySigningConfigAdapter` detects the pre-1.10 flat `signing` config shape (no `signing.keys` key) and promotes it to a one-entry `signing.keys` ring at runtime. A one-time deprecation notice is logged. Apps on the old flat config upgrade with zero code changes.
 - `SigningProviderFactory` builds `SigningProvider` instances via `$container->makeWith($class, ['config' => $keyConfig])`, allowing any provider to declare `array $config` and have additional constructor dependencies (e.g. SDK clients) auto-injected by the container.
 - `ConfigKeyRing` implements `KeyRing`: builds providers lazily from `signing.keys` config via `SigningProviderFactory`, caches them by key ID, and resolves by `(algorithm, keyId)` pair. Throws `UnknownSigningKeyException` on a miss.
+- `VerificationFailure::UnknownKey` — returned when a checkpoint or export references an algorithm/key ID pair that is not present in the `KeyRing`. Distinct from `CheckpointSignatureInvalid` and `SignatureInvalid`.
 
 ---
 

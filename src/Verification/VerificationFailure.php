@@ -12,6 +12,7 @@ enum VerificationFailure: string
     // Ledger-level (IntegrityVerifier)
     case CheckpointMissing = 'checkpoint_missing';
     case CheckpointSignatureInvalid = 'checkpoint_signature_invalid';
+    case UnknownKey = 'unknown_key';
 
     // Export-level
     case EntriesMissing = 'entries_missing';
