@@ -19,6 +19,8 @@ breaking changes between any two versions — see upgrade notes per version.
 - `ConfigKeyRing` implements `KeyRing`: builds providers lazily from `signing.keys` config via `SigningProviderFactory`, caches them by key ID, and resolves by `(algorithm, keyId)` pair. Throws `UnknownSigningKeyException` on a miss.
 - `VerificationFailure::UnknownKey` — returned when a checkpoint or export references an algorithm/key ID pair that is not present in the `KeyRing`. Distinct from `CheckpointSignatureInvalid` and `SignatureInvalid`.
 - `ComplianceReport::verify(string $reportHash, string $signature, string $algorithm, ?string $keyId): bool` — resolves the verifier via the `KeyRing` so reports signed before key rotation remain verifiable with the original public key.
+- `LocalVerifyProvider` — abstract `SigningProvider` base class that implements `verify()` locally via OpenSSL, dispatching on `algorithm()`. Designed for remote-sign / local-verify patterns (e.g. AWS KMS). Subclasses implement `sign()`, `algorithm()`, `keyId()`, and `cachedPublicKeyPem()`.
+- `EcdsaSigningProvider` — ECDSA P-256 signing provider. Signs locally with `openssl_sign` (when a private key PEM is present); verifies locally via `LocalVerifyProvider`. `algorithm()` returns `'ecdsa-p256'`. Constructed from array config (`private_key`, `public_key`, `key_id`) for `SigningProviderFactory` / container `makeWith` compatibility.
 
 ---
 
