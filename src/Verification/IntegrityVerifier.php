@@ -3,31 +3,29 @@
 namespace Chronicle\Verification;
 
 use Chronicle\Checkpoints\Checkpoint;
-use Chronicle\Contracts\SigningProvider;
 use Chronicle\Entry\Entry;
+use Chronicle\Exceptions\UnknownSigningKeyException;
 use Chronicle\Hashing\ChainHasher;
+use Chronicle\Signing\KeyRing;
 use Chronicle\Support\CanonicalPayloadSerializer;
 use JsonException;
 
-/**
- * Performs full Chronicle entries integrity verification.
- */
 class IntegrityVerifier
 {
     protected CanonicalPayloadSerializer $serializer;
 
     protected ChainHasher $chainHasher;
 
-    protected SigningProvider $signer;
+    protected KeyRing $keyRing;
 
     public function __construct(
         CanonicalPayloadSerializer $serializer,
         ChainHasher $chainHasher,
-        SigningProvider $signer
+        KeyRing $keyRing
     ) {
         $this->serializer = $serializer;
         $this->chainHasher = $chainHasher;
-        $this->signer = $signer;
+        $this->keyRing = $keyRing;
     }
 
     /**
@@ -93,7 +91,21 @@ class IntegrityVerifier
                     return $result;
                 }
 
-                $valid = $this->signer->verify(
+                $algorithm = $checkpoint->algorithm;
+                $keyId = $checkpoint->key_id;
+
+                try {
+                    $provider = $this->keyRing->resolve($algorithm, $keyId);
+                } catch (UnknownSigningKeyException) {
+                    $result->fail(
+                        VerificationFailure::UnknownKey->value,
+                        $entry->id
+                    );
+
+                    return $result;
+                }
+
+                $valid = $provider->verify(
                     $checkpoint->chain_hash,
                     $checkpoint->signature,
                 );

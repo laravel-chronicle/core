@@ -17,6 +17,8 @@ breaking changes between any two versions — see upgrade notes per version.
 - `LegacySigningConfigAdapter` detects the pre-1.10 flat `signing` config shape (no `signing.keys` key) and promotes it to a one-entry `signing.keys` ring at runtime. A one-time deprecation notice is logged. Apps on the old flat config upgrade with zero code changes.
 - `SigningProviderFactory` builds `SigningProvider` instances via `$container->makeWith($class, ['config' => $keyConfig])`, allowing any provider to declare `array $config` and have additional constructor dependencies (e.g. SDK clients) auto-injected by the container.
 - `ConfigKeyRing` implements `KeyRing`: builds providers lazily from `signing.keys` config via `SigningProviderFactory`, caches them by key ID, and resolves by `(algorithm, keyId)` pair. Throws `UnknownSigningKeyException` on a miss.
+- `VerificationFailure::UnknownKey` — returned when a checkpoint or export references an algorithm/key ID pair that is not present in the `KeyRing`. Distinct from `CheckpointSignatureInvalid` and `SignatureInvalid`.
+- `ComplianceReport::verify(string $reportHash, string $signature, string $algorithm, ?string $keyId): bool` — resolves the verifier via the `KeyRing` so reports signed before key rotation remain verifiable with the original public key.
 
 ---
 
@@ -26,6 +28,9 @@ breaking changes between any two versions — see upgrade notes per version.
 - `config/chronicle.php` signing block updated from a single flat key to `signing.active` (the key ID used to sign new artifacts) and `signing.keys[]` (the full key ring). Each key entry specifies `provider`, `algorithm`, `public_key`, and optionally `private_key`. Apps that have published the old flat config upgrade with zero changes via `LegacySigningConfigAdapter`.
 - `ChronicleServiceProvider::registerSigning()` rewritten to bind `SigningProviderFactory` and `KeyRing` (singleton). `SigningProvider::class` continues to resolve the active provider so all existing callers (`ExportSigner`, `CheckpointCreator`, etc.) require zero changes. `enforce_on_boot` now validates the active key only — verify-only keys without private material no longer trip it.
 - Dropped support for `Laravel 11`
+- `IntegrityVerifier` resolves each checkpoint's verifier via `keyRing->resolve($checkpoint->algorithm, $checkpoint->key_id)` instead of the injected active signer. Ledgers whose checkpoints span multiple signing keys (before and after rotation) now verify end-to-end.
+- `ExportVerifier` resolves the signing key from `signature.json`'s `algorithm` and `key_id` fields via the `KeyRing`. Exports signed by a retired key continue to verify as long as the public key remains in the ring. An unknown algorithm/key ID pair returns `VerificationFailure::UnknownKey`.
+- `ComplianceReport` injects `KeyRing` instead of `SigningProvider`; `generate()` calls `keyRing->active()` for signing. Behavior is identical to callers; the class is now consistent with `IntegrityVerifier` and `ExportVerifier`.
 
 ---
 
