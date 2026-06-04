@@ -2,8 +2,9 @@
 
 namespace Chronicle\Verification;
 
-use Chronicle\Contracts\SigningProvider;
+use Chronicle\Exceptions\UnknownSigningKeyException;
 use Chronicle\Exports\ExportFormat;
+use Chronicle\Signing\KeyRing;
 use Chronicle\Support\CanonicalPayloadSerializer;
 use JsonException;
 
@@ -13,7 +14,7 @@ use JsonException;
 class ExportVerifier
 {
     public function __construct(
-        protected readonly SigningProvider $signer,
+        protected readonly KeyRing $keyRing,
         protected readonly CanonicalPayloadSerializer $serializer,
     ) {
         //
@@ -21,6 +22,8 @@ class ExportVerifier
 
     /**
      * Verify an export directory.
+     *
+     * @throws JsonException
      */
     public function verify(string $path): ExportVerificationResult
     {
@@ -107,10 +110,16 @@ class ExportVerifier
         /** @var string $sign */
         $sign = $signature['signature'];
 
-        /** @var string|null $manifestFirstEntryId */
+        $sigAlgorithm = isset($signature['algorithm']) && is_string($signature['algorithm'])
+            ? $signature['algorithm']
+            : null;
+
+        $sigKeyId = isset($signature['key_id']) && is_string($signature['key_id'])
+            ? $signature['key_id']
+            : null;
+
         $manifestFirstEntryId = $manifest['first_entry_id'];
 
-        /** @var string|null $manifestLastEntryId */
         $manifestLastEntryId = $manifest['last_entry_id'];
 
         $canonical = json_encode([
@@ -121,7 +130,21 @@ class ExportVerifier
             'chain_head' => $manifestChainHead,
         ], JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES);
 
-        $validSignature = $this->signer->verify(
+        if ($sigAlgorithm === null) {
+            return ExportVerificationResult::failure(
+                VerificationFailure::UnknownKey->value
+            );
+        }
+
+        try {
+            $provider = $this->keyRing->resolve($sigAlgorithm, $sigKeyId);
+        } catch (UnknownSigningKeyException) {
+            return ExportVerificationResult::failure(
+                VerificationFailure::UnknownKey->value
+            );
+        }
+
+        $validSignature = $provider->verify(
             $canonical,
             $sign,
         );

@@ -28,6 +28,7 @@ breaking changes between any two versions — see upgrade notes per version.
 - `ChronicleServiceProvider::registerSigning()` rewritten to bind `SigningProviderFactory` and `KeyRing` (singleton). `SigningProvider::class` continues to resolve the active provider so all existing callers (`ExportSigner`, `CheckpointCreator`, etc.) require zero changes. `enforce_on_boot` now validates the active key only — verify-only keys without private material no longer trip it.
 - Dropped support for `Laravel 11`
 - `IntegrityVerifier` resolves each checkpoint's verifier via `keyRing->resolve($checkpoint->algorithm, $checkpoint->key_id)` instead of the injected active signer. Ledgers whose checkpoints span multiple signing keys (before and after rotation) now verify end-to-end.
+- `ExportVerifier` resolves the signing key from `signature.json`'s `algorithm` and `key_id` fields via the `KeyRing`. Exports signed by a retired key continue to verify as long as the public key remains in the ring. An unknown algorithm/key ID pair returns `VerificationFailure::UnknownKey`.
 
 ---
 
