@@ -220,7 +220,8 @@ class EntryBuilder
     {
         ksort($diff);
 
-        return collect($diff)
+        /** @var array<string, mixed> $normalized */
+        $normalized = collect($diff)
             ->map(function (mixed $change, string $key): array {
                 if (! is_array($change)) {
                     throw new InvalidArgumentException(
@@ -237,6 +238,8 @@ class EntryBuilder
                 ];
             })
             ->toArray();
+
+        return $normalized;
     }
 
     /**

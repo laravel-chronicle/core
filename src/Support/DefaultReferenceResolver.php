@@ -34,7 +34,10 @@ class DefaultReferenceResolver implements ReferenceResolver
         }
 
         if (is_object($value) && isset($value->id)) {
-            $id = (string) $value->id;
+            /** @var int|string $rawId */
+            $rawId = $value->id;
+
+            $id = (string) $rawId;
 
             return new Reference(
                 $value::class,
