@@ -377,6 +377,8 @@ class ChronicleManager
             ? app($observer)
             : app(ChronicleModelObserver::class);
 
+        assert($observerInstance instanceof ChronicleModelObserver);
+
         $model::observe($observerInstance);
     }
 }
