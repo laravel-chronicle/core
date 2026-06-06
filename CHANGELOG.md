@@ -41,7 +41,11 @@ breaking changes between any two versions — see upgrade notes per version.
 - `ExportVerifier` resolves the signing key from `signature.json`'s `algorithm` and `key_id` fields via the `KeyRing`. Exports signed by a retired key continue to verify as long as the public key remains in the ring. An unknown algorithm/key ID pair returns `VerificationFailure::UnknownKey`.
 - `ComplianceReport` injects `KeyRing` instead of `SigningProvider`; `generate()` calls `keyRing->active()` for signing. Behavior is identical to callers; the class is now consistent with `IntegrityVerifier` and `ExportVerifier`.
 - `composer.json` now explicitly requires `ext-openssl` (already available in all standard PHP environments; needed for `EcdsaSigningProvider`).
-
+-  Updated `phpstan.neon.dist` to set `level: 10`.
+-  Added strict `@var` annotations to narrow types inside Collections and array mapping (e.g., `LedgerStats`, `EntryBuilder`).
+-  Introduced `assert()` checks for IoC container resolutions in `ChronicleServiceProvider` to prove instantiation types to the analyzer.
+-  Guarded scalar operations and `Carbon` parsing from `mixed` properties.
+-  Strictly typed anonymous functions/closures where `mixed` was implicitly assumed (e.g., `ComplianceReport`, Middlewares).
 ---
 
 ## [1.9.1] - 2026-06-03

@@ -47,7 +47,6 @@ use Chronicle\Verification\ExportChainVerifier;
 use Chronicle\Verification\ExportVerifier;
 use Illuminate\Contracts\Container\BindingResolutionException;
 use Illuminate\Contracts\Events\Dispatcher;
-use Illuminate\Contracts\Queue\Job;
 use Illuminate\Foundation\Application;
 use Illuminate\Queue\Events\JobExceptionOccurred;
 use Illuminate\Queue\Events\JobFailed;
@@ -180,7 +179,7 @@ class ChronicleServiceProvider extends ServiceProvider
     {
         $this->app->singleton(SigningProviderFactory::class);
 
-        $this->app->singleton(KeyRing::class, function ($app) {
+        $this->app->singleton(KeyRing::class, function (Application $app) {
             /** @var array{active: string, enforce_on_boot?: bool, keys: array<string, array<string, mixed>>} $config */
             $config = (array) $app['config']->get('chronicle.signing', []);
 
@@ -194,7 +193,7 @@ class ChronicleServiceProvider extends ServiceProvider
             );
         });
 
-        $this->app->singleton(SigningProvider::class, function ($app) {
+        $this->app->singleton(SigningProvider::class, function (Application $app) {
             $enforce = (bool) $app['config']->get('chronicle.signing.enforce_on_boot', false);
 
             try {
