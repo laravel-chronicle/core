@@ -47,6 +47,7 @@ Chronicle takes a different approach. Events are recorded in an **append-only le
 | Tamper detection   | ✓         | ✗                         |
 | Verifiable exports | ✓         | ✗                         |
 | Signed checkpoints | ✓         | ✗                         |
+| Key rotation       | ✓         | ✗                         |
 
 ---
 
@@ -55,6 +56,7 @@ Chronicle takes a different approach. Events are recorded in an **append-only le
 - PHP `^8.2`
 - Laravel `^12.0`, or `^13.0`
 - The `ext-sodium` extension (Ed25519 signing)
+- The `ext-openssl` extension (ECDSA P-256 signing and verification)
 
 ---
 
@@ -117,6 +119,53 @@ If any entry is modified or removed, the chain becomes invalid. See [Hashing](ht
 
 ---
 
+## Signing and key rotation
+
+Checkpoints, exports, and compliance reports are signed. Chronicle holds its signing keys in a **key ring**: one key is *active* and signs new artifacts, while every key (active or retired) remains available to **verify** the artifacts it produced. Each artifact records the `algorithm` and `key_id` it was signed with, and verification resolves the matching key from the ring — so **rotating keys never invalidates existing checkpoints or exports**.
+
+```php
+// config/chronicle.php
+'signing' => [
+    'active' => env('CHRONICLE_ACTIVE_KEY', 'chronicle-key-1'),
+
+    'keys' => [
+        'chronicle-key-1' => [
+            'provider'    => Chronicle\Signing\Ed25519SigningProvider::class,
+            'algorithm'   => 'ed25519',
+            'private_key' => env('CHRONICLE_PRIVATE_KEY'), // null once retired
+            'public_key'  => env('CHRONICLE_PUBLIC_KEY'),  // keep for verification
+        ],
+    ],
+],
+```
+
+Chronicle ships two built-in providers: `Ed25519SigningProvider` (libsodium) and `EcdsaSigningProvider` (ECDSA P-256 via OpenSSL, verified locally against a cached public key).
+
+### Rotating a key
+
+```bash
+php artisan chronicle:key:generate --id=chronicle-key-2   # mint a new keypair
+# add the printed entry to signing.keys, then:
+php artisan chronicle:key:rotate chronicle-key-2          # anchors a boundary checkpoint
+# set CHRONICLE_ACTIVE_KEY=chronicle-key-2 and deploy
+```
+
+`chronicle:key:rotate` always creates a boundary checkpoint at the current ledger head before handing over, so the epoch boundary between keys is itself verifiable. When you eventually retire a key, **keep its `public_key`** in the ring — drop only the `private_key`. See [Signing and Keys](https://laravel-chronicle.github.io/docs/signing-and-keys) and the [key rotation guide](https://laravel-chronicle.github.io/docs/guide-rotate-signing-keys).
+
+### External signing providers (KMS / HSM)
+
+Signing providers are pluggable, so the private key can live outside the application entirely. Providers sign remotely and verify locally against a cached public key, keeping verification offline and fast. An official AWS KMS adapter is available as a companion package:
+
+```bash
+composer require laravel-chronicle/kms-aws
+```
+
+To build your own (GCP KMS, Vault, HSM, …), see [Custom Signing Providers](https://laravel-chronicle.github.io/docs/custom-signing-providers).
+
+> **Upgrading from 1.9.x?** The previous flat `signing` config (a single `provider` / `private_key` / `public_key` / `key_id`) continues to work unchanged — Chronicle adapts it to a single-key ring automatically. Migrating to the `signing.active` + `signing.keys` shape is recommended but not required.
+
+---
+
 ## Querying the ledger
 
 Chronicle provides an expressive query API with database-indexed scopes:
@@ -162,7 +211,7 @@ php artisan chronicle:export storage/app/chronicle-export
 php artisan chronicle:verify-export storage/app/chronicle-export
 ```
 
-Verification checks the dataset hash, digital signature, hash-chain integrity, and dataset boundaries. See [Exports](https://laravel-chronicle.github.io/docs/exports) and the [Export Format](https://laravel-chronicle.github.io/docs/export-format).
+Verification checks the dataset hash, digital signature, hash-chain integrity, and dataset boundaries — resolving the signing key from the key ring, so exports signed by a now-retired key still verify. See [Exports](https://laravel-chronicle.github.io/docs/exports) and the [Export Format](https://laravel-chronicle.github.io/docs/export-format).
 
 ---
 
@@ -179,6 +228,9 @@ Verification checks the dataset hash, digital signature, hash-chain integrity, a
 | `chronicle:show {id}`            | Display a single entry by ULID                                                         |
 | `chronicle:prune`                | Prune entries by retention policy (`--older-than`, `--before`, `--dry-run`, `--force`) |
 | `chronicle:report {path}`        | Generate a signed compliance report (`--from`, `--to`)                                 |
+| `chronicle:key:generate`         | Generate an Ed25519 keypair for `signing.keys` (`--id`)                                |
+| `chronicle:key:list`             | List the signing keys in the key ring (`--with-counts`)                                |
+| `chronicle:key:rotate {keyId}`   | Create a boundary checkpoint and print activation instructions for a new key           |
 
 See the [Artisan Commands reference](https://laravel-chronicle.github.io/docs/artisan-commands).
 
@@ -188,7 +240,9 @@ See the [Artisan Commands reference](https://laravel-chronicle.github.io/docs/ar
 
 - **Append-only ledger** with immutable Eloquent entries
 - **Hash chaining** and deterministic canonical-payload hashing
-- **Ed25519 signing**, signed checkpoints, and signed compliance reports
+- **Signing** with Ed25519 or ECDSA P-256; signed checkpoints, exports, and compliance reports
+- **Key rotation** with a multi-key ring — retired keys keep verifying their own artifacts
+- **External signing providers** (e.g. AWS KMS) with remote signing and local verification
 - **Verifiable exports** with independent verification
 - **Automatic model auditing** via the `HasChronicle` trait or observers
 - **Transactions & correlation IDs** for grouping related events
@@ -224,10 +278,9 @@ Chronicle is designed to be extended. You can write custom validators, policies,
 
 Planned for upcoming releases:
 
-- signing-key rotation with multi-key verification
-- external (KMS / Vault) signing providers
-- external anchoring of checkpoints
-- incremental, checkpoint-based verification
+- external anchoring of checkpoints (S3 Object Lock, RFC 3161 timestamping, transparency logs)
+- incremental, checkpoint-based verification for large ledgers
+- additional external signing adapters (GCP KMS, HashiCorp Vault)
 - a dedicated Filament admin integration
 
 ---
