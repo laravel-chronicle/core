@@ -3,8 +3,9 @@
 namespace Chronicle\Reports;
 
 use Carbon\CarbonInterface;
-use Chronicle\Contracts\SigningProvider;
 use Chronicle\Entry\Entry;
+use Chronicle\Exceptions\UnknownSigningKeyException;
+use Chronicle\Signing\KeyRing;
 use Illuminate\Support\Carbon;
 use JsonException;
 use RuntimeException;
@@ -12,8 +13,10 @@ use RuntimeException;
 class ComplianceReport
 {
     public function __construct(
-        protected SigningProvider $signer,
-    ) {}
+        protected KeyRing $keyRing,
+    ) {
+        //
+    }
 
     public function generate(
         string $path,
@@ -28,9 +31,10 @@ class ComplianceReport
             $generatedAt, $entryCount, $firstEntryId, $lastEntryId, $chainHead, $from, $to
         );
 
-        $signature = $this->signer->sign($reportHash);
-        $algorithm = $this->signer->algorithm();
-        $keyId = $this->signer->keyId();
+        $signer = $this->keyRing->active();
+        $signature = $signer->sign($reportHash);
+        $algorithm = $signer->algorithm();
+        $keyId = $signer->keyId();
 
         $fromCarbon = $from instanceof Carbon ? $from : ($from !== null ? Carbon::instance($from) : null);
         $toCarbon = $to instanceof Carbon ? $to : ($to !== null ? Carbon::instance($to) : null);
@@ -65,6 +69,21 @@ class ComplianceReport
         }
 
         return $result;
+    }
+
+    public function verify(
+        string $reportHash,
+        string $signature,
+        string $algorithm,
+        ?string $keyId
+    ): bool {
+        try {
+            $provider = $this->keyRing->resolve($algorithm, $keyId);
+        } catch (UnknownSigningKeyException) {
+            return false;
+        }
+
+        return $provider->verify($reportHash, $signature);
     }
 
     /**

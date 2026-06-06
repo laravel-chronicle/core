@@ -20,7 +20,7 @@ jobs:
     name: Validate composer.json
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6.0.2
+      - uses: actions/checkout@v6.0.3
       - uses: shivammathur/setup-php@v2
         with:
           php-version: 8.4
@@ -36,15 +36,13 @@ jobs:
       fail-fast: true
       matrix:
         php: [8.2, 8.3, 8.4, 8.5]
-        laravel: [11.*, 12.*, 13.*]
+        laravel: [12.*, 13.*]
         stability: [prefer-stable]
         include:
           - laravel: 13.*
             testbench: 11.*
           - laravel: 12.*
             testbench: 10.*
-          - laravel: 11.*
-            testbench: 9.*
         exclude:
           - laravel: 13.*
             php: 8.2
@@ -53,7 +51,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6.0.2
+        uses: actions/checkout@v6.0.3
 
       - name: Setup PHP
         uses: shivammathur/setup-php@v2

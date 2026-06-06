@@ -10,9 +10,46 @@ breaking changes between any two versions — see upgrade notes per version.
 
 ## [Unreleased]
 
+---
+
+## [1.10.0] - 2026-06-06
+
+### Added
+
+- `UnknownSigningKeyException` (extends `ChronicleException`) thrown by `ConfigKeyRing::resolve()` when no key in the ring matches the requested algorithm and key ID.
+- `KeyRing` interface with `active(): SigningProvider`, `resolve(string $algorithm, ?string $keyId): SigningProvider`, and `all(): array` — the registry seam for multi-key signing and rotation.
+- `LegacySigningConfigAdapter` detects the pre-1.10 flat `signing` config shape (no `signing.keys` key) and promotes it to a one-entry `signing.keys` ring at runtime. A one-time deprecation notice is logged. Apps on the old flat config upgrade with zero code changes.
+- `SigningProviderFactory` builds `SigningProvider` instances via `$container->makeWith($class, ['config' => $keyConfig])`, allowing any provider to declare `array $config` and have additional constructor dependencies (e.g. SDK clients) auto-injected by the container.
+- `ConfigKeyRing` implements `KeyRing`: builds providers lazily from `signing.keys` config via `SigningProviderFactory`, caches them by key ID, and resolves by `(algorithm, keyId)` pair. Throws `UnknownSigningKeyException` on a miss.
+- `VerificationFailure::UnknownKey` — returned when a checkpoint or export references an algorithm/key ID pair that is not present in the `KeyRing`. Distinct from `CheckpointSignatureInvalid` and `SignatureInvalid`.
+- `ComplianceReport::verify(string $reportHash, string $signature, string $algorithm, ?string $keyId): bool` — resolves the verifier via the `KeyRing` so reports signed before key rotation remain verifiable with the original public key.
+- `LocalVerifyProvider` — abstract `SigningProvider` base class that implements `verify()` locally via OpenSSL, dispatching on `algorithm()`. Designed for remote-sign / local-verify patterns (e.g. AWS KMS). Subclasses implement `sign()`, `algorithm()`, `keyId()`, and `cachedPublicKeyPem()`.
+- `EcdsaSigningProvider` — ECDSA P-256 signing provider. Signs locally with `openssl_sign` (when a private key PEM is present); verifies locally via `LocalVerifyProvider`. `algorithm()` returns `'ecdsa-p256'`. Constructed from array config (`private_key`, `public_key`, `key_id`) for `SigningProviderFactory` / container `makeWith` compatibility.
+- `chronicle:key:generate {--id=}` artisan command: generates an Ed25519 keypair and prints the base64-encoded private and public keys plus a ready-to-paste `signing.keys` config entry. Never writes to disk or environment. Warns to store the private key in a secret manager.
+- `chronicle:key:list {--with-counts}` artisan command: tabulates all keys in the `signing.keys` ring with their ID, algorithm, provider, and active/verify-only status. `--with-counts` adds a per-key checkpoint count column.
+- `chronicle:key:rotate {newKeyId}` artisan command: validates the target key exists in the ring and has signing material, creates a mandatory boundary checkpoint signed with the current active key (D3), then prints the `CHRONICLE_ACTIVE_KEY=<newKeyId>` instruction to complete the rotation. Refuses with actionable errors on empty ledger, unknown key, verify-only target, or already-active target.
+
+---
+
+### Changed
+
+- `Ed25519SigningProvider` accepts an `array $config` constructor parameter for container-driven construction. When using the array-config path, `private_key` may be omitted or `null` to create a verify-only key. The existing positional constructor (`privateKey`, `publicKey`, `keyId`) is unchanged for direct/test use. `sign()` now throws `RuntimeException` with a clear message when called on a verify-only instance.
+- `config/chronicle.php` signing block updated from a single flat key to `signing.active` (the key ID used to sign new artifacts) and `signing.keys[]` (the full key ring). Each key entry specifies `provider`, `algorithm`, `public_key`, and optionally `private_key`. Apps that have published the old flat config upgrade with zero changes via `LegacySigningConfigAdapter`.
+- `ChronicleServiceProvider::registerSigning()` rewritten to bind `SigningProviderFactory` and `KeyRing` (singleton). `SigningProvider::class` continues to resolve the active provider so all existing callers (`ExportSigner`, `CheckpointCreator`, etc.) require zero changes. `enforce_on_boot` now validates the active key only — verify-only keys without private material no longer trip it.
+- Dropped support for `Laravel 11`
+- `IntegrityVerifier` resolves each checkpoint's verifier via `keyRing->resolve($checkpoint->algorithm, $checkpoint->key_id)` instead of the injected active signer. Ledgers whose checkpoints span multiple signing keys (before and after rotation) now verify end-to-end.
+- `ExportVerifier` resolves the signing key from `signature.json`'s `algorithm` and `key_id` fields via the `KeyRing`. Exports signed by a retired key continue to verify as long as the public key remains in the ring. An unknown algorithm/key ID pair returns `VerificationFailure::UnknownKey`.
+- `ComplianceReport` injects `KeyRing` instead of `SigningProvider`; `generate()` calls `keyRing->active()` for signing. Behavior is identical to callers; the class is now consistent with `IntegrityVerifier` and `ExportVerifier`.
+- `composer.json` now explicitly requires `ext-openssl` (already available in all standard PHP environments; needed for `EcdsaSigningProvider`).
+
+---
+
+## [1.9.1] - 2026-06-03
+
 ### Added
 
 - `VerificationFailure` enum centralises all verification failure code strings. Static analysis can now catch typos in failure code comparisons.
+- `KeyRing` interface with `active(): SigningProvider`, `resolve(string $algorithm, ?string $keyId): SigningProvider`, and `all(): array` — the registry seam for multi-key signing and rotation.
 
 ---
 
