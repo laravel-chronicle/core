@@ -19,7 +19,7 @@ jobs:
       CHRONICLE_PRIVATE_KEY: 'RcSfC2MuYTPnkrL/MIA4/l/sAjirGXXIFXZEPokdwh1Lcz+SvNE7bjvgCsDotjnlHfJyZ4XW/kUXemtoyaa92Q=='
       CHRONICLE_PUBLIC_KEY: 'S3M/krzRO2474ArA6LY55R3ycmeF1v5FF3praMmmvdk='
     steps:
-      - uses: actions/checkout@v6.0.2
+      - uses: actions/checkout@v6.0.3
 
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
