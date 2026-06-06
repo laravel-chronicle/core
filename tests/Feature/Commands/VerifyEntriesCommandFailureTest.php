@@ -57,7 +57,7 @@ it('fails verify command when checkpoint signature is invalid', function () {
         'chain_hash' => $entry->chain_hash,
         'signature' => base64_encode(str_repeat('x', 64)),
         'algorithm' => 'ed25519',
-        'key_id' => 'bad-key',
+        'key_id' => 'chronicle-dev-key',
         'created_at' => now(),
     ]);
 

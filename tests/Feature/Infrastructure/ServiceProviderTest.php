@@ -10,6 +10,8 @@ use Chronicle\Facades\Chronicle;
 use Chronicle\Pipeline\EntryExtensionRegistry;
 use Chronicle\Pipeline\EntryPipeline;
 use Chronicle\Pipeline\ExtensionStage;
+use Chronicle\Signing\ConfigKeyRing;
+use Chronicle\Signing\KeyRing;
 use Chronicle\Signing\NullSigningProvider;
 use Chronicle\Storage\ArrayDriver;
 use Chronicle\Storage\DatabaseDriver;
@@ -110,19 +112,26 @@ it('rejects persisted actions without dot notation', function () {
 })->throws(InvalidActionException::class);
 
 it('throws when signing provider does not implement SigningProvider', function () {
-    config()->set('chronicle.signing.provider', stdClass::class);
+    config()->set('chronicle.signing.keys.chronicle-dev-key.provider', stdClass::class);
     app()->forgetInstance(SigningProvider::class);
+    app()->forgetInstance(KeyRing::class);
 
     app(SigningProvider::class);
 })->throws(RuntimeException::class, 'must implement');
 
 it('boots successfully when enforce_on_boot is false and keys are missing', function () {
     config()->set('chronicle.signing.enforce_on_boot', false);
-    config()->set('chronicle.signing.private_key');
-    config()->set('chronicle.signing.public_key');
+    config()->set('chronicle.signing.keys.chronicle-dev-key.private_key');
+    config()->set('chronicle.signing.keys.chronicle-dev-key.public_key');
     app()->forgetInstance(SigningProvider::class);
+    app()->forgetInstance(KeyRing::class);
 
     $provider = app(SigningProvider::class);
 
     expect($provider)->toBeInstanceOf(NullSigningProvider::class);
+});
+
+it('resolves KeyRing from container', function () {
+    expect(app(KeyRing::class))
+        ->toBeInstanceOf(ConfigKeyRing::class);
 });
