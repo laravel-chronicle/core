@@ -179,7 +179,7 @@ class ChronicleServiceProvider extends ServiceProvider
     {
         $this->app->singleton(SigningProviderFactory::class);
 
-        $this->app->singleton(KeyRing::class, function ($app) {
+        $this->app->singleton(KeyRing::class, function (Application $app) {
             /** @var array{active: string, enforce_on_boot?: bool, keys: array<string, array<string, mixed>>} $config */
             $config = (array) $app['config']->get('chronicle.signing', []);
 
@@ -193,7 +193,7 @@ class ChronicleServiceProvider extends ServiceProvider
             );
         });
 
-        $this->app->singleton(SigningProvider::class, function ($app) {
+        $this->app->singleton(SigningProvider::class, function (Application $app) {
             $enforce = (bool) $app['config']->get('chronicle.signing.enforce_on_boot', false);
 
             try {

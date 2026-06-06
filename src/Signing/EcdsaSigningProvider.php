@@ -59,7 +59,7 @@ class EcdsaSigningProvider extends LocalVerifyProvider
         $signature = '';
         $result = openssl_sign($payload, $signature, $this->privatePem, OPENSSL_ALGO_SHA256);
 
-        if ($result === false) {
+        if ($result === false || ! is_string($signature)) {
             $error = openssl_error_string();
 
             throw new RuntimeException(
