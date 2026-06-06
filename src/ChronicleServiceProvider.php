@@ -47,7 +47,6 @@ use Chronicle\Verification\ExportChainVerifier;
 use Chronicle\Verification\ExportVerifier;
 use Illuminate\Contracts\Container\BindingResolutionException;
 use Illuminate\Contracts\Events\Dispatcher;
-use Illuminate\Contracts\Queue\Job;
 use Illuminate\Foundation\Application;
 use Illuminate\Queue\Events\JobExceptionOccurred;
 use Illuminate\Queue\Events\JobFailed;
