@@ -153,7 +153,7 @@ class ComplianceReport
         ?Carbon $from,
         ?Carbon $to,
     ): string {
-        $e = fn ($value): string => htmlspecialchars(($value ?? '—'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+        $e = fn (int|string|null $value): string => htmlspecialchars((string) ($value ?? '—'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
 
         $period = $from !== null || $to !== null
             ? $e($from?->toDateString() ?? '∞').' – '.$e($to?->toDateString() ?? '∞')

@@ -47,6 +47,8 @@ use Chronicle\Verification\ExportChainVerifier;
 use Chronicle\Verification\ExportVerifier;
 use Illuminate\Contracts\Container\BindingResolutionException;
 use Illuminate\Contracts\Events\Dispatcher;
+use Illuminate\Contracts\Queue\Job;
+use Illuminate\Foundation\Application;
 use Illuminate\Queue\Events\JobExceptionOccurred;
 use Illuminate\Queue\Events\JobFailed;
 use Illuminate\Queue\Events\JobProcessed;
@@ -103,7 +105,7 @@ class ChronicleServiceProvider extends ServiceProvider
     protected function registerCore(): void
     {
         $this->app->singleton(CanonicalPayloadSerializer::class);
-        $this->app->singleton(EntryExtensionRegistry::class, function ($app) {
+        $this->app->singleton(EntryExtensionRegistry::class, function (Application $app) {
             $registry = new EntryExtensionRegistry($app);
             $configured = config('chronicle.extensions', []);
 
@@ -123,7 +125,7 @@ class ChronicleServiceProvider extends ServiceProvider
             return $registry;
         });
 
-        $this->app->singleton(EntryPipeline::class, function ($app) {
+        $this->app->singleton(EntryPipeline::class, function (Application $app) {
             return new EntryPipeline([
                 $app->make(RunExtensions::class),
                 $app->make(CanonicalizePayload::class),
@@ -133,7 +135,7 @@ class ChronicleServiceProvider extends ServiceProvider
             ]);
         });
 
-        $this->app->singleton('chronicle.pipeline.pre', function ($app) {
+        $this->app->singleton('chronicle.pipeline.pre', function (Application $app) {
             return new EntryPipeline([
                 $app->make(RunExtensions::class),
                 $app->make(CanonicalizePayload::class),
@@ -149,7 +151,7 @@ class ChronicleServiceProvider extends ServiceProvider
         $this->app->singleton(DriverResolver::class);
         $this->app->singleton(ReferenceResolver::class, DefaultReferenceResolver::class);
 
-        $this->app->singleton(StorageDriver::class, function ($app) {
+        $this->app->singleton(StorageDriver::class, function (Application $app) {
             $configured = config('chronicle.driver', 'eloquent');
             $driver = is_string($configured) ? $configured : 'eloquent';
 
@@ -159,11 +161,14 @@ class ChronicleServiceProvider extends ServiceProvider
 
     protected function registerManager(): void
     {
-        $this->app->singleton('chronicle', function ($app) {
+        $this->app->singleton('chronicle', function (Application $app) {
+            $prePipeline = $app->make('chronicle.pipeline.pre');
+            assert($prePipeline instanceof EntryPipeline);
+
             return new ChronicleManager(
                 resolver: $app->make(ReferenceResolver::class),
                 pipeline: $app->make(EntryPipeline::class),
-                prePipeline: $app->make('chronicle.pipeline.pre'),
+                prePipeline: $prePipeline,
                 reader: $app->make(LedgerReaderContract::class),
                 drivers: $app->make(DriverResolver::class),
                 extensions: $app->make(EntryExtensionRegistry::class),
@@ -226,7 +231,7 @@ class ChronicleServiceProvider extends ServiceProvider
         $this->app->singleton(ExportChainVerifier::class);
         $this->app->singleton(ComplianceReport::class);
 
-        $this->app->singleton(ExportManager::class, function ($app) {
+        $this->app->singleton(ExportManager::class, function (Application $app) {
             return new ExportManager(
                 $app->make(EntryExporter::class),
                 $app->make(ExportManifestBuilder::class),

@@ -109,12 +109,16 @@ class LedgerStats
         /** @var int $totalEntries */
         $totalEntries = $aggregate->total_entries;
 
-        $oldestEntryAt = $aggregate->oldest_entry_at !== null
-            ? Carbon::parse($aggregate->oldest_entry_at)
+        /** @var string|null $rawOldest */
+        $rawOldest = $aggregate->oldest_entry_at;
+        $oldestEntryAt = $rawOldest !== null
+            ? Carbon::parse($rawOldest)
             : null;
 
-        $newestEntryAt = $aggregate->newest_entry_at !== null
-            ? Carbon::parse($aggregate->newest_entry_at)
+        /** @var string|null $rawNewest */
+        $rawNewest = $aggregate->newest_entry_at;
+        $newestEntryAt = $rawNewest !== null
+            ? Carbon::parse($rawNewest)
             : null;
 
         /** @var list<array{action: string, count: int}> $topActions */
@@ -124,7 +128,14 @@ class LedgerStats
             ->orderByDesc('count')
             ->limit(10)
             ->get()
-            ->map(fn (object $row): array => ['action' => (string) $row->action, 'count' => (int) $row->count])
+            ->map(function (object $row): array {
+                /** @var string $action */
+                $action = $row->action;
+                /** @var int|string $count */
+                $count = $row->count;
+
+                return ['action' => $action, 'count' => (int) $count];
+            })
             ->values()
             ->all();
 
@@ -134,7 +145,14 @@ class LedgerStats
             ->groupByRaw('DATE(created_at)')
             ->orderBy('date')
             ->get()
-            ->map(fn (object $row): array => ['date' => (string) $row->date, 'count' => (int) $row->count])
+            ->map(function (object $row): array {
+                /** @var string $date */
+                $date = $row->date;
+                /** @var int|string $count */
+                $count = $row->count;
+
+                return ['date' => $date, 'count' => (int) $count];
+            })
             ->values()
             ->all();
 
