@@ -85,6 +85,10 @@ class PruneCommand extends Command
         /** @var string|null $conn */
         $conn = config('chronicle.connection');
 
+        $this->warn('Pruning removes ledger history. After this, `IntegrityVerifier::verify()` (from genesis)');
+        $this->warn('will no longer pass. Verify pruned ledgers from a boundary checkpoint via');
+        $this->warn('`IntegrityVerifier::verifyFrom($checkpoint)`. Ensure a checkpoint anchors the prune boundary.');
+
         $deleted = 0;
 
         do {
