@@ -2,10 +2,12 @@
 
 namespace Chronicle\Checkpoints;
 
+use Chronicle\Anchoring\CheckpointAnchor;
 use Chronicle\Entry\Entry;
 use Chronicle\Exceptions\ImmutabilityViolationException;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
 
@@ -21,6 +23,9 @@ use Illuminate\Support\Carbon;
  * @property string $signature
  * @property string $algorithm
  * @property string $key_id
+ * @property string|null $head_id
+ * @property int|null $entry_count
+ * @property string|null $previous_checkpoint_id
  * @property Carbon $created_at
  */
 class Checkpoint extends Model
@@ -75,6 +80,9 @@ class Checkpoint extends Model
         'signature',
         'algorithm',
         'key_id',
+        'head_id',
+        'entry_count',
+        'previous_checkpoint_id',
         'metadata',
         'created_at',
     ];
@@ -87,6 +95,7 @@ class Checkpoint extends Model
     protected function casts(): array
     {
         return [
+            'entry_count' => 'integer',
             'metadata' => 'array',
             'created_at' => 'immutable_datetime',
         ];
@@ -140,5 +149,25 @@ class Checkpoint extends Model
     public function entries(): HasMany
     {
         return $this->hasMany(Entry::class, 'checkpoint_id');
+    }
+
+    /**
+     * The checkpoint immediately preceding this one in the checkpoint chain.
+     *
+     * @return BelongsTo<Checkpoint, $this>
+     */
+    public function previousCheckpoint(): BelongsTo
+    {
+        return $this->belongsTo(Checkpoint::class, 'previous_checkpoint_id');
+    }
+
+    /**
+     * External anchor receipts for this checkpoint.
+     *
+     * @return HasMany<CheckpointAnchor, $this>
+     */
+    public function anchors(): HasMany
+    {
+        return $this->hasMany(CheckpointAnchor::class, 'checkpoint_id');
     }
 }
