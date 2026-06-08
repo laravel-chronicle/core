@@ -12,7 +12,7 @@ namespace Chronicle\Entry;
 class PendingEntry
 {
     /**
-     * Base entry attributes produces by EntryBuilder.
+     * Base entry attributes produced by EntryBuilder.
      *
      * @var array<string, mixed>
      */

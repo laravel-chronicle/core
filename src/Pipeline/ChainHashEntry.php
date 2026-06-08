@@ -44,7 +44,7 @@ class ChainHashEntry implements EntryProcessor
             ->lockForUpdate()
             ->first(['sequence', 'chain_hash']);
 
-        $previous = $head->chain_hash ?? '0';
+        $previous = $head->chain_hash ?? ChainHasher::GENESIS;
         $sequence = ($head->sequence ?? 0) + 1;
 
         /** @var string $payloadHash */

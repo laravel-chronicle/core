@@ -40,7 +40,7 @@ class IntegrityVerifier
      */
     public function verify(?callable $onProgress = null): VerificationResult
     {
-        return $this->walk(previousChain: '0', afterSequence: 0, onProgress: $onProgress);
+        return $this->walk(previousChain: ChainHasher::GENESIS, afterSequence: 0, onProgress: $onProgress);
     }
 
     /**
