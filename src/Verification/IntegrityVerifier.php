@@ -97,22 +97,56 @@ class IntegrityVerifier
     }
 
     /**
+     * Verify a bounded segment of the ledger: entries with sequence in
+     * (afterSequence, throughSequence), recomputed from a trusted starting
+     * chain hash and required to end exactly at $expectedEndingChain. Reuses the
+     * same payload/column/chain checks as full verification.
+     *
      * @param  callable(int $processed): void|null  $onProgress
      *
      * @throws JsonException
      */
-    protected function walk(string $previousChain, int $afterSequence, ?callable $onProgress): VerificationResult
-    {
+    public function verifySegment(
+        string $previousChain,
+        int $afterSequence,
+        int $throughSequence,
+        string $expectedEndingChain,
+        ?callable $onProgress = null,
+    ): VerificationResult {
+        return $this->walk(
+            previousChain: $previousChain,
+            afterSequence: $afterSequence,
+            onProgress: $onProgress,
+            throughSequence: $throughSequence,
+            expectedEndingChain: $expectedEndingChain,
+        );
+    }
+
+    /**
+     * @param  callable(int $processed): void|null  $onProgress
+     *
+     * @throws JsonException
+     */
+    protected function walk(
+        string $previousChain,
+        int $afterSequence,
+        ?callable $onProgress,
+        ?int $throughSequence = null,
+        ?string $expectedEndingChain = null,
+    ): VerificationResult {
         $count = 0;
         $result = new VerificationResult;
 
         /** @var array<string, bool> $verifiedCheckpoints */
         $verifiedCheckpoints = [];
 
+        $lastEntryId = '';
+
         /** @var Entry $entry */
         foreach (
             Entry::query()
                 ->where('sequence', '>', $afterSequence)
+                ->when($throughSequence !== null, fn ($q) => $q->where('sequence', '<=', $throughSequence))
                 ->orderBy('sequence')
                 ->cursor() as $entry
         ) {
@@ -183,10 +217,17 @@ class IntegrityVerifier
 
             $previousChain = $entry->chain_hash;
             $count++;
+            $lastEntryId = $entry->id;
 
             if ($onProgress) {
                 $onProgress($count);
             }
+        }
+
+        if ($expectedEndingChain !== null && ! hash_equals($previousChain, $expectedEndingChain)) {
+            $result->fail(VerificationFailure::SegmentDiscontinuous->value, $lastEntryId);
+
+            return $result;
         }
 
         $result->success($count);
