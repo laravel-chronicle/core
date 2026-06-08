@@ -11,6 +11,10 @@ it('can create a chronicle entry', function () {
         'action' => 'invoice.created',
         'subject_type' => 'invoice',
         'subject_id' => '10',
+        'payload' => [],
+        'payload_hash' => hash('sha256', '{}'),
+        'chain_hash' => hash('sha256', 'x'),
+        'sequence' => 1,
         'created_at' => now(),
     ]);
 
@@ -25,6 +29,10 @@ it('prevents updating entries', function () {
         'action' => 'invoice.created',
         'subject_type' => 'invoice',
         'subject_id' => '10',
+        'payload' => [],
+        'payload_hash' => hash('sha256', '{}'),
+        'chain_hash' => hash('sha256', 'x'),
+        'sequence' => 1,
         'created_at' => now(),
     ]);
 
@@ -41,6 +49,10 @@ it('prevents deleting entries', function () {
         'action' => 'invoice.created',
         'subject_type' => 'invoice',
         'subject_id' => '10',
+        'payload' => [],
+        'payload_hash' => hash('sha256', '{}'),
+        'chain_hash' => hash('sha256', 'x'),
+        'sequence' => 1,
         'created_at' => now(),
     ]);
 
@@ -55,6 +67,10 @@ it('prevents force deleting an entry', function () {
         'action' => 'invoice.created',
         'subject_type' => 'invoice',
         'subject_id' => '10',
+        'payload' => [],
+        'payload_hash' => hash('sha256', '{}'),
+        'chain_hash' => hash('sha256', 'x'),
+        'sequence' => 1,
         'created_at' => now(),
     ]);
 
@@ -69,6 +85,10 @@ it('ensures database row is unchanged after failed update attempt', function () 
         'action' => 'invoice.created',
         'subject_type' => 'invoice',
         'subject_id' => '10',
+        'payload' => [],
+        'payload_hash' => hash('sha256', '{}'),
+        'chain_hash' => hash('sha256', 'x'),
+        'sequence' => 1,
         'created_at' => now(),
     ]);
 

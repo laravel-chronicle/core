@@ -36,6 +36,11 @@ class PendingEntry
     protected ?string $chainHash = null;
 
     /**
+     * Monotonic ledger sequence assigned at chain time.
+     */
+    protected ?int $sequence = null;
+
+    /**
      * Checkpoint identifier.
      */
     protected ?string $checkpointId = null;
@@ -129,6 +134,22 @@ class PendingEntry
     }
 
     /**
+     * Set the monotonic ledger sequence.
+     */
+    public function setSequence(int $sequence): void
+    {
+        $this->sequence = $sequence;
+    }
+
+    /**
+     * Get the monotonic ledger sequence.
+     */
+    public function sequence(): ?int
+    {
+        return $this->sequence;
+    }
+
+    /**
      * Set checkpoint id.
      */
     public function setCheckpointId(string $checkpointId): void
@@ -147,6 +168,7 @@ class PendingEntry
             'payload' => $this->payload,
             'payload_hash' => $this->payloadHash,
             'chain_hash' => $this->chainHash,
+            'sequence' => $this->sequence,
             'checkpoint_id' => $this->checkpointId,
         ]);
     }

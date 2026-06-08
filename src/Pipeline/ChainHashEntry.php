@@ -38,11 +38,14 @@ class ChainHashEntry implements EntryProcessor
             throw new LogicException('ChainHashEntry must run inside an open DB transaction.');
         }
 
-        /** @var string $previous */
-        $previous = Entry::query()
-            ->orderByDesc('id')
+        /** @var Entry|null $head */
+        $head = Entry::query()
+            ->orderByDesc('sequence')
             ->lockForUpdate()
-            ->value('chain_hash') ?? '0';
+            ->first(['sequence', 'chain_hash']);
+
+        $previous = $head->chain_hash ?? '0';
+        $sequence = ($head->sequence ?? 0) + 1;
 
         /** @var string $payloadHash */
         $payloadHash = $entry->payloadHash();
@@ -53,6 +56,7 @@ class ChainHashEntry implements EntryProcessor
         );
 
         $entry->setChainHash($chainHash);
+        $entry->setSequence($sequence);
 
         return $entry;
     }

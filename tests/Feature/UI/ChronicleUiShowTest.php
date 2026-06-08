@@ -61,6 +61,7 @@ it('shows diff section when entry has a diff', function () {
         'tags' => json_encode([], JSON_THROW_ON_ERROR),
         'diff' => json_encode(['amount' => ['old' => 100, 'new' => 200]], JSON_THROW_ON_ERROR),
         'correlation_id' => null,
+        'sequence' => 1,
         'checkpoint_id' => null,
         'created_at' => now()->toDateTimeString(),
     ]);

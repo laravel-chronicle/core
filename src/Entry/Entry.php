@@ -33,6 +33,7 @@ use Illuminate\Support\LazyCollection;
  * @property array<string, mixed> $payload
  * @property string $payload_hash
  * @property string $chain_hash
+ * @property int $sequence
  * @property string|null $checkpoint_id
  * @property array<int, string> $tags
  * @property string|null $correlation_id
@@ -98,6 +99,7 @@ class Entry extends Model
         'payload_hash',
         'diff',
         'chain_hash',
+        'sequence',
         'checkpoint_id',
         'metadata',
         'tags',

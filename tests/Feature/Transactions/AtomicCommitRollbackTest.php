@@ -34,6 +34,7 @@ it('rolls back chronicle commit when persistence fails after insert', function (
                     'tags' => json_encode($entry['tags']),
                     'diff' => json_encode($entry['diff']),
                     'correlation_id' => $entry['correlation_id'],
+                    'sequence' => $entry['sequence'],
                     'checkpoint_id' => $entry['checkpoint_id'],
                     'created_at' => $entry['created_at'],
                 ]);

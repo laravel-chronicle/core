@@ -7,7 +7,11 @@ use Illuminate\Support\Str;
 
 function seedEntries(int $count, string $date, ?string $checkpointId = null): void
 {
+    static $seq = 0;
+
     for ($i = 0; $i < $count; $i++) {
+        $seq++;
+
         DB::table(config('chronicle.tables.entries', 'chronicle_entries'))->insert([
             'id' => Str::ulid()->toString(),
             'actor_type' => 'system',
@@ -17,11 +21,12 @@ function seedEntries(int $count, string $date, ?string $checkpointId = null): vo
             'subject_id' => 'system',
             'payload' => json_encode([], JSON_THROW_ON_ERROR),
             'payload_hash' => hash('sha256', '{}'),
-            'chain_hash' => hash('sha256', (string) $i),
+            'chain_hash' => hash('sha256', (string) $seq),
             'metadata' => json_encode([], JSON_THROW_ON_ERROR),
             'context' => json_encode([], JSON_THROW_ON_ERROR),
             'tags' => json_encode([], JSON_THROW_ON_ERROR),
             'diff' => json_encode(null, JSON_THROW_ON_ERROR),
+            'sequence' => $seq,
             'checkpoint_id' => $checkpointId,
             'created_at' => $date,
         ]);

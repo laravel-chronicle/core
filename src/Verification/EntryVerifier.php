@@ -36,8 +36,8 @@ class EntryVerifier
 
         /** @var string $previousChainHash */
         $previousChainHash = Entry::query()
-            ->where('id', '<', $entry->id)
-            ->orderByDesc('id')
+            ->where('sequence', '<', $entry->sequence)
+            ->orderByDesc('sequence')
             ->value('chain_hash') ?? '0';
 
         $expectedChainHash = $this->chainHasher->hash($previousChainHash, $entry->payload_hash);

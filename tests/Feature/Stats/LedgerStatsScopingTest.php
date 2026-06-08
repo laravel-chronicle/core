@@ -8,7 +8,13 @@ use Illuminate\Support\Str;
 
 function insertRawEntry(string $date, string $action = 'raw.action'): void
 {
-    DB::table(config('chronicle.tables.entries', 'chronicle_entries'))->insert([
+    $table = config('chronicle.tables.entries', 'chronicle_entries');
+
+    // Derive sequence from the current head so raw inserts interleave cleanly
+    // with entries created via Chronicle::record() (which assigns max+1).
+    $sequence = (int) (DB::table($table)->max('sequence') ?? 0) + 1;
+
+    DB::table($table)->insert([
         'id' => Str::ulid()->toString(),
         'actor_type' => 'system',
         'actor_id' => 'system',
@@ -17,11 +23,12 @@ function insertRawEntry(string $date, string $action = 'raw.action'): void
         'subject_id' => 'system',
         'payload' => json_encode([], JSON_THROW_ON_ERROR),
         'payload_hash' => hash('sha256', '{}'),
-        'chain_hash' => hash('sha256', $date),
+        'chain_hash' => hash('sha256', 'raw-'.$sequence),
         'metadata' => json_encode([], JSON_THROW_ON_ERROR),
         'context' => json_encode([], JSON_THROW_ON_ERROR),
         'tags' => json_encode([], JSON_THROW_ON_ERROR),
         'diff' => json_encode(null, JSON_THROW_ON_ERROR),
+        'sequence' => $sequence,
         'created_at' => $date,
     ]);
 }

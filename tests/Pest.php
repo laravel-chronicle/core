@@ -87,6 +87,7 @@ function seedUiEntries(int $count = 5): void
             'diff' => json_encode(null, JSON_THROW_ON_ERROR),
             'correlation_id' => null,
             'checkpoint_id' => null,
+            'sequence' => $i,
             'created_at' => now()->subMinutes($i)->toDateTimeString(),
         ]);
     }

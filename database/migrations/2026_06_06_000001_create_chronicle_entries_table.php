@@ -30,9 +30,10 @@ return new class extends Migration
             $table->string('action');
             $table->string('subject_type');
             $table->string('subject_id');
-            $table->json('payload')->nullable();
-            $table->string('payload_hash', 64)->nullable();
-            $table->string('chain_hash', 64)->nullable();
+            $table->json('payload');
+            $table->string('payload_hash', 64);
+            $table->string('chain_hash', 64);
+            $table->unsignedBigInteger('sequence');
             $table->ulid('checkpoint_id')->nullable();
             $table->json('metadata')->nullable();
             $table->json('tags')->nullable();
@@ -51,6 +52,8 @@ return new class extends Migration
             $table->index('correlation_id', "{$tableName}_correlation_id_index");
             $table->index('action', "{$tableName}_action_index");
             $table->index('created_at', "{$tableName}_created_at_index");
+            $table->unique('sequence', "{$tableName}_sequence_unique");
+            $table->unique('chain_hash', "{$tableName}_chain_hash_unique");
         });
     }
 
