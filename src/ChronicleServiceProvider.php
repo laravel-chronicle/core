@@ -2,6 +2,7 @@
 
 namespace Chronicle;
 
+use Chronicle\Anchoring\AnchorManager;
 use Chronicle\Console\Commands\CheckpointsBackfillCommand;
 use Chronicle\Console\Commands\CreateCheckpointCommand;
 use Chronicle\Console\Commands\ExportCommand;
@@ -68,6 +69,7 @@ class ChronicleServiceProvider extends ServiceProvider
         $this->registerContracts();
         $this->registerManager();
         $this->registerSigning();
+        $this->registerAnchoring();
         $this->registerLedgerReader();
         $this->registerExports();
         $this->registerQueueContext();
@@ -215,6 +217,16 @@ class ChronicleServiceProvider extends ServiceProvider
 
                 return new NullSigningProvider($e);
             }
+        });
+    }
+
+    protected function registerAnchoring(): void
+    {
+        $this->app->bind(AnchorManager::class, function (Application $app) {
+            /** @var array<string, mixed> $config */
+            $config = (array) $app['config']->get('chronicle.anchoring', []);
+
+            return new AnchorManager($app, $config);
         });
     }
 
