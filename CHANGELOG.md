@@ -23,10 +23,13 @@ breaking changes between any two versions — see upgrade notes per version.
 - `CheckpointCreator` now signs a canonical object binding `id`, `chain_hash`, `algorithm`, `key_id`, and `created_at` (mirroring `ExportSigner`) instead of the bare chain hash. `IntegrityVerifier` verifies the new format and transparently falls back to the legacy bare-hash format, so checkpoints created before this release still verify. The shared `CheckpointCreator::signaturePayload()` keeps signing and verification in lockstep.
 - `chronicle:prune` now warns that from-genesis verification will not pass after a prune and points operators to `verifyFrom()` with a boundary checkpoint.
 - `RateLimitPolicy` now logs a `warning` (actor, action, retry-after) before rejecting an over-limit entry, so audit suppression via the optional rate-limit policy is observable rather than silent.
+- The chain genesis seed is now the shared `ChainHasher::GENESIS` constant instead of a `'0'` literal duplicated across five files.
+- `routes/ui.php` middleware fallback now includes `can:view-chronicle`, matching the published config default, so the authorization gate is not lost when `chronicle.ui.middleware` is unset.
 
 ### Fixed
 
 - Export ordering (`EntryExporter`) now matches chain/verification ordering, fixing export verification false-failures under clock skew.
+- Corrected the author email in `composer.json` (`ntoufouis` → `ntoufoudis`) and a docblock typo in `PendingEntry`.
 
 ### Security
 
