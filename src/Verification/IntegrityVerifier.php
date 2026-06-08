@@ -13,7 +13,7 @@ use JsonException;
 
 class IntegrityVerifier
 {
-    use ComparesEntryColumns;
+    use ComparesEntryColumns, VerifiesCheckpointSignature;
 
     protected CanonicalPayloadSerializer $serializer;
 
@@ -56,31 +56,10 @@ class IntegrityVerifier
     {
         $result = new VerificationResult;
 
-        try {
-            $provider = $this->keyRing->resolve($checkpoint->algorithm, $checkpoint->key_id);
-        } catch (UnknownSigningKeyException) {
-            $result->fail(VerificationFailure::UnknownKey->value, $checkpoint->id);
+        $signatureFailure = $this->checkpointSignatureFailure($checkpoint, $this->keyRing);
 
-            return $result;
-        }
-
-        $signaturePayload = CheckpointCreator::signaturePayload(
-            id: $checkpoint->id,
-            chainHash: $checkpoint->chain_hash,
-            algorithm: $checkpoint->algorithm,
-            keyId: $checkpoint->key_id,
-            createdAt: $checkpoint->created_at->getTimestamp(),
-        );
-
-        $valid = $provider->verify($signaturePayload, $checkpoint->signature)
-            // Legacy checkpoints (pre-metadata-signing) signed only the bare chain hash.
-            || $provider->verify($checkpoint->chain_hash, $checkpoint->signature);
-
-        if (! $valid) {
-            $result->fail(
-                VerificationFailure::CheckpointSignatureInvalid->value,
-                $checkpoint->id
-            );
+        if ($signatureFailure !== null) {
+            $result->fail($signatureFailure, $checkpoint->id);
 
             return $result;
         }
@@ -97,22 +76,56 @@ class IntegrityVerifier
     }
 
     /**
+     * Verify a bounded segment of the ledger: entries with sequence in
+     * (afterSequence, throughSequence), recomputed from a trusted starting
+     * chain hash and required to end exactly at $expectedEndingChain. Reuses the
+     * same payload/column/chain checks as full verification.
+     *
      * @param  callable(int $processed): void|null  $onProgress
      *
      * @throws JsonException
      */
-    protected function walk(string $previousChain, int $afterSequence, ?callable $onProgress): VerificationResult
-    {
+    public function verifySegment(
+        string $previousChain,
+        int $afterSequence,
+        int $throughSequence,
+        string $expectedEndingChain,
+        ?callable $onProgress = null,
+    ): VerificationResult {
+        return $this->walk(
+            previousChain: $previousChain,
+            afterSequence: $afterSequence,
+            onProgress: $onProgress,
+            throughSequence: $throughSequence,
+            expectedEndingChain: $expectedEndingChain,
+        );
+    }
+
+    /**
+     * @param  callable(int $processed): void|null  $onProgress
+     *
+     * @throws JsonException
+     */
+    protected function walk(
+        string $previousChain,
+        int $afterSequence,
+        ?callable $onProgress,
+        ?int $throughSequence = null,
+        ?string $expectedEndingChain = null,
+    ): VerificationResult {
         $count = 0;
         $result = new VerificationResult;
 
         /** @var array<string, bool> $verifiedCheckpoints */
         $verifiedCheckpoints = [];
 
+        $lastEntryId = '';
+
         /** @var Entry $entry */
         foreach (
             Entry::query()
                 ->where('sequence', '>', $afterSequence)
+                ->when($throughSequence !== null, fn ($q) => $q->where('sequence', '<=', $throughSequence))
                 ->orderBy('sequence')
                 ->cursor() as $entry
         ) {
@@ -183,10 +196,17 @@ class IntegrityVerifier
 
             $previousChain = $entry->chain_hash;
             $count++;
+            $lastEntryId = $entry->id;
 
             if ($onProgress) {
                 $onProgress($count);
             }
+        }
+
+        if ($expectedEndingChain !== null && ! hash_equals($previousChain, $expectedEndingChain)) {
+            $result->fail(VerificationFailure::SegmentDiscontinuous->value, $lastEntryId);
+
+            return $result;
         }
 
         $result->success($count);
