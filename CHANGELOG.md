@@ -19,6 +19,7 @@ breaking changes between any two versions — see upgrade notes per version.
 
 - Ledger order is now derived from `sequence` everywhere it matters — `ChainHashEntry`, `IntegrityVerifier`, `EntryVerifier`, and `EntryExporter` — instead of the ULID `id` sort. This eliminates false `chain_hash_mismatch` / `chain_invalid` results when two entries share a millisecond across processes.
 - `chronicle_entries.payload`, `payload_hash`, and `chain_hash` are now `NOT NULL` on fresh installs.
+- `CheckpointCreator` now signs a canonical object binding `id`, `chain_hash`, `algorithm`, `key_id`, and `created_at` (mirroring `ExportSigner`) instead of the bare chain hash. `IntegrityVerifier` verifies the new format and transparently falls back to the legacy bare-hash format, so checkpoints created before this release still verify. The shared `CheckpointCreator::signaturePayload()` keeps signing and verification in lockstep.
 
 ### Fixed
 
