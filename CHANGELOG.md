@@ -28,6 +28,7 @@ breaking changes between any two versions — see upgrade notes per version.
 - `Rfc3161TimestampAnchor`: a dependency-light RFC 3161 trusted-timestamping anchor. Builds and POSTs a `TimeStampReq` over the checkpoint digest and stores the TSA token as proof; `verify()` validates the token offline (no network) with `openssl ts -verify` against the configured TSA certificate, which applies the timestamping cert purpose, CA trust, and the `messageImprint == digest` check. Adds `symfony/process` (a standard component, not a cloud SDK) to `require`.
 - Anchoring pipeline: when `chronicle.anchoring.enabled`, each newly-created checkpoint dispatches a queued, retryable `AnchorCheckpointJob` per provider **after** the checkpoint transaction commits — so an anchor failure never rolls a checkpoint back. The shared `CheckpointAnchorer` writes `chronicle_checkpoint_anchors` rows (`pending` → `anchored`/`failed`); failures are left retryable.
 - Anchor commands: `chronicle:checkpoint --anchor` (anchor synchronously on creation), `chronicle:anchor:retry {--status=pending|failed}` (re-attempt outstanding anchors), and `chronicle:anchor:verify {--checkpoint=}` (attest stored anchors against their providers).
+- `chronicle:verify --anchors` additionally verifies external anchors for the checkpoints in scope (composes with `--checkpoints-only` and the incremental modes). A checkpoint with no valid anchor is reported (`anchor_invalid`), never silently passed.
 
 ### Changed
 
@@ -50,6 +51,7 @@ breaking changes between any two versions — see upgrade notes per version.
 
 - Verification now detects divergence between an entry's denormalized columns (`action`, `actor_id`, `metadata`, `diff`, …) and its hash-covered `payload`. Previously a row whose queryable columns were tampered — the values shown in the UI and returned by queries — still passed verification. New failure code `column_payload_divergence`; shared via the `ComparesEntryColumns` trait used by both `EntryVerifier` and `IntegrityVerifier`.
 - Model diffs now redact a model's `$hidden` attributes (and any field listed in `$chronicleRedact` on `HasChronicle` / `$redactedFields` on `ChronicleModelObserver`), recording `"[redacted]"` instead of the value. Auto-auditing a model with a `password`/token attribute no longer copies it into the immutable, exportable audit diff.
+- External anchoring defeats a full internal compromise: even if an attacker with database access rewrites the ledger and re-signs every checkpoint with a valid key (so offline verification passes), `chronicle:verify --anchors` fails at the first anchored checkpoint because the external anchor binds the original `sha256(id . chain_hash . created_at)` digest, which the rewrite changed.
 
 ---
 

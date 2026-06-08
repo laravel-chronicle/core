@@ -5,6 +5,7 @@ namespace Chronicle\Console\Commands;
 use Chronicle\Checkpoints\Checkpoint;
 use Chronicle\Entry\Entry;
 use Chronicle\Signing\KeyRing;
+use Chronicle\Verification\AnchorVerifier;
 use Chronicle\Verification\CheckpointChainVerifier;
 use Chronicle\Verification\EntryVerifier;
 use Chronicle\Verification\IntegrityVerifier;
@@ -13,6 +14,7 @@ use Chronicle\Verification\VerificationResult;
 use Chronicle\Verification\VerificationRun;
 use Chronicle\Verification\VerifiesCheckpointSignature;
 use Illuminate\Console\Command;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Schema;
 use JsonException;
 
@@ -33,6 +35,7 @@ class VerifyEntryCommand extends Command
         {--from-checkpoint= : Verify the segment seeded from this checkpoint}
         {--to-checkpoint= : With --from-checkpoint, the checkpoint that ends the segment (default: current head)}
         {--since-last-checkpoint : Trust the latest checkpoint and verify only the trail after it}
+        {--anchors : Additionally verify external anchors for the checkpoints in scope}
         {--resume : Continue verification from the last recorded run (full verify if none)}';
 
     protected $description = 'Verify the integrity of the Chronicle ledger (full, single-entry, or incremental modes)';
@@ -45,6 +48,7 @@ class VerifyEntryCommand extends Command
         EntryVerifier $entryVerifier,
         CheckpointChainVerifier $chainVerifier,
         KeyRing $keyRing,
+        AnchorVerifier $anchorVerifier,
     ): int {
         /** @var string|null $id */
         $id = $this->option('entry');
@@ -70,19 +74,18 @@ class VerifyEntryCommand extends Command
             return $this->verifyLedger($verifier);
         }
 
-        if ($this->option('checkpoints-only')) {
-            return $this->reportIncremental($chainVerifier->verify(), 'checkpoints-only');
+        $baseExit = match (true) {
+            (bool) $this->option('checkpoints-only') => $this->reportIncremental($chainVerifier->verify(), 'checkpoints-only'),
+            $fromCheckpoint !== null => $this->verifySegmentRange($verifier, $keyRing, $fromCheckpoint),
+            (bool) $this->option('since-last-checkpoint') => $this->verifySinceLastCheckpoint($verifier),
+            default => $this->verifyLedger($verifier),
+        };
+
+        if ($baseExit !== self::SUCCESS || ! $this->option('anchors')) {
+            return $baseExit;
         }
 
-        if ($fromCheckpoint !== null) {
-            return $this->verifySegmentRange($verifier, $keyRing, $fromCheckpoint);
-        }
-
-        if ($this->option('since-last-checkpoint')) {
-            return $this->verifySinceLastCheckpoint($verifier);
-        }
-
-        return $this->verifyLedger($verifier);
+        return $this->verifyAnchors($anchorVerifier);
     }
 
     protected function checkpointsNotBackfilled(): bool
@@ -363,5 +366,62 @@ class VerifyEntryCommand extends Command
             'verified_count' => $verifiedCount,
             'status' => 'completed',
         ]);
+    }
+
+    protected function verifyAnchors(AnchorVerifier $anchorVerifier): int
+    {
+        $result = $anchorVerifier->verify($this->checkpointsInScope());
+
+        if ($result->hasFailed()) {
+            $this->error('Anchor verification failed.');
+            $this->line('Type: '.$result->failureType());
+            $this->line('Checkpoint: '.$result->entryId());
+
+            return self::FAILURE;
+        }
+
+        $this->line("✓ Anchors verified: {$result->checked()}");
+
+        return self::SUCCESS;
+    }
+
+    /**
+     * @return Collection<int, Checkpoint>
+     */
+    protected function checkpointsInScope(): Collection
+    {
+        /** @var string|null $fromId */
+        $fromId = $this->option('from-checkpoint');
+        /** @var string|null $toId */
+        $toId = $this->option('to-checkpoint');
+
+        $query = Checkpoint::query()->orderBy('entry_count');
+
+        if ($this->option('since-last-checkpoint')) {
+            $last = (clone $query)->reorder()->orderByDesc('entry_count')->first();
+
+            /** @var Collection<int, Checkpoint> $scope */
+            $scope = $last === null ? new Collection : new Collection([$last]);
+
+            return $scope;
+        }
+
+        if ($fromId !== null) {
+            $from = Checkpoint::find($fromId);
+            if ($from !== null) {
+                $query->where('entry_count', '>=', $from->entry_count);
+            }
+            if ($toId !== null) {
+                $to = Checkpoint::find($toId);
+                if ($to !== null) {
+                    $query->where('entry_count', '<=', $to->entry_count);
+                }
+            }
+        }
+
+        /** @var Collection<int, Checkpoint> $all */
+        $all = $query->get();
+
+        return $all;
     }
 }
