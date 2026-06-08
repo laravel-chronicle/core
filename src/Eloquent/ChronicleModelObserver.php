@@ -32,6 +32,13 @@ class ChronicleModelObserver
     protected array $ignoredFields = [];
 
     /**
+     * Field names whose values are redacted (recorded as "[redacted]" in diffs.
+     *
+     * @var list<string>
+     */
+    protected array $redactedFields = [];
+
+    /**
      * @throws Throwable
      */
     public function created(Model $model): void
@@ -60,7 +67,7 @@ class ChronicleModelObserver
             return;
         }
 
-        $diff = ModelDiffBuilder::build($model, $this->ignoredFields($model));
+        $diff = ModelDiffBuilder::build($model, $this->ignoredFields($model), $this->redactedFields);
 
         $builder = Chronicle::record()
             ->actor($this->resolveActor($model))
