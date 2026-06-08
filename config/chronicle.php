@@ -85,6 +85,8 @@ return [
     'tables' => [
         'entries' => env('CHRONICLE_TABLE_ENTRIES', 'chronicle_entries'),
         'checkpoints' => env('CHRONICLE_TABLE_CHECKPOINTS', 'chronicle_checkpoints'),
+        'checkpoint_anchors' => env('CHRONICLE_TABLE_CHECKPOINT_ANCHORS', 'chronicle_checkpoint_anchors'),
+        'verification_runs' => env('CHRONICLE_TABLE_VERIFICATION_RUNS', 'chronicle_verification_runs'),
     ],
 
     'signing' => [

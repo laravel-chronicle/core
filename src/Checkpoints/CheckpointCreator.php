@@ -36,16 +36,20 @@ class CheckpointCreator
         $connection = config('chronicle.connection');
 
         return DB::connection($connection)->transaction(function () {
-            $chainHash = Entry::query()
-                ->orderByDesc('id')
+            // Resolve the head by sequence (the canonical ledger order), not id.
+            /** @var Entry|null $head */
+            $head = Entry::query()
+                ->orderByDesc('sequence')
                 ->lockForUpdate()
-                ->value('chain_hash');
+                ->first(['id', 'sequence', 'chain_hash']);
 
-            if (! is_string($chainHash)) {
+            if ($head === null) {
                 throw new RuntimeException(
                     'Cannot create checkpoint: ledger is empty.'
                 );
             }
+
+            $chainHash = $head->chain_hash;
 
             $existing = Checkpoint::where('chain_hash', $chainHash)->first();
 
@@ -55,6 +59,17 @@ class CheckpointCreator
 
             $id = (string) Str::ulid();
             $createdAt = now();
+
+            $entryCount = Entry::query()
+                ->where('sequence', '<=', $head->sequence)
+                ->count();
+
+            // value('id') returns mixed; it is only stored into the create()
+            // attributes array (no cast), so no narrowing annotation is needed.
+            $previousCheckpointId = Checkpoint::query()
+                ->orderByDesc('created_at')
+                ->orderByDesc('id')
+                ->value('id');
 
             $signaturePayload = $this->signaturePayload(
                 id: $id,
@@ -66,14 +81,28 @@ class CheckpointCreator
 
             $signature = $this->signer->sign($signaturePayload);
 
-            return Checkpoint::create([
+            $checkpoint = Checkpoint::create([
                 'id' => $id,
                 'chain_hash' => $chainHash,
                 'signature' => $signature,
                 'algorithm' => $this->signer->algorithm(),
                 'key_id' => $this->signer->keyId(),
+                'head_id' => $head->id,
+                'entry_count' => $entryCount,
+                'previous_checkpoint_id' => $previousCheckpointId,
                 'created_at' => $createdAt,
             ]);
+
+            // Stamp checkpoint_id on covered, still-unanchored entries. This is a
+            // query-builder UPDATE, so it bypasses the Entry model immutability
+            // guard by design; checkpoint_id is NOT part of any hashed payload,
+            // so no payload_hash/chain_hash is affected.
+            Entry::query()
+                ->whereNull('checkpoint_id')
+                ->where('sequence', '<=', $head->sequence)
+                ->update(['checkpoint_id' => $id]);
+
+            return $checkpoint;
         });
     }
 
