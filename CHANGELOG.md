@@ -10,6 +10,20 @@ breaking changes between any two versions — see upgrade notes per version.
 
 ## [Unreleased]
 
+### Added
+
+- Monotonic `sequence` column on `chronicle_entries`, assigned under the chain row-lock in `ChainHashEntry`, with `unique(sequence)` and `unique(chain_hash)` constraints. A concurrent chain fork now fails with a database uniqueness error instead of corrupting the ledger silently.
+- `2026_06_06_000000_add_sequence_to_chronicle_entries_table` migration: backfills `sequence` for existing ledgers in chain order and is a no-op on fresh installs.
+
+### Changed
+
+- Ledger order is now derived from `sequence` everywhere it matters — `ChainHashEntry`, `IntegrityVerifier`, `EntryVerifier`, and `EntryExporter` — instead of the ULID `id` sort. This eliminates false `chain_hash_mismatch` / `chain_invalid` results when two entries share a millisecond across processes.
+- `chronicle_entries.payload`, `payload_hash`, and `chain_hash` are now `NOT NULL` on fresh installs.
+
+### Fixed
+
+- Export ordering (`EntryExporter`) now matches chain/verification ordering, fixing export verification false-failures under clock skew.
+
 ---
 
 ## [1.10.0] - 2026-06-06
