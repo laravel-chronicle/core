@@ -3,6 +3,7 @@
 namespace Chronicle\Verification;
 
 use Chronicle\Checkpoints\Checkpoint;
+use Chronicle\Checkpoints\CheckpointCreator;
 use Chronicle\Entry\Entry;
 use Chronicle\Exceptions\UnknownSigningKeyException;
 use Chronicle\Hashing\ChainHasher;
@@ -116,10 +117,17 @@ class IntegrityVerifier
                     return $result;
                 }
 
-                $valid = $provider->verify(
-                    $checkpoint->chain_hash,
-                    $checkpoint->signature,
+                $signaturePayload = CheckpointCreator::signaturePayload(
+                    id: $checkpoint->id,
+                    chainHash: $checkpoint->chain_hash,
+                    algorithm: $checkpoint->algorithm,
+                    keyId: $checkpoint->key_id,
+                    createdAt: $checkpoint->created_at->getTimestamp(),
                 );
+
+                $valid = $provider->verify($signaturePayload, $checkpoint->signature)
+                    // Legacy checkpoints (pre-metadata-signing) signed only the bare chain hash.
+                    || $provider->verify($checkpoint->chain_hash, $checkpoint->signature);
 
                 if (! $valid) {
                     $result->fail(
