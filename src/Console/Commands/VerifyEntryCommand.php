@@ -10,8 +10,10 @@ use Chronicle\Verification\EntryVerifier;
 use Chronicle\Verification\IntegrityVerifier;
 use Chronicle\Verification\VerificationFailure;
 use Chronicle\Verification\VerificationResult;
+use Chronicle\Verification\VerificationRun;
 use Chronicle\Verification\VerifiesCheckpointSignature;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\Schema;
 use JsonException;
 
 /**
@@ -30,7 +32,8 @@ class VerifyEntryCommand extends Command
         {--checkpoints-only : Verify only the checkpoint chain (fast 0(checkpoints) attestation)}
         {--from-checkpoint= : Verify the segment seeded from this checkpoint}
         {--to-checkpoint= : With --from-checkpoint, the checkpoint that ends the segment (default: current head)}
-        {--since-last-checkpoint : Trust the latest checkpoint and verify only the trail after it}';
+        {--since-last-checkpoint : Trust the latest checkpoint and verify only the trail after it}
+        {--resume : Continue verification from the last recorded run (full verify if none)}';
 
     protected $description = 'Verify the integrity of the Chronicle ledger (full, single-entry, or incremental modes)';
 
@@ -48,6 +51,10 @@ class VerifyEntryCommand extends Command
 
         if ($id !== null) {
             return $this->verifySingleEntry($id, $entryVerifier);
+        }
+
+        if ($this->option('resume')) {
+            return $this->verifyResume($verifier);
         }
 
         /** @var string|null $fromCheckpoint */
@@ -236,6 +243,8 @@ class VerifyEntryCommand extends Command
         $this->line("Entries checked: {$result->checked()}");
         $this->info('Ledger integrity OK');
 
+        $this->recordRun('full', $result->checked());
+
         return self::SUCCESS;
     }
 
@@ -290,5 +299,69 @@ class VerifyEntryCommand extends Command
         $this->error('Integrity violation detected.');
 
         return self::FAILURE;
+    }
+
+    /**
+     * @throws JsonException
+     */
+    protected function verifyResume(IntegrityVerifier $verifier): int
+    {
+        if (! $this->resumeTableAvailable()) {
+            $this->warn('Verification-run table is absent; running full verification.');
+
+            return $this->verifyLedger($verifier);
+        }
+
+        $lastRun = VerificationRun::query()->orderByDesc('created_at')->orderByDesc('id')->first();
+
+        $checkpoint = $lastRun?->last_checkpoint_id === null
+            ? null
+            : Checkpoint::find($lastRun->last_checkpoint_id);
+
+        if ($checkpoint === null) {
+            $this->warn('Resume found no previous run; running full verification.');
+
+            return $this->verifyLedger($verifier);
+        }
+
+        $result = $verifier->verifyFrom($checkpoint);
+        $exit = $this->reportIncremental($result, 'resume');
+
+        if ($result->isValid()) {
+            $this->recordRun('resume', $result->checked());
+        }
+
+        return $exit;
+    }
+
+    protected function resumeTableAvailable(): bool
+    {
+        /** @var string $table */
+        $table = config('chronicle.tables.verification_runs', 'chronicle_verification_runs');
+        /** @var string|null $connection */
+        $connection = config('chronicle.connection');
+
+        return Schema::connection($connection)->hasTable($table);
+    }
+
+    protected function recordRun(string $mode, int $verifiedCount): void
+    {
+        if (! $this->resumeTableAvailable()) {
+            return;
+        }
+
+        /** @var string|null $lastCheckpointId */
+        $lastCheckpointId = Checkpoint::query()
+            ->orderByDesc('entry_count')
+            ->orderByDesc('created_at')
+            ->orderByDesc('id')
+            ->value('id');
+
+        VerificationRun::create([
+            'mode' => $mode,
+            'last_checkpoint_id' => $lastCheckpointId,
+            'verified_count' => $verifiedCount,
+            'status' => 'completed',
+        ]);
     }
 }
