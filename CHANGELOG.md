@@ -30,6 +30,7 @@ breaking changes between any two versions — see upgrade notes per version.
 ### Security
 
 - Verification now detects divergence between an entry's denormalized columns (`action`, `actor_id`, `metadata`, `diff`, …) and its hash-covered `payload`. Previously a row whose queryable columns were tampered — the values shown in the UI and returned by queries — still passed verification. New failure code `column_payload_divergence`; shared via the `ComparesEntryColumns` trait used by both `EntryVerifier` and `IntegrityVerifier`.
+- Model diffs now redact a model's `$hidden` attributes (and any field listed in `$chronicleRedact` on `HasChronicle` / `$redactedFields` on `ChronicleModelObserver`), recording `"[redacted]"` instead of the value. Auto-auditing a model with a `password`/token attribute no longer copies it into the immutable, exportable audit diff.
 
 ---
 
