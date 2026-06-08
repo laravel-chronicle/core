@@ -4,6 +4,7 @@ namespace Chronicle\Verification;
 
 use Chronicle\Exceptions\UnknownSigningKeyException;
 use Chronicle\Exports\ExportFormat;
+use Chronicle\Hashing\ChainHasher;
 use Chronicle\Signing\KeyRing;
 use Chronicle\Support\CanonicalPayloadSerializer;
 use JsonException;
@@ -183,7 +184,7 @@ class ExportVerifier
         }
 
         $hashContext = hash_init('sha256');
-        $previousChain = '0';
+        $previousChain = ChainHasher::GENESIS;
 
         $first = null;
         $last = null;

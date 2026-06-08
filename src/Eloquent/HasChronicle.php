@@ -15,6 +15,9 @@ trait HasChronicle
     /** @var list<string> */
     protected array $chronicleIgnore = [];
 
+    /** @var list<string> */
+    protected array $chronicleRedact = [];
+
     public static function bootHasChronicle(): void
     {
         static::created(
@@ -42,7 +45,7 @@ trait HasChronicle
                     return;
                 }
 
-                $diff = ModelDiffBuilder::build($model, $model->chronicleIgnoredFields());
+                $diff = ModelDiffBuilder::build($model, $model->chronicleIgnoredFields(), $model->chronicleRedact);
 
                 $builder = Chronicle::record()
                     ->actor($model->chronicleActor())

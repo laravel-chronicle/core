@@ -10,6 +10,33 @@ breaking changes between any two versions — see upgrade notes per version.
 
 ## [Unreleased]
 
+### Added
+
+- Monotonic `sequence` column on `chronicle_entries`, assigned under the chain row-lock in `ChainHashEntry`, with `unique(sequence)` and `unique(chain_hash)` constraints. A concurrent chain fork now fails with a database uniqueness error instead of corrupting the ledger silently.
+- `2026_06_06_000000_add_sequence_to_chronicle_entries_table` migration: backfills `sequence` for existing ledgers in chain order and is a no-op on fresh installs.
+- `IntegrityVerifier::verifyFrom(Checkpoint $checkpoint)` verifies a ledger starting from a known-good checkpoint instead of genesis, so ledgers whose early history was pruned remain verifiable. The checkpoint signature is verified before its `chain_hash` is used as the walk seed.
+
+### Changed
+
+- Ledger order is now derived from `sequence` everywhere it matters — `ChainHashEntry`, `IntegrityVerifier`, `EntryVerifier`, and `EntryExporter` — instead of the ULID `id` sort. This eliminates false `chain_hash_mismatch` / `chain_invalid` results when two entries share a millisecond across processes.
+- `chronicle_entries.payload`, `payload_hash`, and `chain_hash` are now `NOT NULL` on fresh installs.
+- `CheckpointCreator` now signs a canonical object binding `id`, `chain_hash`, `algorithm`, `key_id`, and `created_at` (mirroring `ExportSigner`) instead of the bare chain hash. `IntegrityVerifier` verifies the new format and transparently falls back to the legacy bare-hash format, so checkpoints created before this release still verify. The shared `CheckpointCreator::signaturePayload()` keeps signing and verification in lockstep.
+- `chronicle:prune` now warns that from-genesis verification will not pass after a prune and points operators to `verifyFrom()` with a boundary checkpoint.
+- `RateLimitPolicy` now logs a `warning` (actor, action, retry-after) before rejecting an over-limit entry, so audit suppression via the optional rate-limit policy is observable rather than silent.
+- The chain genesis seed is now the shared `ChainHasher::GENESIS` constant instead of a `'0'` literal duplicated across five files.
+- `routes/ui.php` middleware fallback now includes `can:view-chronicle`, matching the published config default, so the authorization gate is not lost when `chronicle.ui.middleware` is unset.
+- `chronicle:install` now publishes migrations under their own dated filenames (e.g. `2026_06_06_000001_create_chronicle_entries_table.php`) instead of stripping the prefix and re-generating a synthetic timestamp at publish time. Re-running the command stays idempotent — already-published migrations (including copies published by older versions of the command) are detected and skipped.
+
+### Fixed
+
+- Export ordering (`EntryExporter`) now matches chain/verification ordering, fixing export verification false-failures under clock skew.
+- Corrected the author email in `composer.json` (`ntoufouis` → `ntoufoudis`) and a docblock typo in `PendingEntry`.
+
+### Security
+
+- Verification now detects divergence between an entry's denormalized columns (`action`, `actor_id`, `metadata`, `diff`, …) and its hash-covered `payload`. Previously a row whose queryable columns were tampered — the values shown in the UI and returned by queries — still passed verification. New failure code `column_payload_divergence`; shared via the `ComparesEntryColumns` trait used by both `EntryVerifier` and `IntegrityVerifier`.
+- Model diffs now redact a model's `$hidden` attributes (and any field listed in `$chronicleRedact` on `HasChronicle` / `$redactedFields` on `ChronicleModelObserver`), recording `"[redacted]"` instead of the value. Auto-auditing a model with a `password`/token attribute no longer copies it into the immutable, exportable audit diff.
+
 ---
 
 ## [1.10.0] - 2026-06-06

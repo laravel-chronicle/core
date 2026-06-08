@@ -12,6 +12,11 @@ namespace Chronicle\Hashing;
 class ChainHasher
 {
     /**
+     * Seed used as the "previous chain hash" for the first entry in the ledger.
+     */
+    public const GENESIS = '0';
+
+    /**
      * Generate the chain hash.
      */
     public function hash(string $previousChainHash, string $payloadHash): string

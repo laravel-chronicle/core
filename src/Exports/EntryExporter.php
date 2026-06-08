@@ -31,8 +31,7 @@ class EntryExporter
 
         try {
             Entry::query()
-                ->orderBy('created_at')
-                ->orderBy('id')
+                ->orderBy('sequence')
                 ->chunk(500, function ($entries) use (
                     &$handle,
                     &$count,

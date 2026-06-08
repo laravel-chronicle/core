@@ -2,6 +2,7 @@
 
 namespace Chronicle\Verification;
 
+use Chronicle\Hashing\ChainHasher;
 use JsonException;
 
 /**
@@ -25,7 +26,7 @@ class ExportChainVerifier
         }
 
         // Keep the same genesis seed used when chain hashes are created.
-        $previousHash = '0';
+        $previousHash = ChainHasher::GENESIS;
 
         while (($line = fgets($handle)) !== false) {
             if (trim($line) === '') {

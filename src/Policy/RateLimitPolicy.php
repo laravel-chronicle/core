@@ -4,6 +4,7 @@ namespace Chronicle\Policy;
 
 use Chronicle\Entry\PendingEntry;
 use Chronicle\Exceptions\RateLimitExceededException;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\RateLimiter;
 
 class RateLimitPolicy extends AbstractPolicy
@@ -35,6 +36,13 @@ class RateLimitPolicy extends AbstractPolicy
         $attempts = RateLimiter::hit($key, $this->decaySeconds);
 
         if ($attempts > $this->maxEntries) {
+            Log::warning('Chronicle rate limit reached - an audit entry was dropped.', [
+                'actor_type' => $actorType,
+                'actor_id' => $actorId,
+                'action' => $entry->attribute('action'),
+                'available_in' => RateLimiter::availableIn($key),
+            ]);
+
             throw RateLimitExceededException::exceededLimit(
                 RateLimiter::availableIn($key)
             );

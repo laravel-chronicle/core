@@ -24,6 +24,7 @@ trait SerializesEntryAttributes
             'payload' => json_encode($entry['payload'], JSON_THROW_ON_ERROR),
             'payload_hash' => $entry['payload_hash'],
             'chain_hash' => $entry['chain_hash'],
+            'sequence' => $entry['sequence'] ?? null,
             'metadata' => json_encode($entry['metadata'], JSON_THROW_ON_ERROR),
             'context' => json_encode($entry['context'], JSON_THROW_ON_ERROR),
             'tags' => json_encode($entry['tags'], JSON_THROW_ON_ERROR),

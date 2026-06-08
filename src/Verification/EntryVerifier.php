@@ -9,6 +9,8 @@ use JsonException;
 
 class EntryVerifier
 {
+    use ComparesEntryColumns;
+
     public function __construct(
         private readonly CanonicalPayloadSerializer $serializer,
         private readonly ChainHasher $chainHasher,
@@ -34,11 +36,15 @@ class EntryVerifier
             return EntryVerificationResult::failure($entry, VerificationFailure::PayloadHashMismatch->value);
         }
 
+        if (! $this->columnsMatchPayload($entry, $entry->payload, $this->serializer)) {
+            return EntryVerificationResult::failure($entry, VerificationFailure::ColumnPayloadDivergence->value);
+        }
+
         /** @var string $previousChainHash */
         $previousChainHash = Entry::query()
-            ->where('id', '<', $entry->id)
-            ->orderByDesc('id')
-            ->value('chain_hash') ?? '0';
+            ->where('sequence', '<', $entry->sequence)
+            ->orderByDesc('sequence')
+            ->value('chain_hash') ?? ChainHasher::GENESIS;
 
         $expectedChainHash = $this->chainHasher->hash($previousChainHash, $entry->payload_hash);
 

@@ -5,7 +5,7 @@ use Chronicle\Http\Middleware\ChronicleUiEnabled;
 use Illuminate\Support\Facades\Route;
 
 /** @var list<string> $uiMiddleware */
-$uiMiddleware = config('chronicle.ui.middleware', ['web', 'auth']);
+$uiMiddleware = config('chronicle.ui.middleware', ['web', 'auth', 'can:view-chronicle']);
 
 Route::middleware([ChronicleUiEnabled::class, ...$uiMiddleware])
     ->prefix(config('chronicle.ui.prefix', 'chronicle'))
