@@ -2,7 +2,6 @@
 
 namespace Chronicle\Console\Commands;
 
-use Carbon\Carbon;
 use Chronicle\ChronicleServiceProvider;
 use Illuminate\Console\Command;
 
@@ -71,8 +70,6 @@ class InstallCommand extends Command
         $source = __DIR__.'/../../../database/migrations';
         $destination = database_path('migrations');
         $force = (bool) $this->option('force');
-        /** @var Carbon $timestamp */
-        $timestamp = Carbon::create(2026, 1, 1, 0, 0, 0, 'UTC');
 
         $files = glob($source.'/*.php');
         if ($files === false) {
@@ -81,10 +78,9 @@ class InstallCommand extends Command
 
         sort($files);
 
-        foreach ($files as $index => $file) {
+        foreach ($files as $file) {
             $basename = basename($file);
-            $timestamped = $timestamp->copy()->addSeconds($index)->format('Y_m_d_His').'_'.$basename;
-            $target = $destination.'/'.$timestamped;
+            $target = $destination.'/'.$basename;
 
             if (! $force && $this->migrationExists($destination, $basename)) {
                 $this->line("<info>Migration already exists:</info> $basename");
@@ -96,7 +92,7 @@ class InstallCommand extends Command
                 return false;
             }
 
-            $this->line("<info>Published migration:</info> $timestamped");
+            $this->line("<info>Published migration:</info> $basename");
         }
 
         return true;
@@ -109,13 +105,19 @@ class InstallCommand extends Command
             return false;
         }
 
+        $name = $this->stripTimestamp($filename);
+
         foreach ($existing as $file) {
-            $basename = preg_replace('/^\d{4}_\d{2}_\d{2}_\d{6}_/', '', basename($file));
-            if ($basename === $filename) {
+            if ($this->stripTimestamp(basename($file)) === $name) {
                 return true;
             }
         }
 
         return false;
+    }
+
+    private function stripTimestamp(string $filename): string
+    {
+        return (string) preg_replace('/^\d{4}_\d{2}_\d{2}_\d{6}_/', '', $filename);
     }
 }

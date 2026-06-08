@@ -75,12 +75,16 @@ it('honours the --migrate flag without prompting', function () {
     ])->assertExitCode(0);
 });
 
-it('publishMigrations uses a fixed base date not wall-clock time', function () {
-    // Call install twice — second call skips existing migrations,
-    // so timestamps must be deterministic
+it('publishes migrations under their own dated filenames without duplicating on re-run', function () {
     $firstRun = $this->artisan('chronicle:install', ['--no-interaction' => true])->run();
     $secondRun = $this->artisan('chronicle:install', ['--no-interaction' => true])->run();
 
-    // Both should succeed without producing duplicate files
+    // Both should succeed, and the second run must skip the already-published files.
     expect($firstRun)->toBe(0)->and($secondRun)->toBe(0);
+
+    $published = glob(database_path('migrations/*_create_chronicle_entries_table.php')) ?: [];
+
+    // Exactly one copy published, keeping the source's own dated filename verbatim.
+    expect($published)->toHaveCount(1)
+        ->and(basename($published[0]))->toBe('2026_06_06_000001_create_chronicle_entries_table.php');
 });

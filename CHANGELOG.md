@@ -25,6 +25,7 @@ breaking changes between any two versions — see upgrade notes per version.
 - `RateLimitPolicy` now logs a `warning` (actor, action, retry-after) before rejecting an over-limit entry, so audit suppression via the optional rate-limit policy is observable rather than silent.
 - The chain genesis seed is now the shared `ChainHasher::GENESIS` constant instead of a `'0'` literal duplicated across five files.
 - `routes/ui.php` middleware fallback now includes `can:view-chronicle`, matching the published config default, so the authorization gate is not lost when `chronicle.ui.middleware` is unset.
+- `chronicle:install` now publishes migrations under their own dated filenames (e.g. `2026_06_06_000001_create_chronicle_entries_table.php`) instead of stripping the prefix and re-generating a synthetic timestamp at publish time. Re-running the command stays idempotent — already-published migrations (including copies published by older versions of the command) are detected and skipped.
 
 ### Fixed
 
