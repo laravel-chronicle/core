@@ -24,6 +24,10 @@ breaking changes between any two versions — see upgrade notes per version.
 
 - Export ordering (`EntryExporter`) now matches chain/verification ordering, fixing export verification false-failures under clock skew.
 
+### Security
+
+- Verification now detects divergence between an entry's denormalized columns (`action`, `actor_id`, `metadata`, `diff`, …) and its hash-covered `payload`. Previously a row whose queryable columns were tampered — the values shown in the UI and returned by queries — still passed verification. New failure code `column_payload_divergence`; shared via the `ComparesEntryColumns` trait used by both `EntryVerifier` and `IntegrityVerifier`.
+
 ---
 
 ## [1.10.0] - 2026-06-06
