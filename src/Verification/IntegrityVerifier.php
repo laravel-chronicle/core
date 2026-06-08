@@ -13,7 +13,7 @@ use JsonException;
 
 class IntegrityVerifier
 {
-    use ComparesEntryColumns;
+    use ComparesEntryColumns, VerifiesCheckpointSignature;
 
     protected CanonicalPayloadSerializer $serializer;
 
@@ -56,31 +56,10 @@ class IntegrityVerifier
     {
         $result = new VerificationResult;
 
-        try {
-            $provider = $this->keyRing->resolve($checkpoint->algorithm, $checkpoint->key_id);
-        } catch (UnknownSigningKeyException) {
-            $result->fail(VerificationFailure::UnknownKey->value, $checkpoint->id);
+        $signatureFailure = $this->checkpointSignatureFailure($checkpoint, $this->keyRing);
 
-            return $result;
-        }
-
-        $signaturePayload = CheckpointCreator::signaturePayload(
-            id: $checkpoint->id,
-            chainHash: $checkpoint->chain_hash,
-            algorithm: $checkpoint->algorithm,
-            keyId: $checkpoint->key_id,
-            createdAt: $checkpoint->created_at->getTimestamp(),
-        );
-
-        $valid = $provider->verify($signaturePayload, $checkpoint->signature)
-            // Legacy checkpoints (pre-metadata-signing) signed only the bare chain hash.
-            || $provider->verify($checkpoint->chain_hash, $checkpoint->signature);
-
-        if (! $valid) {
-            $result->fail(
-                VerificationFailure::CheckpointSignatureInvalid->value,
-                $checkpoint->id
-            );
+        if ($signatureFailure !== null) {
+            $result->fail($signatureFailure, $checkpoint->id);
 
             return $result;
         }

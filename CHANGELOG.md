@@ -21,6 +21,7 @@ breaking changes between any two versions — see upgrade notes per version.
 - `chronicle:checkpoints:backfill` command: backfills the new range columns and `checkpoint_id` coverage for ledgers created before v1.11. Chunked, idempotent, `--dry-run` supported.
 - New verification failure reasons `checkpoint_chain_broken`, `checkpoint_head_mismatch`, and `segment_discontinuous`, distinguishing checkpoint-chain and segment faults from per-entry faults.
 - `IntegrityVerifier::verifySegment()` verifies a bounded range of entries (by `sequence`) from a trusted starting chain hash to an expected ending chain hash, reusing the full-verify payload/column/chain checks. Returns `segment_discontinuous` when the recomputed ending hash does not match the expected boundary.
+- `CheckpointChainVerifier` performs fast O(checkpoints) attestation: verifies each checkpoint's signature, that its `chain_hash` matches its head entry, `previous_checkpoint_id` linkage, and `entry_count` contiguity — yielding `checkpoint_signature_invalid`, `checkpoint_head_mismatch`, `checkpoint_chain_broken`, or `unknown_key`. The signature path is shared with `IntegrityVerifier` via the `VerifiesCheckpointSignature` trait so signing and verification never drift.
 
 ### Changed
 
