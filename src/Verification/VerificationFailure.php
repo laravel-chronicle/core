@@ -15,6 +15,11 @@ enum VerificationFailure: string
     case CheckpointSignatureInvalid = 'checkpoint_signature_invalid';
     case UnknownKey = 'unknown_key';
 
+    // Checkpoint-chain / segment
+    case CheckpointChainBroken = 'checkpoint_chain_broken';
+    case CheckpointHeadMismatch = 'checkpoint_head_mismatch';
+    case SegmentDiscontinuous = 'segment_discontinuous';
+
     // Export-level
     case EntriesMissing = 'entries_missing';
     case ManifestMissing = 'manifest_missing';
