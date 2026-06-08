@@ -3,6 +3,7 @@
 namespace Chronicle;
 
 use Chronicle\Anchoring\AnchorManager;
+use Chronicle\Anchoring\CheckpointAnchorer;
 use Chronicle\Console\Commands\CheckpointsBackfillCommand;
 use Chronicle\Console\Commands\CreateCheckpointCommand;
 use Chronicle\Console\Commands\ExportCommand;
@@ -228,6 +229,7 @@ class ChronicleServiceProvider extends ServiceProvider
 
             return new AnchorManager($app, $config);
         });
+        $this->app->singleton(CheckpointAnchorer::class);
     }
 
     protected function registerLedgerReader(): void
