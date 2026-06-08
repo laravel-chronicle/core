@@ -19,6 +19,7 @@ breaking changes between any two versions — see upgrade notes per version.
 - `Checkpoint` model exposes the new range columns (`head_id`, `entry_count`, `previous_checkpoint_id`) with casts plus `previousCheckpoint()` and `anchors()` relations. Checkpoint immutability guards are unchanged.
 - `CheckpointCreator::create()` now records the head pointer, cumulative entry count, and previous-checkpoint linkage, and populates `checkpoint_id` on covered entries (decision D1). `checkpoint_id` is not part of any hashed payload, so no `payload_hash`/`chain_hash` is affected. This also activates the existing checkpoint-verification branch in `IntegrityVerifier`, which never ran in 1.10 because `checkpoint_id` was never populated.
 - `chronicle:checkpoints:backfill` command: backfills the new range columns and `checkpoint_id` coverage for ledgers created before v1.11. Chunked, idempotent, `--dry-run` supported.
+- New verification failure reasons `checkpoint_chain_broken`, `checkpoint_head_mismatch`, and `segment_discontinuous`, distinguishing checkpoint-chain and segment faults from per-entry faults.
 
 ### Changed
 
