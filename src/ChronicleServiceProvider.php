@@ -2,6 +2,7 @@
 
 namespace Chronicle;
 
+use Chronicle\Console\Commands\CheckpointsBackfillCommand;
 use Chronicle\Console\Commands\CreateCheckpointCommand;
 use Chronicle\Console\Commands\ExportCommand;
 use Chronicle\Console\Commands\InstallCommand;
@@ -97,6 +98,7 @@ class ChronicleServiceProvider extends ServiceProvider
                 KeyGenerateCommand::class,
                 KeyListCommand::class,
                 KeyRotateCommand::class,
+                CheckpointsBackfillCommand::class,
             ]);
         }
     }
