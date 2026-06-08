@@ -17,6 +17,7 @@ breaking changes between any two versions — see upgrade notes per version.
 - `IntegrityVerifier::verifyFrom(Checkpoint $checkpoint)` verifies a ledger starting from a known-good checkpoint instead of genesis, so ledgers whose early history was pruned remain verifiable. The checkpoint signature is verified before its `chain_hash` is used as the walk seed.
 - Range-aware checkpoints: `chronicle_checkpoints` gains `head_id`, `entry_count`, and `previous_checkpoint_id` columns (additive migration; no artifact format or hash change). New `chronicle_checkpoint_anchors` table for external-anchor receipts and optional `chronicle_verification_runs` table for resumable-verification progress. New `chronicle.tables.checkpoint_anchors` / `chronicle.tables.verification_runs` config keys.
 - `Checkpoint` model exposes the new range columns (`head_id`, `entry_count`, `previous_checkpoint_id`) with casts plus `previousCheckpoint()` and `anchors()` relations. Checkpoint immutability guards are unchanged.
+- `CheckpointCreator::create()` now records the head pointer, cumulative entry count, and previous-checkpoint linkage, and populates `checkpoint_id` on covered entries (decision D1). `checkpoint_id` is not part of any hashed payload, so no `payload_hash`/`chain_hash` is affected. This also activates the existing checkpoint-verification branch in `IntegrityVerifier`, which never ran in 1.10 because `checkpoint_id` was never populated.
 
 ### Changed
 
@@ -28,6 +29,7 @@ breaking changes between any two versions — see upgrade notes per version.
 - The chain genesis seed is now the shared `ChainHasher::GENESIS` constant instead of a `'0'` literal duplicated across five files.
 - `routes/ui.php` middleware fallback now includes `can:view-chronicle`, matching the published config default, so the authorization gate is not lost when `chronicle.ui.middleware` is unset.
 - `chronicle:install` now publishes migrations under their own dated filenames (e.g. `2026_06_06_000001_create_chronicle_entries_table.php`) instead of stripping the prefix and re-generating a synthetic timestamp at publish time. Re-running the command stays idempotent — already-published migrations (including copies published by older versions of the command) are detected and skipped.
+- `CheckpointCreator` resolves the chain head by `sequence` (the canonical ledger order) instead of the ULID `id` sort, matching the rest of the write/verify path.
 
 ### Fixed
 
