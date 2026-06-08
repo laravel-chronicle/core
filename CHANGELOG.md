@@ -16,6 +16,7 @@ breaking changes between any two versions — see upgrade notes per version.
 - `2026_06_06_000000_add_sequence_to_chronicle_entries_table` migration: backfills `sequence` for existing ledgers in chain order and is a no-op on fresh installs.
 - `IntegrityVerifier::verifyFrom(Checkpoint $checkpoint)` verifies a ledger starting from a known-good checkpoint instead of genesis, so ledgers whose early history was pruned remain verifiable. The checkpoint signature is verified before its `chain_hash` is used as the walk seed.
 - Range-aware checkpoints: `chronicle_checkpoints` gains `head_id`, `entry_count`, and `previous_checkpoint_id` columns (additive migration; no artifact format or hash change). New `chronicle_checkpoint_anchors` table for external-anchor receipts and optional `chronicle_verification_runs` table for resumable-verification progress. New `chronicle.tables.checkpoint_anchors` / `chronicle.tables.verification_runs` config keys.
+- `Checkpoint` model exposes the new range columns (`head_id`, `entry_count`, `previous_checkpoint_id`) with casts plus `previousCheckpoint()` and `anchors()` relations. Checkpoint immutability guards are unchanged.
 
 ### Changed
 
