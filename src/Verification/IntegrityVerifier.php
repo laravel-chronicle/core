@@ -12,6 +12,8 @@ use JsonException;
 
 class IntegrityVerifier
 {
+    use ComparesEntryColumns;
+
     protected CanonicalPayloadSerializer $serializer;
 
     protected ChainHasher $chainHasher;
@@ -58,6 +60,15 @@ class IntegrityVerifier
                 $result->fail(
                     VerificationFailure::PayloadHashMismatch->value,
                     $entry->id
+                );
+
+                return $result;
+            }
+
+            if (! $this->columnsMatchPayload($entry, $entry->payload, $this->serializer)) {
+                $result->fail(
+                    VerificationFailure::ColumnPayloadDivergence->value,
+                    $entry->id,
                 );
 
                 return $result;

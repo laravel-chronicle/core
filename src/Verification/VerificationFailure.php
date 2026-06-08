@@ -8,6 +8,7 @@ enum VerificationFailure: string
     case NotFound = 'not_found';
     case PayloadHashMismatch = 'payload_hash_mismatch';
     case ChainHashMismatch = 'chain_hash_mismatch';
+    case ColumnPayloadDivergence = 'column_payload_divergence';
 
     // Ledger-level (IntegrityVerifier)
     case CheckpointMissing = 'checkpoint_missing';
