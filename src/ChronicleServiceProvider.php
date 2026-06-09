@@ -2,6 +2,10 @@
 
 namespace Chronicle;
 
+use Chronicle\Anchoring\AnchorManager;
+use Chronicle\Anchoring\CheckpointAnchorer;
+use Chronicle\Console\Commands\AnchorRetryCommand;
+use Chronicle\Console\Commands\AnchorVerifyCommand;
 use Chronicle\Console\Commands\CheckpointsBackfillCommand;
 use Chronicle\Console\Commands\CreateCheckpointCommand;
 use Chronicle\Console\Commands\ExportCommand;
@@ -68,6 +72,7 @@ class ChronicleServiceProvider extends ServiceProvider
         $this->registerContracts();
         $this->registerManager();
         $this->registerSigning();
+        $this->registerAnchoring();
         $this->registerLedgerReader();
         $this->registerExports();
         $this->registerQueueContext();
@@ -99,6 +104,8 @@ class ChronicleServiceProvider extends ServiceProvider
                 KeyListCommand::class,
                 KeyRotateCommand::class,
                 CheckpointsBackfillCommand::class,
+                AnchorRetryCommand::class,
+                AnchorVerifyCommand::class,
             ]);
         }
     }
@@ -216,6 +223,17 @@ class ChronicleServiceProvider extends ServiceProvider
                 return new NullSigningProvider($e);
             }
         });
+    }
+
+    protected function registerAnchoring(): void
+    {
+        $this->app->bind(AnchorManager::class, function (Application $app) {
+            /** @var array<string, mixed> $config */
+            $config = (array) $app['config']->get('chronicle.anchoring', []);
+
+            return new AnchorManager($app, $config);
+        });
+        $this->app->singleton(CheckpointAnchorer::class);
     }
 
     protected function registerLedgerReader(): void

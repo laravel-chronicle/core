@@ -2,6 +2,8 @@
 
 namespace Chronicle\Console\Commands;
 
+use Chronicle\Anchoring\AnchorManager;
+use Chronicle\Anchoring\CheckpointAnchorer;
 use Chronicle\Checkpoints\CheckpointCreator;
 use Illuminate\Console\Command;
 use Throwable;
@@ -17,7 +19,8 @@ class CreateCheckpointCommand extends Command
     /**
      * Command signature.
      */
-    protected $signature = 'chronicle:checkpoint';
+    protected $signature = 'chronicle:checkpoint
+        {--anchor : Anchor the new checkpoint synchronously}';
 
     /**
      * Command description.
@@ -41,6 +44,20 @@ class CreateCheckpointCommand extends Command
             $this->line('Algorithm: '.$checkpoint->algorithm);
             $this->line('Key ID: '.$checkpoint->key_id);
             $this->line('Created At: '.$checkpoint->created_at);
+
+            if ($this->option('anchor')) {
+                $manager = app(AnchorManager::class);
+                $anchorer = app(CheckpointAnchorer::class);
+
+                foreach ($manager->providerNames() as $providerName) {
+                    try {
+                        $anchorer->anchor($checkpoint, $providerName);
+                        $this->line("Anchored via [$providerName].");
+                    } catch (Throwable $e) {
+                        $this->error("Anchor via [$providerName] failed: {$e->getMessage()}");
+                    }
+                }
+            }
 
             return self::SUCCESS;
         } catch (Throwable $e) {

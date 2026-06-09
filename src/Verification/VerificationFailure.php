@@ -19,6 +19,7 @@ enum VerificationFailure: string
     case CheckpointChainBroken = 'checkpoint_chain_broken';
     case CheckpointHeadMismatch = 'checkpoint_head_mismatch';
     case SegmentDiscontinuous = 'segment_discontinuous';
+    case AnchorInvalid = 'anchor_invalid';
 
     // Export-level
     case EntriesMissing = 'entries_missing';

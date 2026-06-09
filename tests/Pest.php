@@ -1,6 +1,9 @@
 <?php
 
+use Chronicle\Checkpoints\Checkpoint;
+use Chronicle\Checkpoints\CheckpointCreator;
 use Chronicle\Entry\PendingEntry;
+use Chronicle\Facades\Chronicle;
 use Chronicle\Tests\Feature\UI\UiTestCase;
 use Chronicle\Tests\TestCase;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -24,6 +27,17 @@ function ref(string $id): object
     $obj->id = $id;
 
     return $obj;
+}
+
+/**
+ * Record one entry and create a checkpoint anchoring it. Used by anchoring tests.
+ * The caller must enable the eloquent driver first (e.g. $this->useEloquentDriver()).
+ */
+function makeAnchorCheckpoint(): Checkpoint
+{
+    Chronicle::record()->actor(ref('a'))->action('anchor.one')->subject(ref('s'))->commit();
+
+    return app(CheckpointCreator::class)->create();
 }
 
 function makePolicyPending(): PendingEntry

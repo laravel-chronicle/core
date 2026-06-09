@@ -140,6 +140,32 @@ return [
         ],
     ],
 
+    'anchoring' => [
+        /*
+        |----------------------------------------------------------------------
+        | External Anchoring
+        |----------------------------------------------------------------------
+        |
+        | Opt-in. When enabled, each new checkpoint is anchored with every
+        | configured provider after the checkpoint transaction commits. Anchor
+        | failures never roll a checkpoint back.
+        |
+        */
+        'enabled' => env('CHRONICLE_ANCHORING_ENABLED', false),
+
+        // Optional queue/connection for AnchorCheckpointJob (null = default).
+        'queue' => env('CHRONICLE_ANCHORING_QUEUE'),
+
+        // name => ['provider' => class, ...provider config]
+        'providers' => [
+            // 'rfc3161' => [
+            //     'provider' => \Chronicle\Anchoring\Rfc3161TimestampAnchor::class,
+            //     'tsa_url' => env('CHRONICLE_TSA_URL'),
+            //     'tsa_certificate' => env('CHRONICLE_TSA_CERTIFICATE'), // path to PEM
+            // ],
+        ],
+    ],
+
     'validation' => [
         'action_max_length' => env('CHRONICLE_ACTION_MAX_LENGTH', 255),
         'tag_max_length' => env('CHRONICLE_TAG_MAX_LENGTH', 50),

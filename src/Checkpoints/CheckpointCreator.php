@@ -2,8 +2,10 @@
 
 namespace Chronicle\Checkpoints;
 
+use Chronicle\Anchoring\AnchorManager;
 use Chronicle\Contracts\SigningProvider;
 use Chronicle\Entry\Entry;
+use Chronicle\Jobs\AnchorCheckpointJob;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use JsonException;
@@ -20,9 +22,12 @@ class CheckpointCreator
 {
     protected SigningProvider $signer;
 
-    public function __construct(SigningProvider $signer)
+    protected AnchorManager $anchors;
+
+    public function __construct(SigningProvider $signer, AnchorManager $anchors)
     {
         $this->signer = $signer;
+        $this->anchors = $anchors;
     }
 
     /**
@@ -35,7 +40,9 @@ class CheckpointCreator
         /** @var string|null $connection */
         $connection = config('chronicle.connection');
 
-        return DB::connection($connection)->transaction(function () {
+        $created = false;
+
+        $checkpoint = DB::connection($connection)->transaction(function () use (&$created) {
             // Resolve the head by sequence (the canonical ledger order), not id.
             /** @var Entry|null $head */
             $head = Entry::query()
@@ -102,8 +109,16 @@ class CheckpointCreator
                 ->where('sequence', '<=', $head->sequence)
                 ->update(['checkpoint_id' => $id]);
 
+            $created = true;
+
             return $checkpoint;
         });
+
+        if ($created) {
+            $this->dispatchAnchoring($checkpoint);
+        }
+
+        return $checkpoint;
     }
 
     /**
@@ -126,5 +141,25 @@ class CheckpointCreator
             'key_id' => $keyId,
             'created_at' => $createdAt,
         ], JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES);
+    }
+
+    protected function dispatchAnchoring(Checkpoint $checkpoint): void
+    {
+        if (! $this->anchors->enabled()) {
+            return;
+        }
+
+        /** @var string|null $queue */
+        $queue = config('chronicle.anchoring.queue');
+
+        foreach ($this->anchors->providerNames() as $providerName) {
+            $job = new AnchorCheckpointJob($checkpoint->id, $providerName);
+
+            if ($queue !== null) {
+                $job->onQueue($queue);
+            }
+
+            dispatch($job);
+        }
     }
 }
