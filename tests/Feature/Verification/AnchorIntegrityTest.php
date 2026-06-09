@@ -10,6 +10,7 @@ use Chronicle\Hashing\ChainHasher;
 use Chronicle\Signing\KeyRing;
 use Chronicle\Support\CanonicalPayloadSerializer;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Queue;
 
 beforeEach(function () {
     $this->useEloquentDriver();
@@ -17,6 +18,10 @@ beforeEach(function () {
         'chronicle.anchoring.enabled' => true,
         'chronicle.anchoring.providers' => ['null' => ['provider' => NullAnchor::class]],
     ]);
+    // Anchoring is driven explicitly via CheckpointAnchorer in these tests;
+    // fake the queue so create()'s sync AnchorCheckpointJob doesn't auto-anchor
+    // checkpoints we intend to leave unanchored.
+    Queue::fake();
 });
 
 function anchoredSegment(int $base): Checkpoint

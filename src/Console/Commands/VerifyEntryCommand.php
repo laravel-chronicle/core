@@ -398,12 +398,7 @@ class VerifyEntryCommand extends Command
         $query = Checkpoint::query()->orderBy('entry_count');
 
         if ($this->option('since-last-checkpoint')) {
-            $last = (clone $query)->reorder()->orderByDesc('entry_count')->first();
-
-            /** @var Collection<int, Checkpoint> $scope */
-            $scope = $last === null ? new Collection : new Collection([$last]);
-
-            return $scope;
+            return (clone $query)->reorder()->orderByDesc('entry_count')->limit(1)->get();
         }
 
         if ($fromId !== null) {

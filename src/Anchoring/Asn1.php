@@ -50,7 +50,7 @@ final class Asn1
     public static function oid(string $dotted): string
     {
         $parts = array_map('intval', explode('.', $dotted));
-        $body = chr($parts[0] * 40 + $parts[1]);
+        $body = chr(($parts[0] * 40 + $parts[1]) & 0xFF);
 
         foreach (array_slice($parts, 2) as $n) {
             $stack = [$n & 0x7F];
@@ -67,17 +67,17 @@ final class Asn1
 
     private static function tlv(int $tag, string $content): string
     {
-        return chr($tag).self::length(strlen($content)).$content;
+        return chr($tag & 0xFF).self::length(strlen($content)).$content;
     }
 
     private static function length(int $len): string
     {
         if ($len < 0x80) {
-            return chr($len);
+            return chr($len & 0xFF);
         }
 
         $bytes = ltrim(pack('N', $len), "\x00");
 
-        return chr(0x80 | strlen($bytes)).$bytes;
+        return chr((0x80 | strlen($bytes)) & 0xFF).$bytes;
     }
 }

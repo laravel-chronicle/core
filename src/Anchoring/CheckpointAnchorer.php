@@ -3,6 +3,7 @@
 namespace Chronicle\Anchoring;
 
 use Chronicle\Checkpoints\Checkpoint;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
 use Throwable;
 
@@ -51,7 +52,7 @@ class CheckpointAnchorer
         $row->reference = $receipt->reference;
         $row->proof = $receipt->proof;
         $row->status = 'anchored';
-        $row->anchored_at = $receipt->anchoredAt;
+        $row->anchored_at = Carbon::instance($receipt->anchoredAt);
         $row->save();
 
         return $row;
