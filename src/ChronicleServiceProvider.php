@@ -171,6 +171,7 @@ class ChronicleServiceProvider extends ServiceProvider
     {
         $this->app->singleton('chronicle', function (Application $app) {
             $prePipeline = $app->make('chronicle.pipeline.pre');
+            assert($prePipeline instanceof EntryPipeline);
 
             return new ChronicleManager(
                 resolver: $app->make(ReferenceResolver::class),
