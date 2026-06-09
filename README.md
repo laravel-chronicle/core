@@ -48,6 +48,7 @@ Chronicle takes a different approach. Events are recorded in an **append-only le
 | Verifiable exports | ✓         | ✗                         |
 | Signed checkpoints | ✓         | ✗                         |
 | Key rotation       | ✓         | ✗                         |
+| External anchoring | ✓         | ✗                         |
 
 ---
 
@@ -202,6 +203,64 @@ See [Checkpoints](https://laravel-chronicle.github.io/docs/checkpoints).
 
 ---
 
+## External anchoring
+
+Hash chaining and signed checkpoints detect tampering by anyone who can't forge a checkpoint signature. But an attacker holding **both** the database and the signing key could rewrite the chain and re-sign every checkpoint. External anchoring closes that gap: each checkpoint's digest is published to an **append-only sink in a separate trust domain**, so a rewritten ledger fails verification at the first anchored checkpoint — the attacker cannot forge the external attestation.
+
+Chronicle ships an RFC 3161 trusted-timestamp anchor in core (standards-based, no cloud SDK; verified offline against the TSA certificate). Anchoring is **opt-in** and runs after each checkpoint commits — an anchor failure never invalidates the checkpoint.
+
+```php
+// config/chronicle.php
+'anchoring' => [
+    'enabled' => env('CHRONICLE_ANCHORING_ENABLED', false),
+    'providers' => [
+        'tsa' => [
+            'provider' => Chronicle\Anchoring\Rfc3161TimestampAnchor::class,
+            'tsa_url' => env('CHRONICLE_TSA_URL'),
+            'tsa_certificate' => env('CHRONICLE_TSA_CERTIFICATE'),
+        ],
+    ],
+],
+```
+
+```bash
+php artisan chronicle:checkpoint --anchor   # anchor synchronously
+php artisan chronicle:anchor:retry          # retry pending/failed anchors
+php artisan chronicle:anchor:verify         # attest stored anchors against their sinks
+```
+
+An official AWS S3 Object Lock (WORM) adapter is available as a companion package:
+
+```bash
+composer require laravel-chronicle/anchor-s3
+```
+
+See [Anchoring](https://laravel-chronicle.github.io/docs/anchoring).
+
+---
+
+## Scalable verification
+
+A full `chronicle:verify` recomputes every entry's hash — the ground-truth check. On large, ever-growing ledgers you usually don't need to re-walk all of history on every run. Because checkpoints now form a verifiable chain and record the entries they cover, Chronicle can verify incrementally:
+
+```bash
+php artisan chronicle:verify                        # full ledger (default)
+php artisan chronicle:verify --since-last-checkpoint # trust the last checkpoint, verify only the tail
+php artisan chronicle:verify --from-checkpoint=<id>  # verify a single segment (add --to-checkpoint=<id>)
+php artisan chronicle:verify --checkpoints-only      # checkpoint-chain attestation, O(checkpoints)
+php artisan chronicle:verify --resume                # continue from the last recorded run
+```
+
+Combine `--checkpoints-only` with `--anchors` for a fast, externally-rooted integrity proof: an **anchored** checkpoint is a trusted fast-forward point, so verifying the recent tail since one gives strong assurance without re-walking the whole ledger.
+
+```bash
+php artisan chronicle:verify --checkpoints-only --anchors
+```
+
+Upgrading an existing ledger? Run `chronicle:checkpoints:backfill` once so historical checkpoints gain their head/count/link metadata; until then the incremental modes safely fall back to a full verify. See [Scalable Verification](https://laravel-chronicle.github.io/docs/scalable-verification).
+
+---
+
 ## Verifiable exports
 
 Chronicle can export the ledger as a verifiable dataset (`entries.ndjson`, `manifest.json`, `signature.json`) that can be verified independently of the application:
@@ -228,6 +287,9 @@ Verification checks the dataset hash, digital signature, hash-chain integrity, a
 | `chronicle:show {id}`            | Display a single entry by ULID                                                         |
 | `chronicle:prune`                | Prune entries by retention policy (`--older-than`, `--before`, `--dry-run`, `--force`) |
 | `chronicle:report {path}`        | Generate a signed compliance report (`--from`, `--to`)                                 |
+| `chronicle:checkpoints:backfill` | Backfill head/count/link metadata on existing checkpoints (`--chunk`, `--dry-run`)     |
+| `chronicle:anchor:retry`         | Re-attempt outstanding checkpoint anchors (`--status=pending\|failed`)                 |
+| `chronicle:anchor:verify`        | Verify stored checkpoint anchors against their providers (`--checkpoint=`)             |
 | `chronicle:key:generate`         | Generate an Ed25519 keypair for `signing.keys` (`--id`)                                |
 | `chronicle:key:list`             | List the signing keys in the key ring (`--with-counts`)                                |
 | `chronicle:key:rotate {keyId}`   | Create a boundary checkpoint and print activation instructions for a new key           |
@@ -243,6 +305,8 @@ See the [Artisan Commands reference](https://laravel-chronicle.github.io/docs/ar
 - **Signing** with Ed25519 or ECDSA P-256; signed checkpoints, exports, and compliance reports
 - **Key rotation** with a multi-key ring — retired keys keep verifying their own artifacts
 - **External signing providers** (e.g. AWS KMS) with remote signing and local verification
+- **External anchoring** of checkpoints (RFC 3161 timestamping in core; S3 Object Lock adapter) to detect tampering even under full internal compromise
+- **Scalable verification** — incremental, segment, and checkpoint-only modes for large ledgers
 - **Verifiable exports** with independent verification
 - **Automatic model auditing** via the `HasChronicle` trait or observers
 - **Transactions & correlation IDs** for grouping related events
@@ -278,8 +342,7 @@ Chronicle is designed to be extended. You can write custom validators, policies,
 
 Planned for upcoming releases:
 
-- external anchoring of checkpoints (S3 Object Lock, RFC 3161 timestamping, transparency logs)
-- incremental, checkpoint-based verification for large ledgers
+- additional anchor adapters (Sigstore/Rekor transparency log)
 - additional external signing adapters (GCP KMS, HashiCorp Vault)
 - a dedicated Filament admin integration
 

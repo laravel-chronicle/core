@@ -10,6 +10,10 @@ breaking changes between any two versions — see upgrade notes per version.
 
 ## [Unreleased]
 
+---
+
+## [1.11.0] - 2026-06-09
+
 ### Added
 
 - Monotonic `sequence` column on `chronicle_entries`, assigned under the chain row-lock in `ChainHashEntry`, with `unique(sequence)` and `unique(chain_hash)` constraints. A concurrent chain fork now fails with a database uniqueness error instead of corrupting the ledger silently.
