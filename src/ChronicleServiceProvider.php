@@ -26,6 +26,7 @@ use Chronicle\Contracts\ReferenceResolver;
 use Chronicle\Contracts\SigningProvider;
 use Chronicle\Contracts\StorageDriver;
 use Chronicle\Encryption\KeyEncryptionManager;
+use Chronicle\Encryption\SubjectKeyManager;
 use Chronicle\Entry\EloquentLedgerReader;
 use Chronicle\Exceptions\ChronicleException;
 use Chronicle\Exports\EntryExporter;
@@ -230,6 +231,7 @@ class ChronicleServiceProvider extends ServiceProvider
     protected function registerEncryption(): void
     {
         $this->app->singleton(KeyEncryptionManager::class);
+        $this->app->singleton(SubjectKeyManager::class);
     }
 
     protected function registerAnchoring(): void

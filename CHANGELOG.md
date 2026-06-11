@@ -14,6 +14,7 @@ breaking changes between any two versions - see upgrade notes per version.
 
 - `chronicle_subject_keys` table and `SubjectKey` model (v1.12 crypto-shredding foundation): one wrapped per-subject Data Encryption Key per `(subject_type, subject_id)`, the GDPR erasure unit. `wrapped_dek` is nullable so erasure can destroy the key material in place while the tombstone row (`status='erased'`, `erased_at`) survives. Table name from `chronicle.tables.subject_keys`; respects `chronicle.connection`.
 - `KeyEncryptionProvider` contract with a default `LocalKeyEncryptionProvider` (KEK derived from a dedicated `CHRONICLE_ENCRYPTION_KEY`, never the app key; libsodium secretbox wrapping) and a `KeyEncryptionManager` that resolves the provider from `chronicle.encryption.kek` via container `makeWith` - so a KMS-backed provider can be swapped in with auto-injected dependencies. New opt-in `chronicle.encryption` config block (`enabled` defaults to false, `fields` defaults to `metadata`/`context`/`diff`, `kek`).
+- `SubjectKeyManager`: per-subject DEK lifecycle - `getOrCreate()` mints/wraps/persists a DEK on first use and caches the plaintext DEK process-locally; `destroy()` is the GDPR erasure primitive - it nulls the wrapped DEK, tombstones the row (`status='erased'`, `erased_at`), and purges the cache. Erased subjects stay erased (a later `getOrCreate` throws rather than resurrecting), and destroy is idempotent.
 
 ---
 
