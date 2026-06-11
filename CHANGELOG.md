@@ -10,6 +10,10 @@ breaking changes between any two versions — see upgrade notes per version.
 
 ## [Unreleased]
 
+### Added
+
+- `chronicle_subject_keys` table and `SubjectKey` model (v1.12 crypto-shredding foundation): one wrapped per-subject Data Encryption Key per `(subject_type, subject_id)`, the GDPR erasure unit. `wrapped_dek` is nullable so erasure can destroy the key material in place while the tombstone row (`status='erased'`, `erased_at`) survives. Table name from `chronicle.tables.subject_keys`; respects `chronicle.connection`.
+
 ---
 
 ## [1.11.0] - 2026-06-09
