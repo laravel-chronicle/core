@@ -143,7 +143,7 @@ it('does not call parseTime more than once per construction', function () {
 
     $policy = new TimeWindowPolicy;
 
-    // Call enforce() twice — both must succeed with frozen construction-time state.
+    // Call enforce() twice - both must succeed with frozen construction-time state.
     $policy->enforce(makePolicyPending());
     $policy->enforce(makePolicyPending());
 })->throwsNoExceptions()->afterEach(fn () => Carbon::setTestNow());

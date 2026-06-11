@@ -95,7 +95,7 @@ it('returns the same pending entry instance on success', function () {
 });
 
 // ---------------------------------------------------------------------------
-// Top-level type — diff must be arrayed or null
+// Top-level type - diff must be arrayed or null
 // ---------------------------------------------------------------------------
 
 it('rejects a string diff', function () {
@@ -131,7 +131,7 @@ it('includes the diff key name in the entry-not-array exception message', functi
 })->throws(InvalidDiffException::class, 'my_field');
 
 // ---------------------------------------------------------------------------
-// Missing keys — old and new are both required
+// Missing keys - old and new are both required
 // ---------------------------------------------------------------------------
 
 it('rejects an entry missing the old key', function () {
@@ -153,7 +153,7 @@ it('rejects an entry missing both keys and reports old first', function () {
 })->throws(InvalidDiffException::class, 'old');
 
 // ---------------------------------------------------------------------------
-// Extra keys — only old and new are permitted
+// Extra keys - only old and new are permitted
 // ---------------------------------------------------------------------------
 
 it('rejects an entry with an extra key alongside old and new', function () {
@@ -169,7 +169,7 @@ it('includes the diff key name in the extra-keys exception message', function ()
 })->throws(InvalidDiffException::class, 'my_field');
 
 // ---------------------------------------------------------------------------
-// Serializable — Closure
+// Serializable - Closure
 // ---------------------------------------------------------------------------
 
 it('rejects a Closure in the old value', function () {
@@ -191,7 +191,7 @@ it('includes the diff key name in the closure exception message', function () {
 })->throws(InvalidDiffException::class, 'my_field');
 
 // ---------------------------------------------------------------------------
-// Serializable — resource
+// Serializable - resource
 // ---------------------------------------------------------------------------
 
 it('rejects a resource in the old value', function () {
@@ -231,7 +231,7 @@ it('includes the diff key name in the resource exception message', function () {
 })->throws(InvalidDiffException::class, 'my_field');
 
 // ---------------------------------------------------------------------------
-// Serializable — object
+// Serializable - object
 // ---------------------------------------------------------------------------
 
 it('rejects an object in the old value', function () {

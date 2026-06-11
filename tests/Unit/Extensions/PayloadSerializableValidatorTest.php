@@ -42,7 +42,7 @@ it('has a priority after ActionValidator (-100)', function () {
 });
 
 // ---------------------------------------------------------------------------
-// Happy path — allowed value types
+// Happy path - allowed value types
 // ---------------------------------------------------------------------------
 
 it('accepts an empty metadata and context', function () {
@@ -179,7 +179,7 @@ it('rejects a resource in diff', function () {
 })->throws(UnserializablePayloadException::class, 'must not contain resources');
 
 // ---------------------------------------------------------------------------
-// Objects — all rejected regardless of serializability
+// Objects - all rejected regardless of serializability
 // ---------------------------------------------------------------------------
 
 it('rejects a stdClass object in metadata', function () {
@@ -227,7 +227,7 @@ it('rejects an object in diff', function () {
 })->throws(UnserializablePayloadException::class, 'must not contain objects');
 
 // ---------------------------------------------------------------------------
-// Non-serializable scalars (INF / NAN) — caught by json_encode catch-all
+// Non-serializable scalars (INF / NAN) - caught by json_encode catch-all
 // ---------------------------------------------------------------------------
 
 it('rejects INF in metadata', function () {

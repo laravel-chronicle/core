@@ -11,7 +11,7 @@ use Throwable;
 /**
  * Base Eloquent observer that records Chronicle audit entries.
  *
- * Use when you cannot add HasChronicle to the model directly — for example,
+ * Use when you cannot add HasChronicle to the model directly - for example,
  * models from third-party packages.
  *
  * Register in a ServiceProvider:

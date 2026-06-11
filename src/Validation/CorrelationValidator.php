@@ -33,7 +33,7 @@ class CorrelationValidator implements EntryExtension, PrioritizedEntryExtension
     /**
      * Validate the `correlation_id` attribute of a PendingEntry for type, content, and length.
      *
-     * A null correlation_id is accepted — correlation is optional. When a value is present,
+     * A null correlation_id is accepted - correlation is optional. When a value is present,
      * it must be a non-blank string within the configured maximum length.
      *
      * @param  PendingEntry  $entry  The pending entry whose `correlation_id` attribute will be validated.

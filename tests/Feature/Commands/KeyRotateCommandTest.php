@@ -32,7 +32,7 @@ it('refuses when the target key is verify-only', function () {
 });
 
 it('fails with an actionable message when the ledger is empty', function () {
-    // Valid second key with signing material — passes config validation, fails at checkpoint
+    // Valid second key with signing material - passes config validation, fails at checkpoint
     config([
         'chronicle.signing.keys.next-key' => [
             'provider' => Ed25519SigningProvider::class,

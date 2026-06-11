@@ -19,7 +19,7 @@ class Ed25519SigningProvider implements SigningProvider
     protected string $keyId = 'none';
 
     /**
-     * Positional constructor — kept for direct/test use.
+     * Positional constructor - kept for direct/test use.
      * Pass a non-empty $config array to use the array-config path instead.
      *
      * @param  array{private_key?: ?string, public_key?: string, key_id?: string}  $config

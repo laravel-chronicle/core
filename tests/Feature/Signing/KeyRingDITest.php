@@ -103,7 +103,7 @@ it('returns NullSigningProvider when enforce_on_boot is false and active key is 
             'bad-key' => [
                 'provider' => Ed25519SigningProvider::class,
                 'algorithm' => 'ed25519',
-                'public_key' => null,  // missing — triggers InvalidArgumentException
+                'public_key' => null,  // missing - triggers InvalidArgumentException
             ],
         ],
     ]);

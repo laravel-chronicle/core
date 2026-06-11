@@ -10,7 +10,7 @@ use Illuminate\Support\Carbon;
  * A wrapped per-subject Data Encryption Key (DEK).
  *
  * One row per (subject_type, subject_id). `wrapped_dek` is the DEK encrypted
- * under the KEK. Erasure nulls `wrapped_dek` and sets status='erased' — the
+ * under the KEK. Erasure nulls `wrapped_dek` and sets status='erased' - the
  * row survives as a tombstone so an erased subject can never mint a new key.
  *
  * @property string $id

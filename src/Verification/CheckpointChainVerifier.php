@@ -8,7 +8,7 @@ use Chronicle\Signing\KeyRing;
 use JsonException;
 
 /**
- * Fast attestation over the checkpoint chain — O(number of checkpoints).
+ * Fast attestation over the checkpoint chain - O(number of checkpoints).
  * Walks checkpoints oldest->newest verifying: signature, that chain_hash equals
  * the head entry's chain_hash, previous_checkpoint_id linkage, and entry_count
  * contiguity. Does NOT recompute per-entry hashes.

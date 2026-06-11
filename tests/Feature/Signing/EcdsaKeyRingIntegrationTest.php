@@ -56,7 +56,7 @@ it('an ECDSA P-256 signed export verifies offline through the KeyRing', function
 
     expect($result->isValid())->toBeTrue();
 
-    // Confirm signature.json records 'ecdsa-p256' — proving KeyRing resolved the right provider
+    // Confirm signature.json records 'ecdsa-p256' - proving KeyRing resolved the right provider
     $sig = json_decode((string) file_get_contents($exportPath.'/signature.json'), true);
     expect($sig['algorithm'])->toBe('ecdsa-p256')
         ->and($sig['key_id'])->toBe('ecdsa-key');

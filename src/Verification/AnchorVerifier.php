@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Collection;
 
 /**
  * Verifies that each in-scope checkpoint carries at least one valid external
- * anchor. An unanchored or invalid-anchor checkpoint fails — it is never
+ * anchor. An unanchored or invalid-anchor checkpoint fails - it is never
  * silently passed.
  */
 class AnchorVerifier

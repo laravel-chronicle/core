@@ -290,8 +290,8 @@ class VerifyEntryCommand extends Command
         }
 
         $messages = [
-            'payload_hash_mismatch' => 'Payload hash MISMATCH — entry data has been altered',
-            'chain_hash_mismatch' => 'Chain hash MISMATCH — entry position has been manipulated',
+            'payload_hash_mismatch' => 'Payload hash MISMATCH - entry data has been altered',
+            'chain_hash_mismatch' => 'Chain hash MISMATCH - entry position has been manipulated',
         ];
 
         $code = $result->failureCode() ?? 'unknown';

@@ -72,7 +72,7 @@ it('returns the same pending entry instance on success', function () {
 });
 
 // ---------------------------------------------------------------------------
-// Non-array tags — silently pass (TagsValidator handles type errors)
+// Non-array tags - silently pass (TagsValidator handles type errors)
 // ---------------------------------------------------------------------------
 
 it('passes silently when tags is null', function () {

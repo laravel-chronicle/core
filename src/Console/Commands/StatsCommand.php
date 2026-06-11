@@ -40,8 +40,8 @@ class StatsCommand extends Command
         $this->newLine();
 
         $this->line('  Total entries:    '.number_format($stats->totalEntries()));
-        $this->line('  Oldest entry:     '.($stats->oldestEntryAt()?->format('Y-m-d H:i:s T') ?? '—'));
-        $this->line('  Newest entry:     '.($stats->newestEntryAt()?->format('Y-m-d H:i:s T') ?? '—'));
+        $this->line('  Oldest entry:     '.($stats->oldestEntryAt()?->format('Y-m-d H:i:s T') ?? '-'));
+        $this->line('  Newest entry:     '.($stats->newestEntryAt()?->format('Y-m-d H:i:s T') ?? '-'));
         $this->line('  Checkpoints:      '.number_format($stats->checkpointCount()));
         $this->newLine();
 

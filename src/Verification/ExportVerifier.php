@@ -298,7 +298,7 @@ class ExportVerifier
     /**
      * Attempt to decode a JSON file.
      *
-     * @return array<string, mixed>|string — array on success, failure-code string on failure
+     * @return array<string, mixed>|string - array on success, failure-code string on failure
      */
     protected function tryDecodeJsonFile(
         string $path,

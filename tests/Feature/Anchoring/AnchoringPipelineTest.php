@@ -54,13 +54,13 @@ it('writes an anchored row for a successful provider', function () {
         ->and($row->anchored_at)->not->toBeNull();
 });
 
-it('marks the row failed and rethrows when the provider fails — checkpoint is untouched', function () {
+it('marks the row failed and rethrows when the provider fails - checkpoint is untouched', function () {
     config([
         'chronicle.anchoring.enabled' => true,
         'chronicle.anchoring.providers' => ['boom' => ['provider' => FailingAnchor::class]],
     ]);
     // Fake the queue so create()'s post-commit AnchorCheckpointJob isn't run
-    // inline by the sync driver — we drive the failing anchor explicitly below.
+    // inline by the sync driver - we drive the failing anchor explicitly below.
     Queue::fake();
 
     Chronicle::record()->actor(ref('a'))->action('a.one')->subject(ref('s'))->commit();

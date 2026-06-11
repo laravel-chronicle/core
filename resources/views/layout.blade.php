@@ -3,7 +3,7 @@
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Chronicle — {{ $title ?? 'Ledger' }}</title>
+        <title>Chronicle - {{ $title ?? 'Ledger' }}</title>
         <style>
             :root {
                 --chr-bg:         #f8fafc;

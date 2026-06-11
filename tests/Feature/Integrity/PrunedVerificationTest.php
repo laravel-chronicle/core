@@ -23,7 +23,7 @@ it('verifies a pruned ledger from a boundary checkpoint', function () {
     // Prune everything up to and including the checkpoint boundary (sequence <= 3).
     DB::table('chronicle_entries')->where('sequence', '<=', 3)->delete();
 
-    // From-genesis verification can no longer pass — the early history is gone.
+    // From-genesis verification can no longer pass - the early history is gone.
     expect(app(IntegrityVerifier::class)->verify()->isValid())->toBeFalse();
 
     // Seeded verification from the boundary checkpoint passes and checks 4,5,6.

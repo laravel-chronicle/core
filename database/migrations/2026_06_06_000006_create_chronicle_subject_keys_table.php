@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Schema;
  * Creates the chronicle_subject_keys table.
  *
  * Stores one wrapped per-subject Data Encryption Key (DEK) per
- * (subject_type, subject_id) — the GDPR erasure unit. Destroying a row's
+ * (subject_type, subject_id) - the GDPR erasure unit. Destroying a row's
  * wrapped DEK renders that subject's encrypted payloads permanently
  * unreadable while the ledger still verifies (crypto-shredding).
  */

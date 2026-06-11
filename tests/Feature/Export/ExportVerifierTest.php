@@ -330,7 +330,7 @@ it('fails when an exported entry payload has been tampered with', function () {
     $manager->export($path);
 
     // Read the entry file and tamper with the payload field only,
-    // leaving payload_hash unchanged — the old verifier would miss this.
+    // leaving payload_hash unchanged - the old verifier would miss this.
     $lines = file($path.'/entries.ndjson', FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
     $entry = json_decode($lines[0], true, 512, JSON_THROW_ON_ERROR);
     $entry['payload']['action'] = 'tampered.action';  // mutate payload
@@ -362,7 +362,7 @@ it('rejects an export where entry_count in the manifest was tampered after signi
     $path = storage_path('chronicle-test-export-sig-'.Str::uuid());
     app(ExportManager::class)->export($path);
 
-    // Tamper entry_count — keep dataset_hash and entries.ndjson untouched
+    // Tamper entry_count - keep dataset_hash and entries.ndjson untouched
     $manifestRaw = file_get_contents($path.'/manifest.json');
     $manifest = json_decode($manifestRaw, true);
     $manifest['entry_count'] = 999;

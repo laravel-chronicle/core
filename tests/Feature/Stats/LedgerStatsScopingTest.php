@@ -86,7 +86,7 @@ it('topActions() is scoped by from/to', function () {
 });
 
 it('dailyActivity() is scoped to the full from/to window, not capped at 30 days', function () {
-    // Insert an entry 60 days ago — outside the hardcoded 30-day window
+    // Insert an entry 60 days ago - outside the hardcoded 30-day window
     insertRawEntry(
         Carbon::now()->subDays(60)->format('Y-m-d H:i:s'),
         'old.action'

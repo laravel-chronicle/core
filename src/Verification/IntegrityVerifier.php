@@ -155,7 +155,7 @@ class IntegrityVerifier
                 return $result;
             }
 
-            // Checkpoint verification — each unique checkpoint is fetched and verified once
+            // Checkpoint verification - each unique checkpoint is fetched and verified once
             if ($entry->checkpoint_id && ! isset($verifiedCheckpoints[$entry->checkpoint_id])) {
                 $checkpoint = Checkpoint::find($entry->checkpoint_id);
 
