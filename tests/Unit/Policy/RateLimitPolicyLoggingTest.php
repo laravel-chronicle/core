@@ -16,7 +16,7 @@ it('logs a warning when an audit entry is dropped by the rate limiter', function
     $policy = new RateLimitPolicy;
     $entry = makePolicyPending();
 
-    $policy->enforce($entry); // first hit — allowed
+    $policy->enforce($entry); // first hit - allowed
 
     expect(fn () => $policy->enforce($entry))->toThrow(RateLimitExceededException::class);
 

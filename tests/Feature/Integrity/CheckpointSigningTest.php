@@ -23,7 +23,7 @@ it('signs checkpoint metadata so a tampered key_id is detected', function () {
 
     $result = app(IntegrityVerifier::class)->verify();
 
-    // Resolves to a different/missing key OR fails signature verification — either is a hard failure.
+    // Resolves to a different/missing key OR fails signature verification - either is a hard failure.
     expect($result->isValid())->toBeFalse()
         ->and($result->failureType())->toBeIn([
             VerificationFailure::CheckpointSignatureInvalid->value,

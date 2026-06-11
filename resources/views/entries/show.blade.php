@@ -17,7 +17,7 @@
                     <dt>Actor</dt>          <dd>{{ $entry->actor_type }} <strong>#{{ $entry->actor_id }}</strong></dd>
                     <dt>Subject</dt>        <dd>{{ $entry->subject_type }} <strong>#{{ $entry->subject_id }}</strong></dd>
                     <dt>Created at</dt>     <dd>{{ $entry->created_at->format('Y-m-d H:i:s T') }}</dd>
-                    <dt>Correlation ID</dt> <dd class="chr-hash">{{ $entry->correlation_id ?: '—' }}</dd>
+                    <dt>Correlation ID</dt> <dd class="chr-hash">{{ $entry->correlation_id ?: '-' }}</dd>
                     @if($entry->tags)
                         <dt>Tags</dt>
                         <dd>
@@ -58,8 +58,8 @@
                             @foreach($entry->diff as $field => $change)
                                 <tr>
                                     <td style="font-weight:600;">{{ $field }}</td>
-                                    <td style="color:var(--chr-danger);">{{ is_array($change['old'] ?? null) ? json_encode($change['old']) : ($change['old'] ?? '—') }}</td>
-                                    <td style="color:var(--chr-success);">{{ is_array($change['new'] ?? null) ? json_encode($change['new']) : ($change['new'] ?? '—') }}</td>
+                                    <td style="color:var(--chr-danger);">{{ is_array($change['old'] ?? null) ? json_encode($change['old']) : ($change['old'] ?? '-') }}</td>
+                                    <td style="color:var(--chr-success);">{{ is_array($change['new'] ?? null) ? json_encode($change['new']) : ($change['new'] ?? '-') }}</td>
                                 </tr>
                             @endforeach
                         </tbody>
@@ -98,11 +98,11 @@
                             @if(is_array($values))
                                 @foreach($values as $key => $value)
                                     <dt>{{ $resolver }}.{{ $key }}</dt>
-                                    <dd>{{ is_array($value) ? json_encode($value) : ($value ?? '—') }}</dd>
+                                    <dd>{{ is_array($value) ? json_encode($value) : ($value ?? '-') }}</dd>
                                 @endforeach
                             @else
                                 <dt>{{ $resolver }}</dt>
-                                <dd>{{ $values ?? '—' }}</dd>
+                                <dd>{{ $values ?? '-' }}</dd>
                             @endif
                         @endforeach
                     </dl>

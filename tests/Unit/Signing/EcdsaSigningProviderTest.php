@@ -3,7 +3,7 @@
 use Chronicle\Signing\EcdsaSigningProvider;
 
 // ---------------------------------------------------------------------------
-// Test helpers — fixed P-256 keypair for all tests
+// Test helpers - fixed P-256 keypair for all tests
 // ---------------------------------------------------------------------------
 
 function ecdsaP256PrivatePem(): string
@@ -83,7 +83,7 @@ it('verify() returns false for the wrong payload', function () {
 });
 
 it('verify() returns false for a different public key', function () {
-    // Generate a fresh key pair — unrelated to the test vector
+    // Generate a fresh key pair - unrelated to the test vector
     $freshKey = openssl_pkey_new(['curve_name' => 'prime256v1', 'private_key_type' => OPENSSL_KEYTYPE_EC]);
     $freshDetails = openssl_pkey_get_details($freshKey);
     $freshPublicPem = $freshDetails['key'];
@@ -118,7 +118,7 @@ it('throws when public_key is missing from config', function () {
     new EcdsaSigningProvider(['key_id' => 'test']);
 })->throws(InvalidArgumentException::class, 'public_key');
 
-it('verify() works with public key only — no private key required', function () {
+it('verify() works with public key only - no private key required', function () {
     // Full provider to sign
     $signer = new EcdsaSigningProvider([
         'private_key' => ecdsaP256PrivatePem(),

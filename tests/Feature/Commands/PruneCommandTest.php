@@ -139,7 +139,7 @@ it('dry-run shows oldest and newest in range', function () {
 });
 
 it('aborts when no option is given and default_retention_days is null', function () {
-    // default_retention_days should be null out of the box — confirm prune refuses to run
+    // default_retention_days should be null out of the box - confirm prune refuses to run
     config(['chronicle.prune.default_retention_days' => null]);
 
     $this->artisan('chronicle:prune')

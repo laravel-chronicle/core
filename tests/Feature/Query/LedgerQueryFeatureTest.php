@@ -63,7 +63,7 @@ it('forActor() returns only entries for that actor', function () {
 
 it('forSubject() returns only entries for that subject', function () {
     $subject = FakeChronicleModel::create(['name' => 'Invoice']);
-    Entry::query()->delete(); // HasChronicle records a created entry with $subject as subject — clear it
+    Entry::query()->delete(); // HasChronicle records a created entry with $subject as subject - clear it
 
     Chronicle::record()->actor('system')->action('subject.test')->subject($subject)->commit();
     Chronicle::record()->actor('system')->action('other.test')->subject(ref('ledger'))->commit();
@@ -109,7 +109,7 @@ it('withTag() returns only entries carrying that tag', function () {
         ->and($results->first()->action)->toBe('tagged.billing');
 });
 
-it('withTags() applies AND semantics — entry must carry all tags', function () {
+it('withTags() applies AND semantics - entry must carry all tags', function () {
     Chronicle::record()->actor('system')->action('both.tags')->subject(ref('ledger'))->tags(['billing', 'invoicing'])->commit();
     Chronicle::record()->actor('system')->action('one.tag')->subject(ref('ledger'))->tags(['billing'])->commit();
     Chronicle::record()->actor('system')->action('no.tags')->subject(ref('ledger'))->commit();
@@ -120,7 +120,7 @@ it('withTags() applies AND semantics — entry must carry all tags', function ()
         ->and($results->first()->action)->toBe('both.tags');
 });
 
-it('withAnyTag() applies OR semantics — entry carrying either tag is returned', function () {
+it('withAnyTag() applies OR semantics - entry carrying either tag is returned', function () {
     Chronicle::record()->actor('system')->action('billing.only')->subject(ref('ledger'))->tags(['billing'])->commit();
     Chronicle::record()->actor('system')->action('shipping.only')->subject(ref('ledger'))->tags(['shipping'])->commit();
     Chronicle::record()->actor('system')->action('no.tags')->subject(ref('ledger'))->commit();
@@ -130,7 +130,7 @@ it('withAnyTag() applies OR semantics — entry carrying either tag is returned'
     expect($results)->toHaveCount(2);
 });
 
-it('withAnyTag() vs withTags() — OR returns more entries than AND', function () {
+it('withAnyTag() vs withTags() - OR returns more entries than AND', function () {
     Chronicle::record()->actor('system')->action('billing.both')->subject(ref('ledger'))->tags(['billing', 'invoicing'])->commit();
     Chronicle::record()->actor('system')->action('billing.only')->subject(ref('ledger'))->tags(['billing'])->commit();
 

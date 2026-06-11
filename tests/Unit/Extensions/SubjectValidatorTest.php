@@ -171,7 +171,7 @@ it('rejects entries with both subject fields absent', function () {
 
 it('does not bypass validation for non-system actor types that look similar', function () {
     app(SubjectValidator::class)->process(makeSubjectValidatorPending([
-        'actor_type' => 'System',  // capital S — not the system bypass
+        'actor_type' => 'System',  // capital S - not the system bypass
         'subject_type' => null,
     ]));
 })->throws(MissingSubjectException::class);

@@ -38,7 +38,7 @@ class InvalidDiffException extends ChronicleException
      * Create an InvalidDiffException for a diff entry missing a required key.
      *
      * @param  string  $key  The diff key whose entry is incomplete.
-     * @param  string  $side  The missing key name — either 'old' or 'new'.
+     * @param  string  $side  The missing key name - either 'old' or 'new'.
      * @return self An exception naming the diff key and the missing side.
      */
     public static function missingKey(string $key, string $side): self

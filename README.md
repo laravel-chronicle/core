@@ -35,7 +35,7 @@ Chronicle is designed for systems that require reliable audit trails such as:
 
 ## Why Chronicle?
 
-Most activity-log packages store events in a database table. Those records can usually be modified, deleted, or reordered — which makes them unreliable for security auditing or compliance.
+Most activity-log packages store events in a database table. Those records can usually be modified, deleted, or reordered - which makes them unreliable for security auditing or compliance.
 
 Chronicle takes a different approach. Events are recorded in an **append-only ledger protected by cryptographic hashing**, and each entry is linked to the previous one through a **hash chain**. If any entry is modified, deleted, or reordered, ledger verification fails. This makes Chronicle logs **tamper-detectable**.
 
@@ -122,7 +122,7 @@ If any entry is modified or removed, the chain becomes invalid. See [Hashing](ht
 
 ## Signing and key rotation
 
-Checkpoints, exports, and compliance reports are signed. Chronicle holds its signing keys in a **key ring**: one key is *active* and signs new artifacts, while every key (active or retired) remains available to **verify** the artifacts it produced. Each artifact records the `algorithm` and `key_id` it was signed with, and verification resolves the matching key from the ring — so **rotating keys never invalidates existing checkpoints or exports**.
+Checkpoints, exports, and compliance reports are signed. Chronicle holds its signing keys in a **key ring**: one key is *active* and signs new artifacts, while every key (active or retired) remains available to **verify** the artifacts it produced. Each artifact records the `algorithm` and `key_id` it was signed with, and verification resolves the matching key from the ring - so **rotating keys never invalidates existing checkpoints or exports**.
 
 ```php
 // config/chronicle.php
@@ -151,7 +151,7 @@ php artisan chronicle:key:rotate chronicle-key-2          # anchors a boundary c
 # set CHRONICLE_ACTIVE_KEY=chronicle-key-2 and deploy
 ```
 
-`chronicle:key:rotate` always creates a boundary checkpoint at the current ledger head before handing over, so the epoch boundary between keys is itself verifiable. When you eventually retire a key, **keep its `public_key`** in the ring — drop only the `private_key`. See [Signing and Keys](https://laravel-chronicle.github.io/docs/signing-and-keys) and the [key rotation guide](https://laravel-chronicle.github.io/docs/guide-rotate-signing-keys).
+`chronicle:key:rotate` always creates a boundary checkpoint at the current ledger head before handing over, so the epoch boundary between keys is itself verifiable. When you eventually retire a key, **keep its `public_key`** in the ring - drop only the `private_key`. See [Signing and Keys](https://laravel-chronicle.github.io/docs/signing-and-keys) and the [key rotation guide](https://laravel-chronicle.github.io/docs/guide-rotate-signing-keys).
 
 ### External signing providers (KMS / HSM)
 
@@ -163,7 +163,7 @@ composer require laravel-chronicle/kms-aws
 
 To build your own (GCP KMS, Vault, HSM, …), see [Custom Signing Providers](https://laravel-chronicle.github.io/docs/custom-signing-providers).
 
-> **Upgrading from 1.9.x?** The previous flat `signing` config (a single `provider` / `private_key` / `public_key` / `key_id`) continues to work unchanged — Chronicle adapts it to a single-key ring automatically. Migrating to the `signing.active` + `signing.keys` shape is recommended but not required.
+> **Upgrading from 1.9.x?** The previous flat `signing` config (a single `provider` / `private_key` / `public_key` / `key_id`) continues to work unchanged - Chronicle adapts it to a single-key ring automatically. Migrating to the `signing.active` + `signing.keys` shape is recommended but not required.
 
 ---
 
@@ -205,9 +205,9 @@ See [Checkpoints](https://laravel-chronicle.github.io/docs/checkpoints).
 
 ## External anchoring
 
-Hash chaining and signed checkpoints detect tampering by anyone who can't forge a checkpoint signature. But an attacker holding **both** the database and the signing key could rewrite the chain and re-sign every checkpoint. External anchoring closes that gap: each checkpoint's digest is published to an **append-only sink in a separate trust domain**, so a rewritten ledger fails verification at the first anchored checkpoint — the attacker cannot forge the external attestation.
+Hash chaining and signed checkpoints detect tampering by anyone who can't forge a checkpoint signature. But an attacker holding **both** the database and the signing key could rewrite the chain and re-sign every checkpoint. External anchoring closes that gap: each checkpoint's digest is published to an **append-only sink in a separate trust domain**, so a rewritten ledger fails verification at the first anchored checkpoint - the attacker cannot forge the external attestation.
 
-Chronicle ships an RFC 3161 trusted-timestamp anchor in core (standards-based, no cloud SDK; verified offline against the TSA certificate). Anchoring is **opt-in** and runs after each checkpoint commits — an anchor failure never invalidates the checkpoint.
+Chronicle ships an RFC 3161 trusted-timestamp anchor in core (standards-based, no cloud SDK; verified offline against the TSA certificate). Anchoring is **opt-in** and runs after each checkpoint commits - an anchor failure never invalidates the checkpoint.
 
 ```php
 // config/chronicle.php
@@ -241,7 +241,7 @@ See [Anchoring](https://laravel-chronicle.github.io/docs/anchoring).
 
 ## Scalable verification
 
-A full `chronicle:verify` recomputes every entry's hash — the ground-truth check. On large, ever-growing ledgers you usually don't need to re-walk all of history on every run. Because checkpoints now form a verifiable chain and record the entries they cover, Chronicle can verify incrementally:
+A full `chronicle:verify` recomputes every entry's hash - the ground-truth check. On large, ever-growing ledgers you usually don't need to re-walk all of history on every run. Because checkpoints now form a verifiable chain and record the entries they cover, Chronicle can verify incrementally:
 
 ```bash
 php artisan chronicle:verify                        # full ledger (default)
@@ -270,7 +270,7 @@ php artisan chronicle:export storage/app/chronicle-export
 php artisan chronicle:verify-export storage/app/chronicle-export
 ```
 
-Verification checks the dataset hash, digital signature, hash-chain integrity, and dataset boundaries — resolving the signing key from the key ring, so exports signed by a now-retired key still verify. See [Exports](https://laravel-chronicle.github.io/docs/exports) and the [Export Format](https://laravel-chronicle.github.io/docs/export-format).
+Verification checks the dataset hash, digital signature, hash-chain integrity, and dataset boundaries - resolving the signing key from the key ring, so exports signed by a now-retired key still verify. See [Exports](https://laravel-chronicle.github.io/docs/exports) and the [Export Format](https://laravel-chronicle.github.io/docs/export-format).
 
 ---
 
@@ -303,27 +303,27 @@ See the [Artisan Commands reference](https://laravel-chronicle.github.io/docs/ar
 - **Append-only ledger** with immutable Eloquent entries
 - **Hash chaining** and deterministic canonical-payload hashing
 - **Signing** with Ed25519 or ECDSA P-256; signed checkpoints, exports, and compliance reports
-- **Key rotation** with a multi-key ring — retired keys keep verifying their own artifacts
+- **Key rotation** with a multi-key ring - retired keys keep verifying their own artifacts
 - **External signing providers** (e.g. AWS KMS) with remote signing and local verification
 - **External anchoring** of checkpoints (RFC 3161 timestamping in core; S3 Object Lock adapter) to detect tampering even under full internal compromise
-- **Scalable verification** — incremental, segment, and checkpoint-only modes for large ledgers
+- **Scalable verification** - incremental, segment, and checkpoint-only modes for large ledgers
 - **Verifiable exports** with independent verification
 - **Automatic model auditing** via the `HasChronicle` trait or observers
 - **Transactions & correlation IDs** for grouping related events
 - **Diff engine** for capturing field-level changes
-- **Extensible pipeline** — validators, policies, and context resolvers
-- **Storage drivers** — `eloquent`/`database`, `queued`, `array`, `null`
+- **Extensible pipeline** - validators, policies, and context resolvers
+- **Storage drivers** - `eloquent`/`database`, `queued`, `array`, `null`
 - **Retention & pruning** with checkpoint-aware deletion
 - **Read-only web UI** (optional Blade interface)
-- **Events** — `EntryRecorded` and `EntryRejected`
-- **Testing helpers** — `Chronicle::fake()` with fluent assertions
+- **Events** - `EntryRecorded` and `EntryRejected`
+- **Testing helpers** - `Chronicle::fake()` with fluent assertions
 
 ---
 
 ## Design principles
 
 - **Append-only.** Entries cannot be modified or deleted; corrections are recorded as new entries.
-- **Explicit intent.** Every entry names an actor, action, and subject — no ambiguous "something changed" logs.
+- **Explicit intent.** Every entry names an actor, action, and subject - no ambiguous "something changed" logs.
 - **Cryptographic integrity.** Entries are protected with hash chaining and signatures.
 - **Low magic.** Automatic auditing is opt-in; nothing is logged behind your back.
 - **Transport agnostic.** Works in HTTP requests, queue workers, CLI commands, and scheduled jobs.

@@ -113,9 +113,9 @@ it('withTags() delegates to the builder withTags scope', function () {
     expect($result)->toBe($query);
 });
 
-it('withAnyTag() calls where() once with a closure — not a flat chain of whereJsonContains', function () {
+it('withAnyTag() calls where() once with a closure - not a flat chain of whereJsonContains', function () {
     $builder = mockBuilder();
-    // Must be a single where() call with a closure — not multiple whereJsonContains() calls
+    // Must be a single where() call with a closure - not multiple whereJsonContains() calls
     $builder->shouldReceive('where')->once()->with(Mockery::type('Closure'))->andReturnSelf();
     $builder->shouldNotReceive('whereJsonContains');
 
@@ -239,7 +239,7 @@ it('get() does not re-apply ordering when latest() was already called', function
 
 it('get() does not re-apply ordering when oldest() was already called', function () {
     $builder = mockBuilder();
-    // oldest() calls orderBy — verify it is called exactly once total
+    // oldest() calls orderBy - verify it is called exactly once total
     $builder->shouldReceive('orderBy')->once()->with('id')->andReturnSelf();
     $builder->shouldReceive('get')->once()->andReturn(collect([]));
 

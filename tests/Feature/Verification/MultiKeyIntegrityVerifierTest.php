@@ -38,17 +38,17 @@ it('verifies a ledger whose checkpoints span two different keys', function () {
         ],
     ];
 
-    // Phase 1: chronicle-dev-key active — write entry + checkpoint
+    // Phase 1: chronicle-dev-key active - write entry + checkpoint
     config()->set('chronicle.signing', $twoKeyConfig);
     app()->forgetInstance(KeyRing::class);
     app()->forgetInstance(SigningProvider::class);
     Chronicle::record()->actor('system')->action('before.rotation')->subject(ref('ledger'))->commit();
     $checkpoint1 = app(CheckpointCreator::class)->create();
-    // checkpoint_id is not set by the pipeline — anchor the entry manually
+    // checkpoint_id is not set by the pipeline - anchor the entry manually
     $entry1 = Entry::query()->latest('id')->first();
     $entry1->newQuery()->whereKey($entry1->id)->update(['checkpoint_id' => $checkpoint1->id]);
 
-    // Phase 2: switch active to key-2 — write entry + checkpoint
+    // Phase 2: switch active to key-2 - write entry + checkpoint
     config()->set('chronicle.signing.active', 'key-2');
     app()->forgetInstance(KeyRing::class);
     app()->forgetInstance(SigningProvider::class);
@@ -95,7 +95,7 @@ it('verifies a ledger whose checkpoint was signed by a key that is now verify-on
     $entry = Entry::query()->latest('id')->first();
     $entry->newQuery()->whereKey($entry->id)->update(['checkpoint_id' => $checkpoint->id]);
 
-    // Remove the private key — retain only the public key (verify-only scenario)
+    // Remove the private key - retain only the public key (verify-only scenario)
     config()->set('chronicle.signing.keys.chronicle-dev-key.private_key');
     app()->forgetInstance(KeyRing::class);
     app()->forgetInstance(SigningProvider::class);

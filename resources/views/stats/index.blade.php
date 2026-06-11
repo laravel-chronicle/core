@@ -19,19 +19,19 @@
             <div class="chr-stat-card">
                 <div class="chr-stat-label">First Entry</div>
                 <div class="chr-stat-value" style="font-size:0.9rem;">
-                    {{ $oldest?->format('Y-m-d') ?? '—' }}
+                    {{ $oldest?->format('Y-m-d') ?? '-' }}
                 </div>
             </div>
             <div class="chr-stat-card">
                 <div class="chr-stat-label">Latest Entry</div>
                 <div class="chr-stat-value" style="font-size:0.9rem;">
-                    {{ $newest?->format('Y-m-d') ?? '—' }}
+                    {{ $newest?->format('Y-m-d') ?? '-' }}
                 </div>
             </div>
         </div>
 
         <div class="chr-section">
-            <div class="chr-section-title">Activity — last 30 days</div>
+            <div class="chr-section-title">Activity - last 30 days</div>
             <div class="chr-card">
                 @php $maxCount = $activityByDay->max('count') ?: 1; @endphp
                 <div class="chr-sparkline" title="Daily entry count over last 30 days">

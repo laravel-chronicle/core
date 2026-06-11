@@ -13,7 +13,7 @@ use Symfony\Component\Process\Process;
  * RFC 3161 trusted-timestamp anchor. anchor() builds a TimeStampReq over the
  * checkpoint digest, POSTs it to the configured TSA, and stores the returned
  * TimeStampResp (base64) as proof. verify() validates that token OFFLINE with
- * `openssl ts -verify` against the configured TSA certificate — this applies the
+ * `openssl ts -verify` against the configured TSA certificate - this applies the
  * RFC 3161 timestamping cert purpose + CA trust AND confirms the token's
  * messageImprint equals the checkpoint digest in one step. No cloud SDK, no
  * network on verify.

@@ -13,7 +13,7 @@ class QueuedDriver implements StorageDriver
     public function store(array $entry): Entry
     {
         // ChronicleManager::runCommit() detects QueuedDriver and dispatches
-        // PersistChronicleEntryJob directly — this method is never called on
+        // PersistChronicleEntryJob directly - this method is never called on
         // the normal code path. Throw to make any accidental direct call visible.
         throw new \LogicException('QueuedDriver::store() must not be called directly. Dispatch is handled by ChronicleManager::runCommit().');
     }

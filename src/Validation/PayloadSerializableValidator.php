@@ -25,7 +25,7 @@ class PayloadSerializableValidator implements EntryExtension, PrioritizedEntryEx
     public function process(PendingEntry $entry): PendingEntry
     {
         // User-supplied data lives in metadata, context, and diff.
-        // $entry->payload() is always [] during the VALIDATE stage —
+        // $entry->payload() is always [] during the VALIDATE stage -
         // it is only populated by CanonicalizePayload, which runs after extensions.
         $metadata = $entry->attribute('metadata');
         $context = $entry->attribute('context');

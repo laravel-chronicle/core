@@ -25,6 +25,9 @@ use Chronicle\Contracts\LedgerReader as LedgerReaderContract;
 use Chronicle\Contracts\ReferenceResolver;
 use Chronicle\Contracts\SigningProvider;
 use Chronicle\Contracts\StorageDriver;
+use Chronicle\Encryption\KeyEncryptionManager;
+use Chronicle\Encryption\PayloadCipher;
+use Chronicle\Encryption\SubjectKeyManager;
 use Chronicle\Entry\EloquentLedgerReader;
 use Chronicle\Exceptions\ChronicleException;
 use Chronicle\Exports\EntryExporter;
@@ -72,6 +75,7 @@ class ChronicleServiceProvider extends ServiceProvider
         $this->registerContracts();
         $this->registerManager();
         $this->registerSigning();
+        $this->registerEncryption();
         $this->registerAnchoring();
         $this->registerLedgerReader();
         $this->registerExports();
@@ -223,6 +227,13 @@ class ChronicleServiceProvider extends ServiceProvider
                 return new NullSigningProvider($e);
             }
         });
+    }
+
+    protected function registerEncryption(): void
+    {
+        $this->app->singleton(KeyEncryptionManager::class);
+        $this->app->singleton(SubjectKeyManager::class);
+        $this->app->singleton(PayloadCipher::class);
     }
 
     protected function registerAnchoring(): void

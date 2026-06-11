@@ -6,9 +6,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
 Semantic versioning applies from **v1.0.0** onwards. Pre-1.0 releases may contain
-breaking changes between any two versions — see upgrade notes per version.
+breaking changes between any two versions - see upgrade notes per version.
 
 ## [Unreleased]
+
+### Added
+
+- `chronicle_subject_keys` table and `SubjectKey` model (v1.12 crypto-shredding foundation): one wrapped per-subject Data Encryption Key per `(subject_type, subject_id)`, the GDPR erasure unit. `wrapped_dek` is nullable so erasure can destroy the key material in place while the tombstone row (`status='erased'`, `erased_at`) survives. Table name from `chronicle.tables.subject_keys`; respects `chronicle.connection`.
+- `KeyEncryptionProvider` contract with a default `LocalKeyEncryptionProvider` (KEK derived from a dedicated `CHRONICLE_ENCRYPTION_KEY`, never the app key; libsodium secretbox wrapping) and a `KeyEncryptionManager` that resolves the provider from `chronicle.encryption.kek` via container `makeWith` - so a KMS-backed provider can be swapped in with auto-injected dependencies. New opt-in `chronicle.encryption` config block (`enabled` defaults to false, `fields` defaults to `metadata`/`context`/`diff`, `kek`).
+- `SubjectKeyManager`: per-subject DEK lifecycle - `getOrCreate()` mints/wraps/persists a DEK on first use and caches the plaintext DEK process-locally; `destroy()` is the GDPR erasure primitive - it nulls the wrapped DEK, tombstones the row (`status='erased'`, `erased_at`), and purges the cache. Erased subjects stay erased (a later `getOrCreate` throws rather than resurrecting), and destroy is idempotent.
+- `PayloadCipher` + `CipherEnvelope`: AEAD encrypt/decrypt of payload field sets under a subject DEK using libsodium XChaCha20-Poly1305-IETF (decision D5) with a fresh per-call 192-bit nonce and the canonical entry envelope `(id, subject_type, subject_id, action, sequence)` as Associated Data - so ciphertext cannot be transplanted between entries. Decryption fails loudly on a wrong DEK, AAD mismatch, or tampered ciphertext. The self-describing `{_chronicle_enc:'v1', nonce, ciphertext}` envelope makes encrypted fields recognisable on read.
 
 ---
 
@@ -25,25 +32,25 @@ breaking changes between any two versions — see upgrade notes per version.
 - `chronicle:checkpoints:backfill` command: backfills the new range columns and `checkpoint_id` coverage for ledgers created before v1.11. Chunked, idempotent, `--dry-run` supported.
 - New verification failure reasons `checkpoint_chain_broken`, `checkpoint_head_mismatch`, and `segment_discontinuous`, distinguishing checkpoint-chain and segment faults from per-entry faults.
 - `IntegrityVerifier::verifySegment()` verifies a bounded range of entries (by `sequence`) from a trusted starting chain hash to an expected ending chain hash, reusing the full-verify payload/column/chain checks. Returns `segment_discontinuous` when the recomputed ending hash does not match the expected boundary.
-- `CheckpointChainVerifier` performs fast O(checkpoints) attestation: verifies each checkpoint's signature, that its `chain_hash` matches its head entry, `previous_checkpoint_id` linkage, and `entry_count` contiguity — yielding `checkpoint_signature_invalid`, `checkpoint_head_mismatch`, `checkpoint_chain_broken`, or `unknown_key`. The signature path is shared with `IntegrityVerifier` via the `VerifiesCheckpointSignature` trait so signing and verification never drift.
+- `CheckpointChainVerifier` performs fast O(checkpoints) attestation: verifies each checkpoint's signature, that its `chain_hash` matches its head entry, `previous_checkpoint_id` linkage, and `entry_count` contiguity - yielding `checkpoint_signature_invalid`, `checkpoint_head_mismatch`, `checkpoint_chain_broken`, or `unknown_key`. The signature path is shared with `IntegrityVerifier` via the `VerifiesCheckpointSignature` trait so signing and verification never drift.
 - `chronicle:verify` incremental modes: `--checkpoints-only` (fast checkpoint-chain attestation), `--from-checkpoint=`/`--to-checkpoint=` (verify a bounded segment), and `--since-last-checkpoint` (verify only the tail after the latest checkpoint). Each mode falls back to full from-genesis verification with a warning when checkpoints are not backfilled; `--entry=` and the default full verify are unchanged.
 - `chronicle:verify --resume` continues verification from the last recorded run instead of re-walking from genesis. A `VerificationRun` row (on `chronicle_verification_runs`) records the last fully-verified checkpoint and processed count after each full/resume run; `--resume` is a no-op fallback to full verify when the table is absent or no prior run exists.
 - External anchoring foundation: `AnchorProvider` contract (`name`/`anchor`/`verify`), the immutable `AnchorReceipt`, the `CheckpointDigest` helper (`sha256(id . chain_hash . created_at)`), and an `AnchorManager` that resolves providers from the new opt-in `chronicle.anchoring` config (`enabled` defaults to false). Ships `NullAnchor`, a digest-binding provider for tests/dev.
 - `Rfc3161TimestampAnchor`: a dependency-light RFC 3161 trusted-timestamping anchor. Builds and POSTs a `TimeStampReq` over the checkpoint digest and stores the TSA token as proof; `verify()` validates the token offline (no network) with `openssl ts -verify` against the configured TSA certificate, which applies the timestamping cert purpose, CA trust, and the `messageImprint == digest` check. Adds `symfony/process` (a standard component, not a cloud SDK) to `require`.
-- Anchoring pipeline: when `chronicle.anchoring.enabled`, each newly-created checkpoint dispatches a queued, retryable `AnchorCheckpointJob` per provider **after** the checkpoint transaction commits — so an anchor failure never rolls a checkpoint back. The shared `CheckpointAnchorer` writes `chronicle_checkpoint_anchors` rows (`pending` → `anchored`/`failed`); failures are left retryable.
+- Anchoring pipeline: when `chronicle.anchoring.enabled`, each newly-created checkpoint dispatches a queued, retryable `AnchorCheckpointJob` per provider **after** the checkpoint transaction commits - so an anchor failure never rolls a checkpoint back. The shared `CheckpointAnchorer` writes `chronicle_checkpoint_anchors` rows (`pending` → `anchored`/`failed`); failures are left retryable.
 - Anchor commands: `chronicle:checkpoint --anchor` (anchor synchronously on creation), `chronicle:anchor:retry {--status=pending|failed}` (re-attempt outstanding anchors), and `chronicle:anchor:verify {--checkpoint=}` (attest stored anchors against their providers).
 - `chronicle:verify --anchors` additionally verifies external anchors for the checkpoints in scope (composes with `--checkpoints-only` and the incremental modes). A checkpoint with no valid anchor is reported (`anchor_invalid`), never silently passed.
 
 ### Changed
 
-- Ledger order is now derived from `sequence` everywhere it matters — `ChainHashEntry`, `IntegrityVerifier`, `EntryVerifier`, and `EntryExporter` — instead of the ULID `id` sort. This eliminates false `chain_hash_mismatch` / `chain_invalid` results when two entries share a millisecond across processes.
+- Ledger order is now derived from `sequence` everywhere it matters - `ChainHashEntry`, `IntegrityVerifier`, `EntryVerifier`, and `EntryExporter` - instead of the ULID `id` sort. This eliminates false `chain_hash_mismatch` / `chain_invalid` results when two entries share a millisecond across processes.
 - `chronicle_entries.payload`, `payload_hash`, and `chain_hash` are now `NOT NULL` on fresh installs.
 - `CheckpointCreator` now signs a canonical object binding `id`, `chain_hash`, `algorithm`, `key_id`, and `created_at` (mirroring `ExportSigner`) instead of the bare chain hash. `IntegrityVerifier` verifies the new format and transparently falls back to the legacy bare-hash format, so checkpoints created before this release still verify. The shared `CheckpointCreator::signaturePayload()` keeps signing and verification in lockstep.
 - `chronicle:prune` now warns that from-genesis verification will not pass after a prune and points operators to `verifyFrom()` with a boundary checkpoint.
 - `RateLimitPolicy` now logs a `warning` (actor, action, retry-after) before rejecting an over-limit entry, so audit suppression via the optional rate-limit policy is observable rather than silent.
 - The chain genesis seed is now the shared `ChainHasher::GENESIS` constant instead of a `'0'` literal duplicated across five files.
 - `routes/ui.php` middleware fallback now includes `can:view-chronicle`, matching the published config default, so the authorization gate is not lost when `chronicle.ui.middleware` is unset.
-- `chronicle:install` now publishes migrations under their own dated filenames (e.g. `2026_06_06_000001_create_chronicle_entries_table.php`) instead of stripping the prefix and re-generating a synthetic timestamp at publish time. Re-running the command stays idempotent — already-published migrations (including copies published by older versions of the command) are detected and skipped.
+- `chronicle:install` now publishes migrations under their own dated filenames (e.g. `2026_06_06_000001_create_chronicle_entries_table.php`) instead of stripping the prefix and re-generating a synthetic timestamp at publish time. Re-running the command stays idempotent - already-published migrations (including copies published by older versions of the command) are detected and skipped.
 - `CheckpointCreator` resolves the chain head by `sequence` (the canonical ledger order) instead of the ULID `id` sort, matching the rest of the write/verify path.
 
 ### Fixed
@@ -53,7 +60,7 @@ breaking changes between any two versions — see upgrade notes per version.
 
 ### Security
 
-- Verification now detects divergence between an entry's denormalized columns (`action`, `actor_id`, `metadata`, `diff`, …) and its hash-covered `payload`. Previously a row whose queryable columns were tampered — the values shown in the UI and returned by queries — still passed verification. New failure code `column_payload_divergence`; shared via the `ComparesEntryColumns` trait used by both `EntryVerifier` and `IntegrityVerifier`.
+- Verification now detects divergence between an entry's denormalized columns (`action`, `actor_id`, `metadata`, `diff`, …) and its hash-covered `payload`. Previously a row whose queryable columns were tampered - the values shown in the UI and returned by queries - still passed verification. New failure code `column_payload_divergence`; shared via the `ComparesEntryColumns` trait used by both `EntryVerifier` and `IntegrityVerifier`.
 - Model diffs now redact a model's `$hidden` attributes (and any field listed in `$chronicleRedact` on `HasChronicle` / `$redactedFields` on `ChronicleModelObserver`), recording `"[redacted]"` instead of the value. Auto-auditing a model with a `password`/token attribute no longer copies it into the immutable, exportable audit diff.
 - External anchoring defeats a full internal compromise: even if an attacker with database access rewrites the ledger and re-signs every checkpoint with a valid key (so offline verification passes), `chronicle:verify --anchors` fails at the first anchored checkpoint because the external anchor binds the original `sha256(id . chain_hash . created_at)` digest, which the rewrite changed.
 
@@ -64,14 +71,14 @@ breaking changes between any two versions — see upgrade notes per version.
 ### Added
 
 - `UnknownSigningKeyException` (extends `ChronicleException`) thrown by `ConfigKeyRing::resolve()` when no key in the ring matches the requested algorithm and key ID.
-- `KeyRing` interface with `active(): SigningProvider`, `resolve(string $algorithm, ?string $keyId): SigningProvider`, and `all(): array` — the registry seam for multi-key signing and rotation.
+- `KeyRing` interface with `active(): SigningProvider`, `resolve(string $algorithm, ?string $keyId): SigningProvider`, and `all(): array` - the registry seam for multi-key signing and rotation.
 - `LegacySigningConfigAdapter` detects the pre-1.10 flat `signing` config shape (no `signing.keys` key) and promotes it to a one-entry `signing.keys` ring at runtime. A one-time deprecation notice is logged. Apps on the old flat config upgrade with zero code changes.
 - `SigningProviderFactory` builds `SigningProvider` instances via `$container->makeWith($class, ['config' => $keyConfig])`, allowing any provider to declare `array $config` and have additional constructor dependencies (e.g. SDK clients) auto-injected by the container.
 - `ConfigKeyRing` implements `KeyRing`: builds providers lazily from `signing.keys` config via `SigningProviderFactory`, caches them by key ID, and resolves by `(algorithm, keyId)` pair. Throws `UnknownSigningKeyException` on a miss.
-- `VerificationFailure::UnknownKey` — returned when a checkpoint or export references an algorithm/key ID pair that is not present in the `KeyRing`. Distinct from `CheckpointSignatureInvalid` and `SignatureInvalid`.
-- `ComplianceReport::verify(string $reportHash, string $signature, string $algorithm, ?string $keyId): bool` — resolves the verifier via the `KeyRing` so reports signed before key rotation remain verifiable with the original public key.
-- `LocalVerifyProvider` — abstract `SigningProvider` base class that implements `verify()` locally via OpenSSL, dispatching on `algorithm()`. Designed for remote-sign / local-verify patterns (e.g. AWS KMS). Subclasses implement `sign()`, `algorithm()`, `keyId()`, and `cachedPublicKeyPem()`.
-- `EcdsaSigningProvider` — ECDSA P-256 signing provider. Signs locally with `openssl_sign` (when a private key PEM is present); verifies locally via `LocalVerifyProvider`. `algorithm()` returns `'ecdsa-p256'`. Constructed from array config (`private_key`, `public_key`, `key_id`) for `SigningProviderFactory` / container `makeWith` compatibility.
+- `VerificationFailure::UnknownKey` - returned when a checkpoint or export references an algorithm/key ID pair that is not present in the `KeyRing`. Distinct from `CheckpointSignatureInvalid` and `SignatureInvalid`.
+- `ComplianceReport::verify(string $reportHash, string $signature, string $algorithm, ?string $keyId): bool` - resolves the verifier via the `KeyRing` so reports signed before key rotation remain verifiable with the original public key.
+- `LocalVerifyProvider` - abstract `SigningProvider` base class that implements `verify()` locally via OpenSSL, dispatching on `algorithm()`. Designed for remote-sign / local-verify patterns (e.g. AWS KMS). Subclasses implement `sign()`, `algorithm()`, `keyId()`, and `cachedPublicKeyPem()`.
+- `EcdsaSigningProvider` - ECDSA P-256 signing provider. Signs locally with `openssl_sign` (when a private key PEM is present); verifies locally via `LocalVerifyProvider`. `algorithm()` returns `'ecdsa-p256'`. Constructed from array config (`private_key`, `public_key`, `key_id`) for `SigningProviderFactory` / container `makeWith` compatibility.
 - `chronicle:key:generate {--id=}` artisan command: generates an Ed25519 keypair and prints the base64-encoded private and public keys plus a ready-to-paste `signing.keys` config entry. Never writes to disk or environment. Warns to store the private key in a secret manager.
 - `chronicle:key:list {--with-counts}` artisan command: tabulates all keys in the `signing.keys` ring with their ID, algorithm, provider, and active/verify-only status. `--with-counts` adds a per-key checkpoint count column.
 - `chronicle:key:rotate {newKeyId}` artisan command: validates the target key exists in the ring and has signing material, creates a mandatory boundary checkpoint signed with the current active key (D3), then prints the `CHRONICLE_ACTIVE_KEY=<newKeyId>` instruction to complete the rotation. Refuses with actionable errors on empty ledger, unknown key, verify-only target, or already-active target.
@@ -82,7 +89,7 @@ breaking changes between any two versions — see upgrade notes per version.
 
 - `Ed25519SigningProvider` accepts an `array $config` constructor parameter for container-driven construction. When using the array-config path, `private_key` may be omitted or `null` to create a verify-only key. The existing positional constructor (`privateKey`, `publicKey`, `keyId`) is unchanged for direct/test use. `sign()` now throws `RuntimeException` with a clear message when called on a verify-only instance.
 - `config/chronicle.php` signing block updated from a single flat key to `signing.active` (the key ID used to sign new artifacts) and `signing.keys[]` (the full key ring). Each key entry specifies `provider`, `algorithm`, `public_key`, and optionally `private_key`. Apps that have published the old flat config upgrade with zero changes via `LegacySigningConfigAdapter`.
-- `ChronicleServiceProvider::registerSigning()` rewritten to bind `SigningProviderFactory` and `KeyRing` (singleton). `SigningProvider::class` continues to resolve the active provider so all existing callers (`ExportSigner`, `CheckpointCreator`, etc.) require zero changes. `enforce_on_boot` now validates the active key only — verify-only keys without private material no longer trip it.
+- `ChronicleServiceProvider::registerSigning()` rewritten to bind `SigningProviderFactory` and `KeyRing` (singleton). `SigningProvider::class` continues to resolve the active provider so all existing callers (`ExportSigner`, `CheckpointCreator`, etc.) require zero changes. `enforce_on_boot` now validates the active key only - verify-only keys without private material no longer trip it.
 - Dropped support for `Laravel 11`
 - `IntegrityVerifier` resolves each checkpoint's verifier via `keyRing->resolve($checkpoint->algorithm, $checkpoint->key_id)` instead of the injected active signer. Ledgers whose checkpoints span multiple signing keys (before and after rotation) now verify end-to-end.
 - `ExportVerifier` resolves the signing key from `signature.json`'s `algorithm` and `key_id` fields via the `KeyRing`. Exports signed by a retired key continue to verify as long as the public key remains in the ring. An unknown algorithm/key ID pair returns `VerificationFailure::UnknownKey`.
@@ -100,13 +107,13 @@ breaking changes between any two versions — see upgrade notes per version.
 ### Added
 
 - `VerificationFailure` enum centralises all verification failure code strings. Static analysis can now catch typos in failure code comparisons.
-- `KeyRing` interface with `active(): SigningProvider`, `resolve(string $algorithm, ?string $keyId): SigningProvider`, and `all(): array` — the registry seam for multi-key signing and rotation.
+- `KeyRing` interface with `active(): SigningProvider`, `resolve(string $algorithm, ?string $keyId): SigningProvider`, and `all(): array` - the registry seam for multi-key signing and rotation.
 
 ---
 
 ### Changed
 
-- `ChronicleUiController` no longer calls `$this->middleware()` in its constructor — the pattern
+- `ChronicleUiController` no longer calls `$this->middleware()` in its constructor - the pattern
   was deprecated in Laravel 11. Middleware is now declared on the route group in `routes/ui.php`.
 - Removed intermediate `@var view-string` variable annotations in `ChronicleUiController`. Larastan
   does not recognise `view-string` as a standalone variable type; the three known false-positive
@@ -114,14 +121,14 @@ breaking changes between any two versions — see upgrade notes per version.
 - `ChronicleUiController::stats()` no longer duplicates the query logic from `LedgerStats::compute()`.
   The stat action now delegates entirely to `LedgerStats::compute()`, so any fixes or improvements
   to `LedgerStats` are automatically reflected in the UI.
-- Deleted `ChronicleServiceProvider::assertSigningConfiguration()` — the method had no callers and
+- Deleted `ChronicleServiceProvider::assertSigningConfiguration()` - the method had no callers and
   its enforcement logic had already been consolidated into `registerSigning()`. Its presence falsely
   implied a boot-time signing check existed.
 - `chronicle:prune` dry-run now uses a single `SELECT COUNT(*), MIN(created_at), MAX(created_at)`
   query instead of three separate round-trips.
 - `chronicle.prune.default_retention_days` now defaults to `null` (was `365`). Running
   `chronicle:prune` with no arguments on a fresh installation no longer silently deletes entries older
-  than one year — an explicit retention policy must be configured. Set
+  than one year - an explicit retention policy must be configured. Set
   `CHRONICLE_RETENTION_DAYS=365` to restore the previous behavior. **(Breaking change for
   `chronicle.prune.default_retention_days`)**
 - `IntegrityVerifier::verify()` no longer runs a separate `COUNT(*)` query before streaming
@@ -160,7 +167,7 @@ breaking changes between any two versions — see upgrade notes per version.
 - `ChronicleServiceProvider::registerSigning()` now uses `$app['config']->get()` consistently throughout the closure instead of mixing `$app['config']->get()` and the global `config()` helper.
 - `src/README.md` removed.
 - Chronicle UI default middleware changed from `['web', 'auth']` to `['web', 'auth', 'can:view-chronicle']`. The gate must be defined in your application. Set `chronicle.ui.middleware` back to `['web', 'auth']` to restore the previous permissive default.
-- **Breaking:** The export signature now covers a canonical JSON payload containing all manifest fields (`dataset_hash`, `entry_count`, `first_entry_id`, `last_entry_id`, `chain_head`) instead of `dataset_hash` alone. Existing `signature.json` files produced by previous versions will fail verification — re-export to regenerate.
+- **Breaking:** The export signature now covers a canonical JSON payload containing all manifest fields (`dataset_hash`, `entry_count`, `first_entry_id`, `last_entry_id`, `chain_head`) instead of `dataset_hash` alone. Existing `signature.json` files produced by previous versions will fail verification - re-export to regenerate.
 - `Entry` model `@property` docblocks now accurately reflect cast return types: `$tags` is `array<int, string>`, `$diff` is `array<string, array{old: mixed, new: mixed}>|null`, and `$created_at` is `\Carbon\CarbonImmutable`.
 
 ---
@@ -213,8 +220,8 @@ breaking changes between any two versions — see upgrade notes per version.
 - `ExportVerifier` now skips blank lines for both the dataset hash and the chain check. Previously blank lines were included in the hash but skipped for chain verification, causing false dataset-hash-mismatch failures on exports with a trailing newline.
 - `ChronicleAssertions` now calls `$this->driver->allEntries()` (instance method) instead of `ArrayDriver::all()` (static). The constructor parameter is now functional rather than dead code, enabling test isolation when multiple `ArrayDriver` instances are used.
 - `ChronicleModelObserver` now uses `$model::CREATED_AT` and `$model::UPDATED_AT` when building diffs, so models with custom timestamp constants are handled correctly.
-- `LedgerStats::compute()` — `dailyActivity()` no longer applies a hardcoded 30-day lower bound when a `$from` bound is supplied. The daily activity window now honors the full requested range.
-- `LedgerStats::compute()` — `checkpointCount()` now respects the `$from`/`$to` bounds. Previously it always returned the total checkpoint count across all time.
+- `LedgerStats::compute()` - `dailyActivity()` no longer applies a hardcoded 30-day lower bound when a `$from` bound is supplied. The daily activity window now honors the full requested range.
+- `LedgerStats::compute()` - `checkpointCount()` now respects the `$from`/`$to` bounds. Previously it always returned the total checkpoint count across all time.
 - `RequestContextResolver` now redacts sensitive parameters (e.g. `access_token`, `token`) from URL fragments in addition to query strings, preventing OAuth implicit-flow and OIDC tokens from being stored verbatim in the audit log.
 - `RateLimitPolicy` now uses an atomic increment-then-check pattern (`RateLimiter::hit()` before comparing against the limit) to prevent concurrent requests from briefly exceeding the configured rate limit.
 - `SerializesEntryAttributes` now stores a `null` diff as SQL `NULL` instead of the JSON string `"null"`. `WHERE diff IS NULL` queries now correctly identify entries that have no diff.
@@ -231,12 +238,12 @@ breaking changes between any two versions — see upgrade notes per version.
 - **Read-only Blade UI** (`CHRONICLE_UI_ENABLED=true`): an optional web interface for browsing the audit ledger, disabled by default.
   - **Entry index** (`GET /chronicle`): paginated list of entries with filters for action, actor ID, subject type, subject ID, tag, date range, and sort order.
   - **Entry detail** (`GET /chronicle/entries/{id}`): full entry view including payload, tags, correlation ID, hash chain values, and linked checkpoint if present.
-  - **Stats** (`GET /chronicle/stats`): aggregate overview — total entry count, oldest/newest entry timestamps, checkpoint count, top 10 actions by frequency, and a 30-day daily activity chart.
+  - **Stats** (`GET /chronicle/stats`): aggregate overview - total entry count, oldest/newest entry timestamps, checkpoint count, top 10 actions by frequency, and a 30-day daily activity chart.
 - **`chronicle.ui` config block**: controls the web UI.
-  - `ui.enabled` (`CHRONICLE_UI_ENABLED`, default `false`) — gate route registration; routes are not registered when disabled.
-  - `ui.prefix` (`CHRONICLE_UI_PREFIX`, default `'chronicle'`) — URL prefix for all UI routes.
-  - `ui.middleware` (default `['web', 'auth']`) — middleware stack applied to all UI routes.
-  - `ui.per_page` (`CHRONICLE_UI_PER_PAGE`, default `25`) — pagination page size for the entry index.
+  - `ui.enabled` (`CHRONICLE_UI_ENABLED`, default `false`) - gate route registration; routes are not registered when disabled.
+  - `ui.prefix` (`CHRONICLE_UI_PREFIX`, default `'chronicle'`) - URL prefix for all UI routes.
+  - `ui.middleware` (default `['web', 'auth']`) - middleware stack applied to all UI routes.
+  - `ui.per_page` (`CHRONICLE_UI_PER_PAGE`, default `25`) - pagination page size for the entry index.
 - **`ChronicleUiEnabled` middleware** (`Chronicle\Http\Middleware\ChronicleUiEnabled`): aborts with `404` when `chronicle.ui.enabled` is `false`. Applied automatically to all UI routes.
 - **`chronicle:install`** now publishes Blade views to `resources/views/vendor/chronicle/` under the `chronicle-views` tag.
 - Named routes: `chronicle.entries.index`, `chronicle.entries.show`, `chronicle.stats`.
@@ -266,11 +273,11 @@ breaking changes between any two versions — see upgrade notes per version.
 
 - **`Chronicle::fake()`**: swaps the active driver to `ArrayDriver`, rebuilds the `EntryPipeline` singleton so `PersistEntry` writes to in-memory storage, and returns a `ChronicleAssertions` helper. Entries committed while faking do not appear in the database. Calling `fake()` a second time flushes the previous batch.
 - **`ChronicleAssertions`** (`Chronicle\Testing\ChronicleAssertions`): fluent test assertion helper returned by `Chronicle::fake()`.
-  - `assertRecorded(?callable $filter = null)` — asserts at least one entry was recorded (optionally matching a filter).
-  - `assertRecordedCount(int $count, ?callable $filter = null)` — asserts exactly N entries were recorded.
-  - `assertNothingRecorded()` — asserts no entries were recorded.
-  - `assertNotRecorded(callable $filter)` — asserts no entries matching the filter were recorded.
-  - `entries()` — returns all recorded entries as a `Collection`.
+  - `assertRecorded(?callable $filter = null)` - asserts at least one entry was recorded (optionally matching a filter).
+  - `assertRecordedCount(int $count, ?callable $filter = null)` - asserts exactly N entries were recorded.
+  - `assertNothingRecorded()` - asserts no entries were recorded.
+  - `assertNotRecorded(callable $filter)` - asserts no entries matching the filter were recorded.
+  - `entries()` - returns all recorded entries as a `Collection`.
   - All assertions throw `PHPUnit\Framework\AssertionFailedError` on failure, integrating cleanly with Pest and PHPUnit.
 - **`EntryRecorded` event** (`Chronicle\Events\EntryRecorded`): dispatched by `PersistEntry` after an entry is successfully persisted. Carries the persisted `Entry` model (`$event->entry`). Suppressed when `NullDriver` is active (entries are not persisted). When using the `queued` driver the event fires inside the job worker, not during the HTTP request.
 - **`EntryRejected` event** (`Chronicle\Events\EntryRejected`): dispatched by `ChronicleManager::commit()` when a `ChronicleException` is thrown (validation failure, policy violation, etc.). Carries the rejection reason (`$event->reason`) and the raw entry payload (`$event->payload`). The exception is always re-thrown after the event fires.
@@ -286,7 +293,7 @@ breaking changes between any two versions — see upgrade notes per version.
 
 ### Changed
 
-- `ChronicleManager::commit()` now wraps the inner commit logic in a `try/catch (ChronicleException)` — dispatches `EntryRejected` before re-throwing.
+- `ChronicleManager::commit()` now wraps the inner commit logic in a `try/catch (ChronicleException)` - dispatches `EntryRejected` before re-throwing.
 - `ChronicleManager::runCommit()` extracted from `commit()` as a `protected` method. Silently short-circuits (no pipeline, no event) when the active driver is `NullDriver`.
 - `PersistEntry::process()` dispatches `EntryRecorded` after `store()` when `$stored->exists` is `true`.
 - `Chronicle` facade docblock updated with `@method` annotations for `fake()` and `observe()`.
@@ -298,7 +305,7 @@ breaking changes between any two versions — see upgrade notes per version.
   Event::listen(EntryRecorded::class, fn ($e) => /* ... */);
   Event::listen(EntryRejected::class, fn ($e) => /* ... */);
   ```
-- `Chronicle::fake()` is designed for feature and integration tests. It is not safe to call in production — it mutates the container's `StorageDriver` binding.
+- `Chronicle::fake()` is designed for feature and integration tests. It is not safe to call in production - it mutates the container's `StorageDriver` binding.
 
 ---
 
@@ -325,8 +332,8 @@ breaking changes between any two versions — see upgrade notes per version.
 ### Added
 
 - `Chronicle::query()` returns a `LedgerQuery` fluent builder for composable, chainable ledger queries. Filter by actor, subject, action, tags, date range, or correlation; terminate with `get()`, `first()`, `count()`, `exists()`, `paginate()`, or `stream()`. Defaults to ledger order (oldest-first) on `get()` and `paginate()` unless `latest()` or `oldest()` is called explicitly.
-- `LedgerQuery::withAnyTag(array $tags)` — OR-semantics tag filter; returns entries carrying any of the given tags. Complements the existing `withTags()` which requires all tags to be present.
-- `LedgerQuery::actions(array $actions)` — matches entries whose action is any of the given values (`whereIn` semantics).
+- `LedgerQuery::withAnyTag(array $tags)` - OR-semantics tag filter; returns entries carrying any of the given tags. Complements the existing `withTags()` which requires all tags to be present.
+- `LedgerQuery::actions(array $actions)` - matches entries whose action is any of the given values (`whereIn` semantics).
 - `LedgerQuery::since()` and `LedgerQuery::until()` accept both `CarbonInterface` and date strings; an unparseable string throws `InvalidArgumentException`.
 - `LedgerStats::compute()` returns a `LedgerStats` value object with aggregate ledger statistics: total entry count, oldest/newest entry timestamps, checkpoint count, top 10 actions by frequency, and daily activity for the last 30 days. All queries run against Chronicle's configured DB connection via the query builder (no Eloquent overhead).
 - `chronicle:stats` Artisan command displays ledger statistics as a formatted text report. Pass `--json` for machine-readable output suitable for monitoring or scripting.
@@ -350,7 +357,7 @@ breaking changes between any two versions — see upgrade notes per version.
 - **`chronicleActor()`:** override to return any Chronicle-resolvable actor (Eloquent model, object with `$id`, or `'system'`).
 - **`chronicleActionPrefix()`:** override to return a custom action prefix string.
 - `chronicle:report {path}` command generates a signed, tamper-evident HTML compliance report for the audit ledger. The report contains entry count, chain head, reporting period, an SHA-256 report hash, and an Ed25519 signature block. Optional `--from` and `--to` flags restrict the report to a date range. The underlying `Chronicle\Reports\ComplianceReport` service is available for programmatic use.
-- `chronicle:verify --entry=<id>` spot-checks a single ledger entry — verifies its payload hash and chain hash without scanning the full ledger. Exits `0` on success, `1` on tampering or missing entry, and displays the entry's action, subject, actor, and timestamp alongside the verification result. The underlying `Chronicle\Verification\EntryVerifier` service is available for programmatic use.
+- `chronicle:verify --entry=<id>` spot-checks a single ledger entry - verifies its payload hash and chain hash without scanning the full ledger. Exits `0` on success, `1` on tampering or missing entry, and displays the entry's action, subject, actor, and timestamp alongside the verification result. The underlying `Chronicle\Verification\EntryVerifier` service is available for programmatic use.
 
 ---
 
@@ -367,8 +374,8 @@ breaking changes between any two versions — see upgrade notes per version.
 
 ### Added
 
-- `LedgerReader` contract now declares `workflow()`, `withTag()`, and `withTags()` — methods that were already implemented in `EloquentLedgerReader` but missing from the interface.
-- `DriverResolver::has(string $driver): bool` — lets callers check whether a custom driver is registered before calling `extend()`, preventing the duplicate-registration exception in third-party service providers.
+- `LedgerReader` contract now declares `workflow()`, `withTag()`, and `withTags()` - methods that were already implemented in `EloquentLedgerReader` but missing from the interface.
+- `DriverResolver::has(string $driver): bool` - lets callers check whether a custom driver is registered before calling `extend()`, preventing the duplicate-registration exception in third-party service providers.
 - Added `lockForUpdate()` to `ChainHashEntry` to prevent duplicate chain hash records under concurrent writes.
 - Added `@method` annotations to the `Chronicle` facade for IDE completion.
 - Added null-check guard in `ExportCommand` for the chain head when the ledger is empty.
@@ -379,7 +386,7 @@ breaking changes between any two versions — see upgrade notes per version.
 ### Changed
 
 - `DefaultReferenceResolver` now throws `InvalidArgumentException` when passed a scalar value (string, int, etc.), rather than silently using PHP's `gettype()` return value (e.g., `"integer"`) as the actor/subject type. Pass an Eloquent model or an object with a public `$id` property instead.
-  **Upgrade note:** Any code passing raw scalars directly as actor or subject — other than the reserved `'system'` string handled by `EntryBuilder` — must be updated to pass a model or a plain object with a public `$id`.
+  **Upgrade note:** Any code passing raw scalars directly as actor or subject - other than the reserved `'system'` string handled by `EntryBuilder` - must be updated to pass a model or a plain object with a public `$id`.
 - `ChronicleServiceProvider` no longer validates signing configuration in `boot()`. The check is now deferred to the first resolution of `SigningProvider` from the container, eliminating key-decoding overhead on every request in apps that do not use Chronicle signing on every route.
 - `CanonicalizePayload` pipeline stage now calls `CanonicalPayloadSerializer::normalize()` directly instead of serializing to JSON and immediately decoding back to an array, eliminating a redundant encode/decode round-trip. `CanonicalPayloadSerializer::normalize()` is now `public`.
 - `EntryBuilder::normalizeDiff()` now throws `InvalidArgumentException` when a diff entry is not an array with `old`/`new` keys, rather than silently replacing the value with `['old' => null, 'new' => null]`.
@@ -391,7 +398,7 @@ breaking changes between any two versions — see upgrade notes per version.
 
 ### Fixed
 
-- `ExportVerifier` now correctly catches payload tampering where the `payload` field is modified but `payload_hash` is left unchanged — previously this would pass verification undetected.
+- `ExportVerifier` now correctly catches payload tampering where the `payload` field is modified but `payload_hash` is left unchanged - previously this would pass verification undetected.
 - `TimeWindowPolicy` now stores the parsed `Carbon` time bounds at construction rather than reparsing them on every `enforce()` call, eliminating a theoretical null-deref if `parseTime()` returned `null` inside `enforce()`.
 - `EntryBuilder::change()` now calls `ksort()` after each field assignment, guaranteeing alphabetical diff key ordering consistent with `diff()`.
 - `EntryExporter` now includes `metadata` and `context` as top-level fields in the exported NDJSON, making the export format consistent with the database schema.
@@ -429,7 +436,7 @@ breaking changes between any two versions — see upgrade notes per version.
 - Added `HostContextResolver` to attach the server hostname under `context.host`. Records an empty string if `gethostname()` fails.
 - Added `ProcessContextResolver` to attach runtime process information (`id`, `runtime`, `version`) under `context.process`.
 - Added `QueueContextResolver` to attach queue job metadata (`job_id`, `connection`, `queue`) under `context.queue`. Skips silently when no queue job is active.
-- Added `QueueJobContext` singleton that tracks the currently executing queue job. `ChronicleServiceProvider` populates it via `JobProcessing`, `JobProcessed`, `JobFailed`, and `JobExceptionOccurred` listeners — no changes to application jobs required.
+- Added `QueueJobContext` singleton that tracks the currently executing queue job. `ChronicleServiceProvider` populates it via `JobProcessing`, `JobProcessed`, `JobFailed`, and `JobExceptionOccurred` listeners - no changes to application jobs required.
 - All context resolvers are **opt-in**. `config/chronicle.php` includes them as commented-out entries for discoverability.
 - Added `AbstractContextResolverTest` covering: `RESOLVE_CONTEXT` stage, null-resolve skip, context key assignment, existing-key preservation, non-array context coercion, and duplicate-resolver overwrite behavior.
 - Added `QueueJobContextTest` covering: initial null state, set/current/clear lifecycle, and replacement on double-set.

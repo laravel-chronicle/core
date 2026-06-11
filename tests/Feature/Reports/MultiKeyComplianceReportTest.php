@@ -22,7 +22,7 @@ it('verifies a compliance report signed under key-1 after rotating to key-2', fu
     expect($result->algorithm)->toBe('ed25519')
         ->and($result->keyId)->toBe('chronicle-dev-key');
 
-    // Phase 2: rotate — key-2 active, chronicle-dev-key kept as verify-only
+    // Phase 2: rotate - key-2 active, chronicle-dev-key kept as verify-only
     $kp2 = sodium_crypto_sign_keypair();
     config()->set('chronicle.signing', [
         'enforce_on_boot' => false,
@@ -46,7 +46,7 @@ it('verifies a compliance report signed under key-1 after rotating to key-2', fu
     app()->forgetInstance(SigningProvider::class);
     app()->forgetInstance(ComplianceReport::class);
 
-    // Phase 3: verify the old report — must succeed using chronicle-dev-key public key
+    // Phase 3: verify the old report - must succeed using chronicle-dev-key public key
     $valid = app(ComplianceReport::class)->verify(
         $result->reportHash,
         $result->signature,

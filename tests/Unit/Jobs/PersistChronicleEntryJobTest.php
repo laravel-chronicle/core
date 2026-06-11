@@ -19,7 +19,7 @@ it('stores the serialized attributes on construction', function () {
 });
 
 it('reads the connection from chronicle.connection not chronicle.database.connection', function () {
-    // chronicle.database.connection does not exist — if the job reads it, it gets null
+    // chronicle.database.connection does not exist - if the job reads it, it gets null
     // and uses the default connection. Verify the job reads the correct key.
     config(['chronicle.connection' => 'chronicle_testing']);
     config(['chronicle.database.connection' => null]); // ensure the wrong key is null

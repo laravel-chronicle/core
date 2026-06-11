@@ -34,7 +34,7 @@ class DiffStructureValidator implements EntryExtension, PrioritizedEntryExtensio
     /**
      * Validate the `diff` attribute of a PendingEntry for structure and serializability.
      *
-     * A null diff is accepted — diffs are optional. When present, the diff must be an array
+     * A null diff is accepted - diffs are optional. When present, the diff must be an array
      * where each entry has exactly the keys `old` and `new` (no extras, no missing), and
      * neither value may be a Closure, resource, or object.
      *

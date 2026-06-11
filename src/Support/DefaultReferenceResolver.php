@@ -60,7 +60,7 @@ class DefaultReferenceResolver implements ReferenceResolver
 
         if ($key === null) {
             throw new InvalidArgumentException(
-                sprintf('Chronicle: model %s has no primary key — pass a persisted model.', $model::class)
+                sprintf('Chronicle: model %s has no primary key - pass a persisted model.', $model::class)
             );
         }
 

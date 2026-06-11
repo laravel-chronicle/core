@@ -83,6 +83,6 @@ it('entries() delegates to the injected driver instance', function () {
     ArrayDriver::flush(); // clear static state
 
     // With instance calls, the entry stored in $driver is still accessible
-    // via $driver->all() — but we need ChronicleAssertions to use instance methods
+    // via $driver->all() - but we need ChronicleAssertions to use instance methods
     expect($assertions->entries())->toHaveCount(1);
 });
