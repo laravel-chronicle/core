@@ -98,7 +98,7 @@ it('applies the configured timezone when comparing times', function () {
         'days' => [],
         'timezone' => 'America/New_York', // UTC-5
     ]]);
-    // 13:00 UTC = 08:00 New York → outside window
+    // 13:00 UTC = 08:00 New York -> outside window
     Carbon::setTestNow(Carbon::parse('2026-01-05 13:00:00', 'UTC'));
 
     expect(fn () => (new TimeWindowPolicy)->enforce(makePolicyPending()))

@@ -17,7 +17,7 @@ function dek(): string
 
 function aad(): string
 {
-    return PayloadCipher::aad('01J0ID', 'App\\Models\\User', '1', 'user.updated', 5);
+    return PayloadCipher::aad('01J0ID', 'App\\Models\\User', '1', 'user.updated');
 }
 
 it('round-trips a field set', function () {
@@ -61,7 +61,7 @@ it('fails to decrypt when the AAD does not match (transplant defence)', function
     $dek = dek();
     $envelope = $cipher->encrypt(['metadata' => ['x' => 1]], $dek, aad());
 
-    $otherAad = PayloadCipher::aad('01J0ID', 'App\\Models\\User', '1', 'user.updated', 6);
+    $otherAad = PayloadCipher::aad('01J0ID-OTHER', 'App\\Models\\User', '1', 'user.updated');
     $cipher->decrypt($envelope, $dek, $otherAad);
 })->throws(EncryptionException::class);
 
@@ -96,8 +96,8 @@ it('decrypts a known XChaCha20-Poly1305-IETF vector (pins the primitive)', funct
 });
 
 it('builds a deterministic AAD', function () {
-    expect(PayloadCipher::aad('id1', 'T', '1', 'a', 2))
-        ->toBe(PayloadCipher::aad('id1', 'T', '1', 'a', 2))
-        ->and(PayloadCipher::aad('id1', 'T', '1', 'a', 2))
-        ->not->toBe(PayloadCipher::aad('id1', 'T', '1', 'a', 3));
+    expect(PayloadCipher::aad('id1', 'T', '1', 'a'))
+        ->toBe(PayloadCipher::aad('id1', 'T', '1', 'a'))
+        ->and(PayloadCipher::aad('id1', 'T', '1', 'a'))
+        ->not->toBe(PayloadCipher::aad('id2', 'T', '1', 'a'));
 });

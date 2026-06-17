@@ -17,6 +17,10 @@ breaking changes between any two versions - see upgrade notes per version.
 - `SubjectKeyManager`: per-subject DEK lifecycle - `getOrCreate()` mints/wraps/persists a DEK on first use and caches the plaintext DEK process-locally; `destroy()` is the GDPR erasure primitive - it nulls the wrapped DEK, tombstones the row (`status='erased'`, `erased_at`), and purges the cache. Erased subjects stay erased (a later `getOrCreate` throws rather than resurrecting), and destroy is idempotent.
 - `PayloadCipher` + `CipherEnvelope`: AEAD encrypt/decrypt of payload field sets under a subject DEK using libsodium XChaCha20-Poly1305-IETF (decision D5) with a fresh per-call 192-bit nonce and the canonical entry envelope `(id, subject_type, subject_id, action, sequence)` as Associated Data - so ciphertext cannot be transplanted between entries. Decryption fails loudly on a wrong DEK, AAD mismatch, or tampered ciphertext. The self-describing `{_chronicle_enc:'v1', nonce, ciphertext}` envelope makes encrypted fields recognisable on read.
 
+### Changed
+
+- `PayloadCipher` AAD now binds `(id, subject_type, subject_id, action)` and no longer includes `sequence`. Encryption runs before the chain assigns a sequence (and the queued driver assigns it in a deferred job), so `sequence` is not available at encrypt-time; the per-entry ULID `id` keeps the AAD unique, so ciphertext still cannot be transplanted between entries.
+
 ---
 
 ## [1.11.0] - 2026-06-09
@@ -37,7 +41,7 @@ breaking changes between any two versions - see upgrade notes per version.
 - `chronicle:verify --resume` continues verification from the last recorded run instead of re-walking from genesis. A `VerificationRun` row (on `chronicle_verification_runs`) records the last fully-verified checkpoint and processed count after each full/resume run; `--resume` is a no-op fallback to full verify when the table is absent or no prior run exists.
 - External anchoring foundation: `AnchorProvider` contract (`name`/`anchor`/`verify`), the immutable `AnchorReceipt`, the `CheckpointDigest` helper (`sha256(id . chain_hash . created_at)`), and an `AnchorManager` that resolves providers from the new opt-in `chronicle.anchoring` config (`enabled` defaults to false). Ships `NullAnchor`, a digest-binding provider for tests/dev.
 - `Rfc3161TimestampAnchor`: a dependency-light RFC 3161 trusted-timestamping anchor. Builds and POSTs a `TimeStampReq` over the checkpoint digest and stores the TSA token as proof; `verify()` validates the token offline (no network) with `openssl ts -verify` against the configured TSA certificate, which applies the timestamping cert purpose, CA trust, and the `messageImprint == digest` check. Adds `symfony/process` (a standard component, not a cloud SDK) to `require`.
-- Anchoring pipeline: when `chronicle.anchoring.enabled`, each newly-created checkpoint dispatches a queued, retryable `AnchorCheckpointJob` per provider **after** the checkpoint transaction commits - so an anchor failure never rolls a checkpoint back. The shared `CheckpointAnchorer` writes `chronicle_checkpoint_anchors` rows (`pending` → `anchored`/`failed`); failures are left retryable.
+- Anchoring pipeline: when `chronicle.anchoring.enabled`, each newly-created checkpoint dispatches a queued, retryable `AnchorCheckpointJob` per provider **after** the checkpoint transaction commits - so an anchor failure never rolls a checkpoint back. The shared `CheckpointAnchorer` writes `chronicle_checkpoint_anchors` rows (`pending` -> `anchored`/`failed`); failures are left retryable.
 - Anchor commands: `chronicle:checkpoint --anchor` (anchor synchronously on creation), `chronicle:anchor:retry {--status=pending|failed}` (re-attempt outstanding anchors), and `chronicle:anchor:verify {--checkpoint=}` (attest stored anchors against their providers).
 - `chronicle:verify --anchors` additionally verifies external anchors for the checkpoints in scope (composes with `--checkpoints-only` and the incremental modes). A checkpoint with no valid anchor is reported (`anchor_invalid`), never silently passed.
 
@@ -56,7 +60,7 @@ breaking changes between any two versions - see upgrade notes per version.
 ### Fixed
 
 - Export ordering (`EntryExporter`) now matches chain/verification ordering, fixing export verification false-failures under clock skew.
-- Corrected the author email in `composer.json` (`ntoufouis` → `ntoufoudis`) and a docblock typo in `PendingEntry`.
+- Corrected the author email in `composer.json` (`ntoufouis` -> `ntoufoudis`) and a docblock typo in `PendingEntry`.
 
 ### Security
 
@@ -351,7 +355,7 @@ breaking changes between any two versions - see upgrade notes per version.
 
 - Added `Chronicle\Eloquent\HasChronicle` trait for Eloquent models. Adding the trait to a model automatically records Chronicle audit entries for `created`, `updated`, and `deleted` Eloquent events with no configuration required.
 - **Default actor:** the currently authenticated user (`Auth::user()`), falling back to `system` when unauthenticated.
-- **Default action prefix:** snake_case class basename (e.g. `BlogPost` → `blog_post.created`).
+- **Default action prefix:** snake_case class basename (e.g. `BlogPost` -> `blog_post.created`).
 - **`$chronicleIgnore`:** list fields to exclude from the diff recorded on `updated` (the entry is still recorded; just those field changes are omitted).
 - **`$chronicleEvents`:** restrict which events are recorded; set to `[]` to silence Chronicle for that model entirely.
 - **`chronicleActor()`:** override to return any Chronicle-resolvable actor (Eloquent model, object with `$id`, or `'system'`).
