@@ -5,6 +5,7 @@ namespace Chronicle\Entry;
 use Carbon\CarbonImmutable;
 use Carbon\CarbonInterface;
 use Chronicle\Checkpoints\Checkpoint;
+use Chronicle\Encryption\EntryDecryptor;
 use Chronicle\Exceptions\ImmutabilityViolationException;
 use Illuminate\Contracts\Pagination\CursorPaginator;
 use Illuminate\Database\Eloquent\Builder;
@@ -12,6 +13,8 @@ use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\LazyCollection;
+use JsonException;
+use SodiumException;
 
 /**
  * The Chronicle audit entry.
@@ -173,6 +176,50 @@ class Entry extends Model
     public function checkpoint(): BelongsTo
     {
         return $this->belongsTo(Checkpoint::class, 'checkpoint_id');
+    }
+
+    /**
+     * Decrypt the metadata field for display. Returns plaintext when the
+     * subject DEK exists, the raw value when it was never encrypted, or an
+     * erased tombstone when the DEK has been destroyed.
+     */
+    public function decryptedMetadata(): mixed
+    {
+        return $this->decryptor()->field($this, 'metadata');
+    }
+
+    /**
+     * @throws SodiumException
+     * @throws JsonException
+     */
+    public function decryptedContext(): mixed
+    {
+        return $this->decryptor()->field($this, 'context');
+    }
+
+    /**
+     * @throws JsonException
+     * @throws SodiumException
+     */
+    public function decryptedDiff(): mixed
+    {
+        return $this->decryptor()->field($this, 'diff');
+    }
+
+    /**
+     * Whether this entry's subject has been erased (its DEK destroyed).
+     */
+    public function erased(): bool
+    {
+        return $this->decryptor()->isErased($this);
+    }
+
+    private function decryptor(): EntryDecryptor
+    {
+        /** @var EntryDecryptor $decryptor */
+        $decryptor = app(EntryDecryptor::class);
+
+        return $decryptor;
     }
 
     /**
