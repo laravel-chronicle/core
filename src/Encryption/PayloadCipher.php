@@ -85,17 +85,20 @@ final class PayloadCipher
 
     /**
      * Build the canonical Associated Data binding an envelope to its entry:
-     * (id, subject_type, subject_id, action, sequence). The SAME builder must
-     * produce the AAD on encrypt and decrypt, so they never drift.
+     * (id, subject_type, subject_id, action). The SAME builder must produce the
+     * AAD on encrypt and decrypt, so they never drift. `sequence` is deliberately
+     * excluded: encryption runs before the chain assigns a sequence (and the
+     * queued driver assigns it in a deferred job), so it is unavailable at
+     * encrypt-time. The per-entry ULID `id` already makes the AAD unique, so a
+     * ciphertext still cannot be transplanted to another entry.
      *
      * @throws JsonException
      */
-    public static function aad(string $id, ?string $subjectType, ?string $subjectId, string $action, int $sequence): string
+    public static function aad(string $id, ?string $subjectType, ?string $subjectId, string $action): string
     {
         return json_encode([
             'action' => $action,
             'id' => $id,
-            'sequence' => $sequence,
             'subject_id' => $subjectId,
             'subject_type' => $subjectType,
         ], JSON_THROW_ON_ERROR);

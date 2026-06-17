@@ -36,6 +36,7 @@ use Chronicle\Exports\ExportManifestBuilder;
 use Chronicle\Exports\ExportSigner;
 use Chronicle\Pipeline\CanonicalizePayload;
 use Chronicle\Pipeline\ChainHashEntry;
+use Chronicle\Pipeline\EncryptPayload;
 use Chronicle\Pipeline\EntryExtensionRegistry;
 use Chronicle\Pipeline\EntryPipeline;
 use Chronicle\Pipeline\HashPayload;
@@ -141,6 +142,7 @@ class ChronicleServiceProvider extends ServiceProvider
             return new EntryPipeline([
                 $app->make(RunExtensions::class),
                 $app->make(CanonicalizePayload::class),
+                $app->make(EncryptPayload::class),
                 $app->make(HashPayload::class),
                 $app->make(ChainHashEntry::class),
                 $app->make(PersistEntry::class),
@@ -151,6 +153,7 @@ class ChronicleServiceProvider extends ServiceProvider
             return new EntryPipeline([
                 $app->make(RunExtensions::class),
                 $app->make(CanonicalizePayload::class),
+                $app->make(EncryptPayload::class),
                 $app->make(HashPayload::class),
             ]);
         });

@@ -22,7 +22,7 @@ it('refuses when the target key is verify-only', function () {
             'provider' => Ed25519SigningProvider::class,
             'algorithm' => 'ed25519',
             'public_key' => config('chronicle.signing.keys.chronicle-dev-key.public_key'),
-            // no private_key → verify-only
+            // no private_key -> verify-only
         ],
     ]);
 

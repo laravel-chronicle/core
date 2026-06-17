@@ -4,7 +4,7 @@
     <div class="chr-container">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
             <h1 style="font-size:1.25rem; font-weight:700;">Ledger</h1>
-            <a href="{{ route('chronicle.stats') }}" class="chr-btn">Stats →</a>
+            <a href="{{ route('chronicle.stats') }}" class="chr-btn">Stats -></a>
         </div>
 
         <form method="GET" action="{{ route('chronicle.entries.index') }}" class="chr-filter-bar chr-card" style="padding:0.75rem;">
@@ -75,7 +75,7 @@
                                 </td>
                                 <td>
                                     <a href="{{ route('chronicle.entries.show', $entry->id) }}"
-                                       style="font-size:0.75rem;">View →</a>
+                                       style="font-size:0.75rem;">View -></a>
                                 </td>
                             </tr>
                         @endforeach

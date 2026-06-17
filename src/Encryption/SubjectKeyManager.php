@@ -72,6 +72,37 @@ final class SubjectKeyManager
     }
 
     /**
+     * Read-only DEK lookup for the decrypt-on-read path. Never creates a key:
+     * returns an active state (unwrapping + caching the DEK), an erased
+     * tombstone state, or a missing state. An erased subject yields erased,
+     * never a fresh DEK.
+     */
+    public function stateFor(string $subjectType, string $subjectId): SubjectKeyState
+    {
+        $cacheKey = $this->cacheKey($subjectType, $subjectId);
+
+        if (isset($this->cache[$cacheKey])) {
+            return SubjectKeyState::active($this->cache[$cacheKey]);
+        }
+
+        $row = $this->find($subjectType, $subjectId);
+
+        if ($row === null) {
+            return SubjectKeyState::missing();
+        }
+
+        $wrapped = $row->wrapped_dek;
+
+        if ($row->isErased() || $wrapped === null) {
+            return SubjectKeyState::erased($row->erased_at?->toIso8601String());
+        }
+
+        return SubjectKeyState::active(
+            $this->cache[$cacheKey] = $this->kek->provider()->unwrap($wrapped),
+        );
+    }
+
+    /**
      * Erase a subject: destroy the wrapped DEK, tombstone the row, and purge
      * the cached plaintext DEK. Idempotent. Erased subjects stay erased - a
      * tombstone is written even for a never-seen subject.

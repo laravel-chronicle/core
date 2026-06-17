@@ -334,7 +334,7 @@ it('fails when an exported entry payload has been tampered with', function () {
     $lines = file($path.'/entries.ndjson', FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
     $entry = json_decode($lines[0], true, 512, JSON_THROW_ON_ERROR);
     $entry['payload']['action'] = 'tampered.action';  // mutate payload
-    // payload_hash is left unchanged → integrity gap
+    // payload_hash is left unchanged -> integrity gap
     $lines[0] = json_encode($entry, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR);
     file_put_contents($path.'/entries.ndjson', implode("\n", $lines)."\n");
 
