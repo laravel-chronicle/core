@@ -89,6 +89,7 @@ return [
         'checkpoint_anchors' => env('CHRONICLE_TABLE_CHECKPOINT_ANCHORS', 'chronicle_checkpoint_anchors'),
         'verification_runs' => env('CHRONICLE_TABLE_VERIFICATION_RUNS', 'chronicle_verification_runs'),
         'subject_keys' => env('CHRONICLE_TABLE_SUBJECT_KEYS', 'chronicle_subject_keys'),
+        'legal_holds' => env('CHRONICLE_TABLE_LEGAL_HOLDS', 'chronicle_legal_holds'),
     ],
 
     'signing' => [
