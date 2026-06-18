@@ -8,6 +8,7 @@ use Chronicle\Console\Commands\AnchorRetryCommand;
 use Chronicle\Console\Commands\AnchorVerifyCommand;
 use Chronicle\Console\Commands\CheckpointsBackfillCommand;
 use Chronicle\Console\Commands\CreateCheckpointCommand;
+use Chronicle\Console\Commands\EncryptBackfillCommand;
 use Chronicle\Console\Commands\ExportCommand;
 use Chronicle\Console\Commands\InstallCommand;
 use Chronicle\Console\Commands\KeyGenerateCommand;
@@ -119,6 +120,7 @@ class ChronicleServiceProvider extends ServiceProvider
                 SubjectEraseCommand::class,
                 SubjectKeysCommand::class,
                 RotateKekCommand::class,
+                EncryptBackfillCommand::class,
             ]);
         }
     }
