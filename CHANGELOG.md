@@ -21,6 +21,7 @@ breaking changes between any two versions - see upgrade notes per version.
 - Mixed-ledger support: ledgers containing both pre-encryption cleartext entries and encrypted entries verify end-to-end, and exports carry the cipher envelope verbatim so an export verifies without ever decrypting. An exported subject whose DEK has been destroyed remains verifiable but unreadable.
 - `Chronicle::eraseSubject(subjectType, subjectId, requester?, reason?, legalHoldOverride?)`: the GDPR Art. 17 crypto-shred. Destroys the subject DEK via `SubjectKeyManager::destroy()` (encrypted payloads become permanently unreadable) and records a PII-free, verifiable `subject.erased` proof entry (subject ref, timestamp, requester/reason only). Idempotent (returns `false` if already erased). `EncryptPayload` now skips encryption for already-erased subjects, so the proof - and any later entry for an erased subject - stays cleartext and the ledger keeps verifying.
 - Legal holds: new `chronicle_legal_holds` table (`chronicle.tables.legal_holds`) and `LegalHold` model with `isHeld()`/`place()`/`release()` (place is idempotent - one active hold per subject), plus a `chronicle:legal-hold {place|release} {type} {id} {--reason=} {--by=}` command. An active hold blocks erasure and pruning of the subject.
+- `chronicle:subject:erase {type} {id} {--reason=} {--force}`: CLI for `Chronicle::eraseSubject()`. Refuses subjects under an active legal hold unless `--force` is given; a forced override is itself audited via a `legal_hold_override` flag in the `subject.erased` proof.
 
 ### Changed
 
