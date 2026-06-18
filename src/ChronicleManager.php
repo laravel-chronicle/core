@@ -7,6 +7,7 @@ use Chronicle\Contracts\LedgerReader as LedgerReaderContract;
 use Chronicle\Contracts\ReferenceResolver;
 use Chronicle\Contracts\StorageDriver;
 use Chronicle\Eloquent\ChronicleModelObserver;
+use Chronicle\Encryption\SubjectKeyManager;
 use Chronicle\Entry\Entry;
 use Chronicle\Entry\EntryBuilder;
 use Chronicle\Entry\PendingEntry;
@@ -24,6 +25,7 @@ use Chronicle\Testing\ChronicleAssertions;
 use Chronicle\Transaction\ChronicleTransaction;
 use Illuminate\Contracts\Container\BindingResolutionException;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Str;
@@ -223,6 +225,56 @@ class ChronicleManager
 
             throw $e;
         }
+    }
+
+    /**
+     * Crypto-shred a subject: destroy its DEK (rendering all its encrypted
+     * payloads permanently unreadable) and record a PII-free, verifiable
+     * `subject.erased` proof. Idempotent: returns false if already erased.
+     *
+     * The proof is recorded AFTER the DEK is destroyed, so EncryptPayload
+     * leaves it cleartext (see the erased-subject skip) and it stays readable.
+     *
+     * @throws Throwable
+     */
+    public function eraseSubject(
+        string $subjectType,
+        string $subjectId,
+        ?string $requester = null,
+        ?string $reason = null,
+        bool $legalHoldOverride = false,
+    ): bool {
+        $keys = app(SubjectKeyManager::class);
+
+        if ($keys->stateFor($subjectType, $subjectId)->erased) {
+            return false;
+        }
+
+        $keys->destroy($subjectType, $subjectId);
+
+        /** @var array<string, mixed> $metadata */
+        $metadata = array_filter([
+            'requester' => $requester,
+            'reason' => $reason,
+            'legal_hold_override' => $legalHoldOverride ? true : null,
+        ], static fn ($value) => $value !== null && $value !== '');
+
+        $this->commit([
+            'id' => (string) Str::ulid(),
+            'actor_type' => 'system',
+            'actor_id' => $requester ?? 'system',
+            'action' => 'subject.erased',
+            'subject_type' => $subjectType,
+            'subject_id' => $subjectId,
+            'metadata' => $metadata,
+            'context' => [],
+            'diff' => null,
+            'tags' => [],
+            'correlation_id' => $this->currentCorrelation(),
+            'created_at' => Carbon::now('UTC'),
+        ]);
+
+        return true;
     }
 
     /**
