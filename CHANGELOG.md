@@ -32,6 +32,10 @@ breaking changes between any two versions - see upgrade notes per version.
 - `PayloadCipher` AAD now binds `(id, subject_type, subject_id, action)` and no longer includes `sequence`. Encryption runs before the chain assigns a sequence (and the queued driver assigns it in a deferred job), so `sequence` is not available at encrypt-time; the per-entry ULID `id` keeps the AAD unique, so ciphertext still cannot be transplanted between entries.
 - `chronicle:prune` now excludes entries belonging to subjects under an active legal hold, so held subjects survive retention pruning. The exclusion is not overridable by `--force`.
 
+### Security
+
+- Added a dedicated `tests/Security` suite (run via the new `Security` PHPUnit testsuite) asserting the crypto-shred invariants: no DEK or plaintext survives erasure and decryption is impossible; an AEAD ciphertext transplanted to another entry fails (AAD binding); and nonces are unique across a large batch.
+
 ---
 
 ## [1.11.0] - 2026-06-09
