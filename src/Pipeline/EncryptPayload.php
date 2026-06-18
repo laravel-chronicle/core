@@ -49,6 +49,13 @@ class EncryptPayload implements EntryProcessor
             return $entry;
         }
 
+        // An erased subject has no DEK; new entries for it stay cleartext
+        // (and must be PII-free by policy). This is what lets the post-erasure
+        // `subject.erased` proof itself remain readable and verifiable.
+        if ($this->keys->stateFor($subjectType, $subjectId)->erased) {
+            return $entry;
+        }
+
         /** @var string $id */
         $id = $payload['id'];
         /** @var string $action */

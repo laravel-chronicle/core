@@ -13,10 +13,14 @@ use Chronicle\Console\Commands\InstallCommand;
 use Chronicle\Console\Commands\KeyGenerateCommand;
 use Chronicle\Console\Commands\KeyListCommand;
 use Chronicle\Console\Commands\KeyRotateCommand;
+use Chronicle\Console\Commands\LegalHoldCommand;
 use Chronicle\Console\Commands\PruneCommand;
 use Chronicle\Console\Commands\ReportCommand;
+use Chronicle\Console\Commands\RotateKekCommand;
 use Chronicle\Console\Commands\ShowEntryCommand;
 use Chronicle\Console\Commands\StatsCommand;
+use Chronicle\Console\Commands\SubjectEraseCommand;
+use Chronicle\Console\Commands\SubjectKeysCommand;
 use Chronicle\Console\Commands\VerifyEntryCommand;
 use Chronicle\Console\Commands\VerifyExportCommand;
 use Chronicle\Context\QueueJobContext;
@@ -111,6 +115,10 @@ class ChronicleServiceProvider extends ServiceProvider
                 CheckpointsBackfillCommand::class,
                 AnchorRetryCommand::class,
                 AnchorVerifyCommand::class,
+                LegalHoldCommand::class,
+                SubjectEraseCommand::class,
+                SubjectKeysCommand::class,
+                RotateKekCommand::class,
             ]);
         }
     }
