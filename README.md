@@ -49,6 +49,7 @@ Chronicle takes a different approach. Events are recorded in an **append-only le
 | Signed checkpoints | ✓         | ✗                         |
 | Key rotation       | ✓         | ✗                         |
 | External anchoring | ✓         | ✗                         |
+| GDPR erasure       | ✓         | ✗                         |
 
 ---
 
@@ -261,6 +262,42 @@ Upgrading an existing ledger? Run `chronicle:checkpoints:backfill` once so histo
 
 ---
 
+## GDPR erasure (crypto-shredding)
+
+An append-only ledger seems to collide with the GDPR Article 17 right to erasure — you can't delete an entry without breaking the chain. Chronicle resolves this with **crypto-shredding**: PII-bearing payload fields are encrypted under a **per-subject key** *before* hashing, so the chain is computed over ciphertext. To honour an erasure request you destroy that subject's key. The ciphertext stays in place (the ledger still verifies, byte-for-byte), but the content is permanently unreadable. What remains is the pseudonymised *fact* that an event occurred — the evidence, not the personal data.
+
+Encryption is **opt-in** and, when disabled, behaviour is identical to pre-1.12.
+
+```php
+// config/chronicle.php
+'encryption' => [
+    'enabled' => env('CHRONICLE_ENCRYPTION_ENABLED', false),
+    'fields'  => ['metadata', 'context', 'diff'], // PII-bearing fields, per-subject DEK
+    'kek' => [
+        'provider' => Chronicle\Encryption\LocalKeyEncryptionProvider::class,
+        'key'      => env('CHRONICLE_ENCRYPTION_KEY'),  // dedicated base64 32-byte key, NOT the app key
+        'id'       => env('CHRONICLE_ENCRYPTION_KEK_ID', 'local'),
+    ],
+],
+```
+
+Fields are encrypted with the subject's data key (DEK) using XChaCha20-Poly1305-IETF, with the entry envelope bound in as associated data. Each DEK is wrapped by a key-encryption key (KEK); the default KEK is local, or you can keep it in a KMS so it never lives in the app.
+
+```bash
+php artisan chronicle:subject:erase patient 01H...   # destroy the DEK; records a PII-free proof
+php artisan chronicle:subject:keys --status=erased   # inspect subject key state (no key material)
+php artisan chronicle:legal-hold place patient 01H... # block erasure/pruning under litigation hold
+php artisan chronicle:encryption:rotate-kek --old-key=... # re-wrap all DEKs under a new KEK
+```
+
+Erasing a subject is itself recorded as a verifiable, PII-free `subject.erased` entry, so you can prove to a regulator that erasure happened and when. The cleartext envelope (actor, action, subject reference, timestamp, tags) stays queryable; reads of erased fields return a tombstone. Legal holds block erasure and pruning of subjects under litigation hold.
+
+> Crypto-shredding guarantees erasure in the live store. Backups taken before erasure still contain recoverable data and are governed by your backup-retention policy. Whether retaining a pseudonymised event record satisfies a given erasure request is a legal/DPO determination — this is not legal advice.
+
+See [Crypto-Shredding](https://laravel-chronicle.github.io/docs/crypto-shredding) and the [GDPR erasure guide](https://laravel-chronicle.github.io/docs/gdpr-erasure).
+
+---
+
 ## Verifiable exports
 
 Chronicle can export the ledger as a verifiable dataset (`entries.ndjson`, `manifest.json`, `signature.json`) that can be verified independently of the application:
@@ -276,23 +313,28 @@ Verification checks the dataset hash, digital signature, hash-chain integrity, a
 
 ## Artisan commands
 
-| Command                          | Purpose                                                                                |
-|----------------------------------|----------------------------------------------------------------------------------------|
-| `chronicle:install`              | Publish config and migrations (`--force`, `--migrate`)                                 |
-| `chronicle:checkpoint`           | Create a signed checkpoint                                                             |
-| `chronicle:export {path}`        | Export the ledger as a verifiable dataset                                              |
-| `chronicle:verify`               | Verify the full ledger (or one entry with `--entry=<ULID>`)                            |
-| `chronicle:verify-export {path}` | Verify an exported dataset                                                             |
-| `chronicle:stats`                | Display ledger statistics (`--json`)                                                   |
-| `chronicle:show {id}`            | Display a single entry by ULID                                                         |
-| `chronicle:prune`                | Prune entries by retention policy (`--older-than`, `--before`, `--dry-run`, `--force`) |
-| `chronicle:report {path}`        | Generate a signed compliance report (`--from`, `--to`)                                 |
-| `chronicle:checkpoints:backfill` | Backfill head/count/link metadata on existing checkpoints (`--chunk`, `--dry-run`)     |
-| `chronicle:anchor:retry`         | Re-attempt outstanding checkpoint anchors (`--status=pending\|failed`)                 |
-| `chronicle:anchor:verify`        | Verify stored checkpoint anchors against their providers (`--checkpoint=`)             |
-| `chronicle:key:generate`         | Generate an Ed25519 keypair for `signing.keys` (`--id`)                                |
-| `chronicle:key:list`             | List the signing keys in the key ring (`--with-counts`)                                |
-| `chronicle:key:rotate {keyId}`   | Create a boundary checkpoint and print activation instructions for a new key           |
+| Command                                     | Purpose                                                                                              |
+|---------------------------------------------|------------------------------------------------------------------------------------------------------|
+| `chronicle:install`                         | Publish config and migrations (`--force`, `--migrate`)                                               |
+| `chronicle:checkpoint`                      | Create a signed checkpoint                                                                           |
+| `chronicle:export {path}`                   | Export the ledger as a verifiable dataset                                                            |
+| `chronicle:verify`                          | Verify the full ledger (or one entry with `--entry=<ULID>`)                                          |
+| `chronicle:verify-export {path}`            | Verify an exported dataset                                                                           |
+| `chronicle:stats`                           | Display ledger statistics (`--json`)                                                                 |
+| `chronicle:show {id}`                       | Display a single entry by ULID                                                                       |
+| `chronicle:prune`                           | Prune entries by retention policy (`--older-than`, `--before`, `--dry-run`, `--force`)               |
+| `chronicle:report {path}`                   | Generate a signed compliance report (`--from`, `--to`)                                               |
+| `chronicle:checkpoints:backfill`            | Backfill head/count/link metadata on existing checkpoints (`--chunk`, `--dry-run`)                   |
+| `chronicle:anchor:retry`                    | Re-attempt outstanding checkpoint anchors (`--status=pending\|failed`)                               |
+| `chronicle:anchor:verify`                   | Verify stored checkpoint anchors against their providers (`--checkpoint=`)                           |
+| `chronicle:key:generate`                    | Generate an Ed25519 keypair for `signing.keys` (`--id`)                                              |
+| `chronicle:key:list`                        | List the signing keys in the key ring (`--with-counts`)                                              |
+| `chronicle:key:rotate {keyId}`              | Create a boundary checkpoint and print activation instructions for a new key                         |
+| `chronicle:subject:erase {type} {id}`       | Destroy a subject's encryption key (GDPR erasure); records a PII-free proof (`--reason`)             |
+| `chronicle:subject:keys`                    | Inspect subject key state, never key material (`--subject`, `--status`, `--json`)                    |
+| `chronicle:legal-hold {action} {type} {id}` | Place/release a litigation hold that blocks erasure and pruning                                      |
+| `chronicle:encryption:rotate-kek`           | Re-wrap all subject DEKs under a new KEK (`--old-key`, `--old-kek-id`, `--chunk`)                    |
+| `chronicle:encrypt-backfill`                | Re-baseline migration: encrypt historical entries' PII (`--from`, `--chunk`, `--dry-run`, `--force`) |
 
 See the [Artisan Commands reference](https://laravel-chronicle.github.io/docs/artisan-commands).
 
@@ -307,6 +349,7 @@ See the [Artisan Commands reference](https://laravel-chronicle.github.io/docs/ar
 - **External signing providers** (e.g. AWS KMS) with remote signing and local verification
 - **External anchoring** of checkpoints (RFC 3161 timestamping in core; S3 Object Lock adapter) to detect tampering even under full internal compromise
 - **Scalable verification** - incremental, segment, and checkpoint-only modes for large ledgers
+- **GDPR erasure (crypto-shredding)** - per-subject payload encryption with key destruction; the ledger still verifies after erasure
 - **Verifiable exports** with independent verification
 - **Automatic model auditing** via the `HasChronicle` trait or observers
 - **Transactions & correlation IDs** for grouping related events
