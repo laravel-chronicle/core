@@ -8,7 +8,10 @@ use Chronicle\Encryption\SubjectKey;
 use Chronicle\Entry\Entry;
 use Illuminate\Console\Command;
 
-class SubjectKeysCommand extends Command
+/**
+ * Artisan command that lists subject key state and entry counts without printing key material.
+ */
+final class SubjectKeysCommand extends Command
 {
     protected $signature = 'chronicle:subject:keys
         {--subject= : Filter by subject id}

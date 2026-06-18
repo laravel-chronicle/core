@@ -10,7 +10,10 @@ use Chronicle\Storage\ArrayDriver;
 use Illuminate\Support\Collection;
 use PHPUnit\Framework\Assert;
 
-class ChronicleAssertions
+/**
+ * Test helper providing assertions about recorded Chronicle entries.
+ */
+final class ChronicleAssertions
 {
     public function __construct(
         protected ArrayDriver $driver,

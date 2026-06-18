@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Config;
 
 /**
  * ORM mapping for an external-anchor receipt row. Phase A is storage-only;
@@ -48,7 +49,7 @@ class CheckpointAnchor extends Model
     public function getConnectionName(): ?string
     {
         /** @var string|null $configured */
-        $configured = config('chronicle.connection');
+        $configured = Config::get('chronicle.connection');
 
         if (is_string($configured) && $configured !== '') {
             return $configured;
@@ -59,8 +60,7 @@ class CheckpointAnchor extends Model
 
     public function getTable(): string
     {
-        /** @var string $table */
-        $table = config('chronicle.tables.checkpoint_anchors', 'chronicle_checkpoint_anchors');
+        $table = Config::string('chronicle.tables.checkpoint_anchors', 'chronicle_checkpoint_anchors');
 
         return $table;
     }

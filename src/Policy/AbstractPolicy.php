@@ -9,6 +9,9 @@ use Chronicle\Contracts\EntryPolicy;
 use Chronicle\Entry\PendingEntry;
 use Chronicle\Pipeline\ExtensionStage;
 
+/**
+ * Base class for opt-in entry policies; runs in the POLICY stage and enforces a single rule.
+ */
 abstract class AbstractPolicy implements EntryExtension, EntryPolicy
 {
     final public function stage(): ExtensionStage

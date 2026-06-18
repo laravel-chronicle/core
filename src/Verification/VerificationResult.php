@@ -11,7 +11,7 @@ namespace Chronicle\Verification;
  * This object contains information about whether the
  * ledger is valid and, if not, where corruption begins.
  */
-class VerificationResult
+final class VerificationResult
 {
     /**
      * Whether the ledger passed verification.

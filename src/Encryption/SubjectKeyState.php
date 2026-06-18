@@ -10,12 +10,12 @@ namespace Chronicle\Encryption;
  * the subject is active, null when erased or never keyed. `erasedAt` is the
  * ISO-8601 erasure timestamp for the read tombstone.
  */
-final class SubjectKeyState
+final readonly class SubjectKeyState
 {
-    private function __construct(
-        public readonly ?string $dek,
-        public readonly bool $erased,
-        public readonly ?string $erasedAt,
+    protected function __construct(
+        public ?string $dek,
+        public bool $erased,
+        public ?string $erasedAt,
     ) {
         //
     }

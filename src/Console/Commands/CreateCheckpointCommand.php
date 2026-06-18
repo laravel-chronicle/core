@@ -16,7 +16,7 @@ use Throwable;
  * Creates a cryptographic checkpoint anchoring the current
  * Chronicle ledger head.
  */
-class CreateCheckpointCommand extends Command
+final class CreateCheckpointCommand extends Command
 {
     /**
      * Command signature.

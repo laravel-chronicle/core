@@ -6,6 +6,9 @@ namespace Chronicle\Contracts;
 
 use Chronicle\Entry\PendingEntry;
 
+/**
+ * Contract for resolvers that supply contextual metadata attached to entries.
+ */
 interface ContextResolver
 {
     /**

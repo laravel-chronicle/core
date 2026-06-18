@@ -7,16 +7,17 @@ namespace Chronicle\Encryption;
 use Chronicle\Contracts\KeyEncryptionProvider;
 use Chronicle\Exceptions\EncryptionException;
 use Illuminate\Contracts\Container\Container;
+use Illuminate\Support\Facades\Config;
 
 /**
  * Resolves the configured KEK provider from chronicle.encryption.kek via the
  * container, so a provider's constructor dependencies (e.g. a KMS client) are
  * auto-injected alongside its `config` array.
  */
-final class KeyEncryptionManager
+final readonly class KeyEncryptionManager
 {
     public function __construct(
-        private readonly Container $container,
+        protected Container $container,
     ) {
         //
     }
@@ -24,7 +25,7 @@ final class KeyEncryptionManager
     public function provider(): KeyEncryptionProvider
     {
         /** @var array<string, mixed> $config */
-        $config = (array) config('chronicle.encryption.kek', []);
+        $config = Config::array('chronicle.encryption.kek', []);
 
         return $this->providerFor($config);
     }

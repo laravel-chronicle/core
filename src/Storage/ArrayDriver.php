@@ -19,15 +19,15 @@ use JsonException;
  * Always call ArrayDriver::flush() between tests (the HasChronicle trait
  * does this automatically).
  */
-class ArrayDriver implements StorageDriver
+final class ArrayDriver implements StorageDriver
 {
     use SerializesEntryAttributes;
 
     /** @var array<int|string, mixed> */
-    private static array $entries = [];
+    protected static array $entries = [];
 
     /** @var array<int|string, mixed> */
-    private array $instanceEntries = [];
+    protected array $instanceEntries = [];
 
     /**
      * @param  array<string, mixed>  $entry

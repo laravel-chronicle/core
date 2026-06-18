@@ -10,7 +10,10 @@ use Chronicle\Entry\PendingEntry;
 use Chronicle\Exceptions\MissingSubjectException;
 use Chronicle\Pipeline\ExtensionStage;
 
-class SubjectValidator implements EntryExtension, PrioritizedEntryExtension
+/**
+ * Entry extension that rejects entries recorded without a subject.
+ */
+final class SubjectValidator implements EntryExtension, PrioritizedEntryExtension
 {
     public function stage(): ExtensionStage
     {

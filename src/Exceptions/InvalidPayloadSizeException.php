@@ -4,7 +4,10 @@ declare(strict_types=1);
 
 namespace Chronicle\Exceptions;
 
-class InvalidPayloadSizeException extends ChronicleException
+/**
+ * Thrown when a serialized entry payload exceeds the configured maximum size.
+ */
+final class InvalidPayloadSizeException extends ChronicleException
 {
     /**
      * Create an InvalidPayloadSizeException when the serialized payload exceeds the configured limit.

@@ -7,6 +7,7 @@ namespace Chronicle\Verification;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Config;
 
 /**
  * Progress marker for resumable verification. Records the last
@@ -41,7 +42,7 @@ class VerificationRun extends Model
     public function getConnectionName(): ?string
     {
         /** @var string|null $configured */
-        $configured = config('chronicle.connection');
+        $configured = Config::get('chronicle.connection');
 
         if (is_string($configured) && $configured !== '') {
             return $configured;
@@ -52,8 +53,7 @@ class VerificationRun extends Model
 
     public function getTable(): string
     {
-        /** @var string $table */
-        $table = config('chronicle.tables.verification_runs', 'chronicle_verification_runs');
+        $table = Config::string('chronicle.tables.verification_runs', 'chronicle_verification_runs');
 
         return $table;
     }

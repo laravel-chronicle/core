@@ -16,7 +16,7 @@ namespace Chronicle\Exceptions;
  * Chronicle requires a subject to ensure the audit trail
  * clearly records what was acted upon.
  */
-class MissingSubjectException extends ChronicleException
+final class MissingSubjectException extends ChronicleException
 {
     /**
      * Create a new exception instance.

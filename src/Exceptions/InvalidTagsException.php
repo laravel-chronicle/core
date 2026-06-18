@@ -4,7 +4,10 @@ declare(strict_types=1);
 
 namespace Chronicle\Exceptions;
 
-class InvalidTagsException extends ChronicleException
+/**
+ * Thrown when an entry's tags are malformed (wrong type, too long, or duplicated).
+ */
+final class InvalidTagsException extends ChronicleException
 {
     /**
      * Create an InvalidTagsException for a value that is not an array.

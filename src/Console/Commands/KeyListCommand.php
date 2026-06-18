@@ -7,8 +7,12 @@ namespace Chronicle\Console\Commands;
 use Chronicle\Checkpoints\Checkpoint;
 use Chronicle\Signing\LegacySigningConfigAdapter;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\Config;
 
-class KeyListCommand extends Command
+/**
+ * Artisan command that lists the signing keys configured in the key ring.
+ */
+final class KeyListCommand extends Command
 {
     protected $signature = 'chronicle:key:list
         {--with-counts : Show per-key checkpoint counts}';
@@ -18,7 +22,7 @@ class KeyListCommand extends Command
     public function handle(): int
     {
         /** @var array<string, mixed> $rawConfig */
-        $rawConfig = (array) config('chronicle.signing', []);
+        $rawConfig = Config::array('chronicle.signing', []);
 
         if (LegacySigningConfigAdapter::isLegacy($rawConfig)) {
             $rawConfig = LegacySigningConfigAdapter::adapt($rawConfig);

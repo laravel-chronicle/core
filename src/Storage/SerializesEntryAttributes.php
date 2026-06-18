@@ -6,6 +6,9 @@ namespace Chronicle\Storage;
 
 use JsonException;
 
+/**
+ * Trait that serializes and restores entry attribute arrays for storage drivers.
+ */
 trait SerializesEntryAttributes
 {
     /**

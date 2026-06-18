@@ -242,7 +242,7 @@ See [Anchoring](https://laravel-chronicle.github.io/docs/anchoring).
 
 ## Scalable verification
 
-A full `chronicle:verify` recomputes every entry's hash - the ground-truth check. On large, ever-growing ledgers you usually don't need to re-walk all of history on every run. Because checkpoints now form a verifiable chain and record the entries they cover, Chronicle can verify incrementally:
+A full `chronicle:verify` recomputes every entry's hash - the ground-truth check. On large, ever-growing ledgers you usually don't need to re-walk all history on every run. Because checkpoints now form a verifiable chain and record the entries they cover, Chronicle can verify incrementally:
 
 ```bash
 php artisan chronicle:verify                        # full ledger (default)
@@ -281,7 +281,7 @@ Encryption is **opt-in** and, when disabled, behaviour is identical to pre-1.12.
 ],
 ```
 
-Fields are encrypted with the subject's data key (DEK) using XChaCha20-Poly1305-IETF, with the entry envelope bound in as associated data. Each DEK is wrapped by a key-encryption key (KEK); the default KEK is local, or you can keep it in a KMS so it never lives in the app.
+Fields are encrypted with the subject's data key (DEK) using XChaCha20-Poly1305-IETF, with the entry envelope bound in as associated data. Each DEK is wrapped by a key-encryption key (KEK); the default KEK is local, or you can keep it in a KMS, so it never lives in the app.
 
 ```bash
 php artisan chronicle:subject:erase patient 01H...   # destroy the DEK; records a PII-free proof
@@ -405,10 +405,10 @@ Contributions are welcome. Please read: [CONTRIBUTING](CONTRIBUTING.md) before s
 <table>
   <tbody>
     <tr>
-      <td align="center" valign="top" width="14.28%"><a href="https://poornachandradinesh.netlify.app/"><img src="https://avatars.githubusercontent.com/u/69423861?v=4?s=100" width="100px;" alt="Poorna Chandra Dinesh"/><br /><sub><b>Poorna Chandra Dinesh</b></sub></a><br /><a href="#code-Poorna-Chandra-D" title="Code">💻</a></td>
-      <td align="center" valign="top" width="14.28%"><a href="https://github.com/ntoufoudis"><img src="https://avatars.githubusercontent.com/u/93659348?v=4?s=100" width="100px;" alt="Vasileios Ntoufoudis"/><br /><sub><b>Vasileios Ntoufoudis</b></sub></a><br /><a href="#code-ntoufoudis" title="Code">💻</a></td>
-      <td align="center" valign="top" width="14.28%"><a href="https://jamesking.dev"><img src="https://avatars.githubusercontent.com/u/253237?v=4?s=100" width="100px;" alt="James King"/><br /><sub><b>James King</b></sub></a><br /><a href="#doc-Jamesking56" title="Documentation">📖</a></td>
-      <td align="center" valign="top" width="14.28%"><a href="https://github.com/devc4rlos"><img src="https://avatars.githubusercontent.com/u/196385361?v=4?s=100" width="100px;" alt="Carlos Alexandre"/><br /><sub><b>Carlos Alexandre</b></sub></a><br /><a href="#code-devc4rlos" title="Code">💻</a></td>
+      <td style="text-align: center; vertical-align: top; width: 14.28%"><a href="https://poornachandradinesh.netlify.app/"><img src="https://avatars.githubusercontent.com/u/69423861?v=4?s=100" width="100px;" alt="Poorna Chandra Dinesh"/><br /><sub><b>Poorna Chandra Dinesh</b></sub></a><br /><a href="#code-Poorna-Chandra-D" title="Code">💻</a></td>
+      <td style="text-align: center; vertical-align: top; width: 14.28%"><a href="https://github.com/ntoufoudis"><img src="https://avatars.githubusercontent.com/u/93659348?v=4?s=100" width="100px;" alt="Vasileios Ntoufoudis"/><br /><sub><b>Vasileios Ntoufoudis</b></sub></a><br /><a href="#code-ntoufoudis" title="Code">💻</a></td>
+      <td style="text-align: center; vertical-align: top; width: 14.28%"><a href="https://jamesking.dev"><img src="https://avatars.githubusercontent.com/u/253237?v=4?s=100" width="100px;" alt="James King"/><br /><sub><b>James King</b></sub></a><br /><a href="#doc-Jamesking56" title="Documentation">📖</a></td>
+      <td style="text-align: center; vertical-align: top; width: 14.28%"><a href="https://github.com/devc4rlos"><img src="https://avatars.githubusercontent.com/u/196385361?v=4?s=100" width="100px;" alt="Carlos Alexandre"/><br /><sub><b>Carlos Alexandre</b></sub></a><br /><a href="#code-devc4rlos" title="Code">💻</a></td>
     </tr>
   </tbody>
 </table>

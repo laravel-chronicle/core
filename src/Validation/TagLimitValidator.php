@@ -9,8 +9,12 @@ use Chronicle\Contracts\PrioritizedEntryExtension;
 use Chronicle\Entry\PendingEntry;
 use Chronicle\Exceptions\InvalidTagsException;
 use Chronicle\Pipeline\ExtensionStage;
+use Illuminate\Support\Facades\Config;
 
-class TagLimitValidator implements EntryExtension, PrioritizedEntryExtension
+/**
+ * Entry extension that enforces the configured maximum number of tags per entry.
+ */
+final class TagLimitValidator implements EntryExtension, PrioritizedEntryExtension
 {
     /**
      * Indicates the extension pipeline stage where this validator executes.
@@ -70,8 +74,7 @@ class TagLimitValidator implements EntryExtension, PrioritizedEntryExtension
      */
     protected function maxCount(): int
     {
-        /** @var int $limit */
-        $limit = config('chronicle.validation.tag_limit', 10);
+        $limit = Config::integer('chronicle.validation.tag_limit', 10);
 
         return $limit;
     }

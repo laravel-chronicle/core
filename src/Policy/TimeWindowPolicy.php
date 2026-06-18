@@ -7,42 +7,43 @@ namespace Chronicle\Policy;
 use Chronicle\Entry\PendingEntry;
 use Chronicle\Exceptions\OutsideTimeWindowException;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Config;
 use InvalidArgumentException;
 
-class TimeWindowPolicy extends AbstractPolicy
+/**
+ * Opt-in policy that only permits entries recorded within the configured time window.
+ */
+final class TimeWindowPolicy extends AbstractPolicy
 {
-    private readonly Carbon $startCarbon;
+    protected readonly Carbon $startCarbon;
 
-    private readonly Carbon $endCarbon;
+    protected readonly Carbon $endCarbon;
 
     /** @var string[] */
-    private readonly array $days;
+    protected readonly array $days;
 
-    private readonly string $timezone;
+    protected readonly string $timezone;
 
-    private readonly string $start;
+    protected readonly string $start;
 
-    private readonly string $end;
+    protected readonly string $end;
 
     public function __construct()
     {
-        /** @var string $start */
-        $start = config('chronicle.policy.time_window.start', '00:00');
+        $start = Config::string('chronicle.policy.time_window.start', '00:00');
 
-        /** @var string $end */
-        $end = config('chronicle.policy.time_window.end', '23:59:59');
+        $end = Config::string('chronicle.policy.time_window.end', '23:59:59');
 
         /** @var string[] $days */
-        $days = config('chronicle.policy.time_window.days', []);
+        $days = Config::array('chronicle.policy.time_window.days', []);
 
         /** @var string|null $timezone */
-        $timezone = config('chronicle.policy.time_window.timezone');
+        $timezone = Config::get('chronicle.policy.time_window.timezone');
 
         $this->start = $start;
         $this->end = $end;
         $this->days = $days;
-        /** @var string $appTimezone */
-        $appTimezone = config('app.timezone', 'UTC');
+        $appTimezone = Config::string('app.timezone', 'UTC');
         $this->timezone = $timezone ?? $appTimezone;
 
         $startCarbon = $this->parseTime($this->start, $this->timezone);
@@ -88,7 +89,7 @@ class TimeWindowPolicy extends AbstractPolicy
         }
     }
 
-    private function parseTime(string $time, string $timezone): ?Carbon
+    protected function parseTime(string $time, string $timezone): ?Carbon
     {
         if (str_contains($time, ':') && substr_count($time, ':') === 2) {
             $result = Carbon::createFromFormat('H:i:s', $time, $timezone);

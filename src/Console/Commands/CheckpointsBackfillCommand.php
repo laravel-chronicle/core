@@ -13,7 +13,7 @@ use Illuminate\Console\Command;
  * and the entries.checkpoint_id coverage for checkpoints created before v1.11.
  * Everything is computable from existing data. Idempotent; supports --dry-rune.
  */
-class CheckpointsBackfillCommand extends Command
+final class CheckpointsBackfillCommand extends Command
 {
     protected $signature = 'chronicle:checkpoints:backfill
         {--chunk=1000 : Number of entries to stamp per update batch}

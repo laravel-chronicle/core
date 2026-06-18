@@ -13,7 +13,7 @@ namespace Chronicle\Exceptions;
  * This exception is thrown by the Entry model on any
  * attempted mutation.
  */
-class ImmutabilityViolationException extends ChronicleException
+final class ImmutabilityViolationException extends ChronicleException
 {
     public static function onUpdate(): self
     {

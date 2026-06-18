@@ -8,7 +8,10 @@ use Chronicle\Query\LedgerStats;
 use Illuminate\Console\Command;
 use JsonException;
 
-class StatsCommand extends Command
+/**
+ * Artisan command that displays Chronicle ledger statistics.
+ */
+final class StatsCommand extends Command
 {
     protected $signature = 'chronicle:stats
         {--json : Output stats as JSON instead of formatted text}';

@@ -11,7 +11,7 @@ use Throwable;
 /**
  * Export Chronicle entries to a verifiable dataset.
  */
-class ExportCommand extends Command
+final class ExportCommand extends Command
 {
     /**
      * The command signature.

@@ -6,6 +6,9 @@ namespace Chronicle\Context;
 
 use Chronicle\Entry\PendingEntry;
 
+/**
+ * Context resolver that captures the host machine identity (hostname).
+ */
 class HostContextResolver extends AbstractContextResolver
 {
     public function contextKey(): string

@@ -14,9 +14,13 @@ use Illuminate\Database\Eloquent\Collection;
  * anchor. An unanchored or invalid-anchor checkpoint fails - it is never
  * silently passed.
  */
-class AnchorVerifier
+readonly class AnchorVerifier
 {
-    public function __construct(private readonly AnchorManager $manager) {}
+    public function __construct(
+        protected AnchorManager $manager,
+    ) {
+        //
+    }
 
     /**
      * @param  Collection<int, Checkpoint>  $checkpoints

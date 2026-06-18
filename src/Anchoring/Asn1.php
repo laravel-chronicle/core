@@ -67,12 +67,12 @@ final class Asn1
         return self::tlv(0x06, $body);
     }
 
-    private static function tlv(int $tag, string $content): string
+    protected static function tlv(int $tag, string $content): string
     {
         return chr($tag & 0xFF).self::length(strlen($content)).$content;
     }
 
-    private static function length(int $len): string
+    protected static function length(int $len): string
     {
         if ($len < 0x80) {
             return chr($len & 0xFF);

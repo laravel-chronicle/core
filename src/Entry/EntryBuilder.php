@@ -42,7 +42,7 @@ use Throwable;
  *      ->tags(['billing'])
  *      ->build();
  */
-class EntryBuilder
+final class EntryBuilder
 {
     /**
      * Resolver used to convert actor and subject values

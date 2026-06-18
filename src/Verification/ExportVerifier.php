@@ -14,11 +14,11 @@ use JsonException;
 /**
  * Verifies Chronicle export datasets.
  */
-class ExportVerifier
+readonly class ExportVerifier
 {
     public function __construct(
-        protected readonly KeyRing $keyRing,
-        protected readonly CanonicalPayloadSerializer $serializer,
+        protected KeyRing $keyRing,
+        protected CanonicalPayloadSerializer $serializer,
     ) {
         //
     }

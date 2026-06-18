@@ -12,7 +12,7 @@ use Chronicle\Contracts\AnchorProvider;
  * recomputing it. NOTE: the proof lives in the same database, so this provides
  * NO external trust - it is not a production anchor.
  */
-class NullAnchor implements AnchorProvider
+final class NullAnchor implements AnchorProvider
 {
     /**
      * @param  array<string, mixed>  $config  Accepted for AnchorManager makeWith() compatibility.

@@ -7,8 +7,12 @@ namespace Chronicle\Console\Commands;
 use Chronicle\Encryption\KeyEncryptionManager;
 use Chronicle\Encryption\SubjectKey;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\Config;
 
-class RotateKekCommand extends Command
+/**
+ * Artisan command that re-wraps every subject DEK under the newly configured KEK without touching entries.
+ */
+final class RotateKekCommand extends Command
 {
     protected $signature = 'chronicle:encryption:rotate-kek
         {--old-key= : Previous base64 KEK that wrapped existing DEKs}
@@ -41,7 +45,7 @@ class RotateKekCommand extends Command
         }
 
         /** @var class-string|string $providerClass */
-        $providerClass = config('chronicle.encryption.kek.provider');
+        $providerClass = Config::get('chronicle.encryption.kek.provider');
 
         $oldProvider = $manager->providerFor([
             'provider' => $providerClass,

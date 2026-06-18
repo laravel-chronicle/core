@@ -13,7 +13,7 @@ use Chronicle\Entry\EntryBuilder;
  * A transaction groups multiple entries under a shared
  * correlation identifier.
  */
-class ChronicleTransaction
+final class ChronicleTransaction
 {
     protected ChronicleManager $manager;
 

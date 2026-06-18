@@ -9,12 +9,15 @@ use Illuminate\Contracts\Container\BindingResolutionException;
 use Illuminate\Contracts\Container\Container;
 use InvalidArgumentException;
 
-class DriverResolver
+/**
+ * Resolves the configured storage driver name to a StorageDriver instance.
+ */
+final class DriverResolver
 {
     /**
      * @var array<int, string>
      */
-    private const RESERVED_DRIVERS = [
+    protected const RESERVED_DRIVERS = [
         'eloquent',
         'database', // alias for eloquent
         'queued', // async write via queue

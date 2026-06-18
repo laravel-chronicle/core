@@ -6,9 +6,12 @@ namespace Chronicle\Context;
 
 use Illuminate\Contracts\Queue\Job;
 
+/**
+ * Holds the queue job currently being processed so resolvers can attach queue context to entries.
+ */
 final class QueueJobContext
 {
-    private ?Job $job = null;
+    protected ?Job $job = null;
 
     public function set(Job $job): void
     {

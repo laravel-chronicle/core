@@ -10,7 +10,7 @@ namespace Chronicle\Exports;
  * This object is returned by the EntryExporter after streaming entries
  * to the export file.
  */
-class EntryExportResult
+final class EntryExportResult
 {
     /**
      * Create a new export result instance.

@@ -11,7 +11,7 @@ use JsonException;
 /**
  * Builds the Chronicle export manifest.
  */
-class ExportManifestBuilder
+final class ExportManifestBuilder
 {
     protected SigningProvider $signer;
 

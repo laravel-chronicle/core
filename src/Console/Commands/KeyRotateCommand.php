@@ -7,9 +7,13 @@ namespace Chronicle\Console\Commands;
 use Chronicle\Checkpoints\CheckpointCreator;
 use Chronicle\Signing\LegacySigningConfigAdapter;
 use Illuminate\Console\Command;
-use RuntimeException;
+use Illuminate\Support\Facades\Config;
+use Throwable;
 
-class KeyRotateCommand extends Command
+/**
+ * Artisan command that creates a boundary checkpoint and prints instructions for activating a new signing key.
+ */
+final class KeyRotateCommand extends Command
 {
     protected $signature = 'chronicle:key:rotate
         {newKeyId : ID of the signing key to rotate to (must exist in signing.keys)}';
@@ -22,7 +26,7 @@ class KeyRotateCommand extends Command
         $newKeyId = $this->argument('newKeyId');
 
         /** @var array<string, mixed> $rawConfig */
-        $rawConfig = (array) config('chronicle.signing', []);
+        $rawConfig = Config::array('chronicle.signing', []);
 
         if (LegacySigningConfigAdapter::isLegacy($rawConfig)) {
             $rawConfig = LegacySigningConfigAdapter::adapt($rawConfig);
@@ -68,7 +72,7 @@ class KeyRotateCommand extends Command
 
         try {
             $checkpoint = $creator->create();
-        } catch (RuntimeException $e) {
+        } catch (Throwable $e) {
             $this->error('Failed to create boundary checkpoint: '.$e->getMessage());
 
             return self::FAILURE;

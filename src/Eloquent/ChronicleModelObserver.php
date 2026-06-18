@@ -34,7 +34,7 @@ class ChronicleModelObserver
     protected array $ignoredFields = [];
 
     /**
-     * Field names whose values are redacted (recorded as "[redacted]" in diffs.
+     * Field names whose values are redacted (recorded as "[redacted]" in diffs).
      *
      * @var list<string>
      */

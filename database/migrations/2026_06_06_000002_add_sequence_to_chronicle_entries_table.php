@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
@@ -19,9 +20,9 @@ return new class extends Migration
      *
      * Reads from config so Chronicle can use a dedicated connection.
      */
-    public function getConnection(): ?string
+    public function getConnection(): string
     {
-        return config('chronicle.connection');
+        return Config::string('chronicle.connection');
     }
 
     /**
@@ -29,7 +30,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        $table = config('chronicle.tables.entries', 'chronicle_entries');
+        $table = Config::string('chronicle.tables.entries', 'chronicle_entries');
         $connection = $this->getConnection();
         $schema = Schema::connection($connection);
 
@@ -66,7 +67,7 @@ return new class extends Migration
      */
     public function down(): void
     {
-        $table = config('chronicle.tables.entries', 'chronicle_entries');
+        $table = Config::string('chronicle.tables.entries', 'chronicle_entries');
         $schema = Schema::connection($this->getConnection());
 
         if (! $schema->hasColumn($table, 'sequence')) {

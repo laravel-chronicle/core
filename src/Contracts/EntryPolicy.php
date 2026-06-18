@@ -6,6 +6,9 @@ namespace Chronicle\Contracts;
 
 use Chronicle\Entry\PendingEntry;
 
+/**
+ * Contract for opt-in policies that may reject a pending entry.
+ */
 interface EntryPolicy
 {
     /**

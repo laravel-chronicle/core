@@ -29,6 +29,6 @@ it('reads the connection from chronicle.connection not chronicle.database.connec
     // The job's handle() reads the connection via config; we verify the correct key
     // is referenced by checking the config key is present in the job source.
     $source = file_get_contents(__DIR__.'/../../../src/Jobs/PersistChronicleEntryJob.php');
-    expect($source)->toContain("config('chronicle.connection')")
-        ->and($source)->not->toContain("config('chronicle.database.connection')");
+    expect($source)->toContain("Config::get('chronicle.connection')")
+        ->and($source)->not->toContain("Config::get('chronicle.database.connection')");
 });

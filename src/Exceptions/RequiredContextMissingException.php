@@ -4,7 +4,10 @@ declare(strict_types=1);
 
 namespace Chronicle\Exceptions;
 
-class RequiredContextMissingException extends PolicyViolationException
+/**
+ * Thrown when an entry is missing a context key required by policy.
+ */
+final class RequiredContextMissingException extends PolicyViolationException
 {
     public static function missingKey(string $key): self
     {

@@ -17,10 +17,10 @@ use SodiumException;
  * ciphertext cannot be transplanted to another entry. Verification never
  * decrypts - this class is only used on the write/read paths.
  */
-final class PayloadCipher
+final readonly class PayloadCipher
 {
     public function __construct(
-        private readonly CanonicalPayloadSerializer $serializer,
+        protected CanonicalPayloadSerializer $serializer,
     ) {
         //
     }
@@ -106,7 +106,7 @@ final class PayloadCipher
         ], JSON_THROW_ON_ERROR);
     }
 
-    private function assertDek(string $dek): void
+    protected function assertDek(string $dek): void
     {
         if (strlen($dek) !== SODIUM_CRYPTO_AEAD_XCHACHA20POLY1305_IETF_KEYBYTES) {
             throw EncryptionException::invalidDek();

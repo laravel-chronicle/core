@@ -13,7 +13,7 @@ use Illuminate\Support\LazyCollection;
 /**
  * Default Chronicle ledger reader implementation.
  */
-class EloquentLedgerReader implements LedgerReaderContract
+final class EloquentLedgerReader implements LedgerReaderContract
 {
     /**
      * Cursor paginate entries.

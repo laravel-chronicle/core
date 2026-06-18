@@ -15,7 +15,7 @@ use Throwable;
  * failure rethrows from the anchorer so the queue re-runs it. Dispatched after
  * the checkpoint transaction commits, so it can never roll the checkpoint back.
  */
-class AnchorCheckpointJob implements ShouldQueue
+final class AnchorCheckpointJob implements ShouldQueue
 {
     use Queueable;
 

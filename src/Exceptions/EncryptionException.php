@@ -10,7 +10,7 @@ use Chronicle\Contracts\KeyEncryptionProvider;
  * Raised for Chronicle encryption / key-management faults. Messages never
  * contain key material or plaintext payload bytes.
  */
-class EncryptionException extends ChronicleException
+final class EncryptionException extends ChronicleException
 {
     public static function missingEncryptionKey(): self
     {
@@ -34,7 +34,7 @@ class EncryptionException extends ChronicleException
 
     public static function subjectErased(string $subjectType, string $subjectId): self
     {
-        return new self("Subject [{$subjectType}:{$subjectId}] has been erased; its encryption key cannot be recreated.");
+        return new self("Subject [$subjectType:$subjectId] has been erased; its encryption key cannot be recreated.");
     }
 
     public static function notAnEnvelope(): self

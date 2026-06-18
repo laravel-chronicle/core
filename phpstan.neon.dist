@@ -7,4 +7,5 @@ parameters:
     paths:
         - src
         - tests/Fakes
+        - database
     tmpDir: build/phpstan

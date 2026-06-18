@@ -14,11 +14,11 @@ use SodiumException;
  * $entry->metadata / $entry->payload and must never see decrypted data, so
  * decryption is an explicit, opt-in call.
  */
-final class EntryDecryptor
+final readonly class EntryDecryptor
 {
     public function __construct(
-        private readonly PayloadCipher $cipher,
-        private readonly SubjectKeyManager $keys,
+        protected PayloadCipher $cipher,
+        protected SubjectKeyManager $keys,
     ) {
         //
     }

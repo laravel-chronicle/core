@@ -21,10 +21,10 @@ final class SubjectKeyManager
      *
      * @var array<string, string>
      */
-    private array $cache = [];
+    protected array $cache = [];
 
     public function __construct(
-        private readonly KeyEncryptionManager $kek,
+        protected readonly KeyEncryptionManager $kek,
     ) {
         //
     }
@@ -139,7 +139,7 @@ final class SubjectKeyManager
         $row->save();
     }
 
-    private function find(string $subjectType, string $subjectId): ?SubjectKey
+    protected function find(string $subjectType, string $subjectId): ?SubjectKey
     {
         return SubjectKey::query()
             ->where('subject_type', $subjectType)
@@ -147,7 +147,7 @@ final class SubjectKeyManager
             ->first();
     }
 
-    private function cacheKey(string $subjectType, string $subjectId): string
+    protected function cacheKey(string $subjectType, string $subjectId): string
     {
         return $subjectType."\0".$subjectId;
     }

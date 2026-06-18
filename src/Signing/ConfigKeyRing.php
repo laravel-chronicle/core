@@ -7,17 +7,20 @@ namespace Chronicle\Signing;
 use Chronicle\Contracts\SigningProvider;
 use Chronicle\Exceptions\UnknownSigningKeyException;
 
+/**
+ * KeyRing implementation backed by the chronicle.signing config (keys plus the active key id).
+ */
 final class ConfigKeyRing implements KeyRing
 {
     /** @var array<string, SigningProvider> */
-    private array $resolved = [];
+    protected array $resolved = [];
 
     /**
      * @param  array{active: string, enforce_on_boot?: bool, keys: array<string, array<string, mixed>>}  $config
      */
     public function __construct(
-        private readonly array $config,
-        private readonly SigningProviderFactory $factory,
+        protected readonly array $config,
+        protected readonly SigningProviderFactory $factory,
     ) {
         //
     }
@@ -58,7 +61,7 @@ final class ConfigKeyRing implements KeyRing
         return $result;
     }
 
-    private function resolveById(string $id): SigningProvider
+    protected function resolveById(string $id): SigningProvider
     {
         if (! isset($this->resolved[$id])) {
             $keyConfig = $this->config['keys'][$id] ?? null;

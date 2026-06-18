@@ -11,7 +11,7 @@ use JsonException;
 /**
  * Signs Chronicle export datasets.
  */
-class ExportSigner
+final class ExportSigner
 {
     protected SigningProvider $signer;
 

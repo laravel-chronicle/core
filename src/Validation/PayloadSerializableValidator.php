@@ -12,7 +12,10 @@ use Chronicle\Pipeline\ExtensionStage;
 use Closure;
 use JsonException;
 
-class PayloadSerializableValidator implements EntryExtension, PrioritizedEntryExtension
+/**
+ * Entry extension that rejects payloads containing non-serializable values.
+ */
+final class PayloadSerializableValidator implements EntryExtension, PrioritizedEntryExtension
 {
     public function stage(): ExtensionStage
     {
@@ -65,7 +68,7 @@ class PayloadSerializableValidator implements EntryExtension, PrioritizedEntryEx
     /**
      * @param  array<mixed>  $data
      */
-    private function walk(array $data): void
+    protected function walk(array $data): void
     {
         foreach ($data as $value) {
             if ($value instanceof Closure) {

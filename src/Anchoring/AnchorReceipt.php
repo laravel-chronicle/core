@@ -14,13 +14,13 @@ use DateTimeInterface;
  * `CheckpointAnchor` row's `anchored_at` (annotated `Carbon`) without a
  * PHPStan variance error.
  */
-final class AnchorReceipt
+final readonly class AnchorReceipt
 {
     public function __construct(
-        public readonly string $provider,
-        public readonly ?string $reference,
-        public readonly ?string $proof,
-        public readonly DateTimeInterface $anchoredAt,
+        public string $provider,
+        public ?string $reference,
+        public ?string $proof,
+        public DateTimeInterface $anchoredAt,
     ) {
         //
     }

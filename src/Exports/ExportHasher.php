@@ -9,7 +9,7 @@ use RuntimeException;
 /**
  * Computes the cryptographic hash of an exported Chronicle dataset.
  */
-class ExportHasher
+final class ExportHasher
 {
     /**
      * Hash a file using SHA-256.

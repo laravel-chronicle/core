@@ -6,21 +6,23 @@ namespace Chronicle\Policy;
 
 use Chronicle\Entry\PendingEntry;
 use Chronicle\Exceptions\RateLimitExceededException;
+use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\RateLimiter;
 
-class RateLimitPolicy extends AbstractPolicy
+/**
+ * Opt-in policy that rejects entries once the configured recording rate limit is exceeded.
+ */
+final class RateLimitPolicy extends AbstractPolicy
 {
-    private readonly int $maxEntries;
+    protected readonly int $maxEntries;
 
-    private readonly int $decaySeconds;
+    protected readonly int $decaySeconds;
 
     public function __construct()
     {
-        /** @var int $entries */
-        $entries = config('chronicle.policy.rate_limit.max_entries', 60);
-        /** @var int $seconds */
-        $seconds = config('chronicle.policy.rate_limit.decay_seconds', 60);
+        $entries = Config::integer('chronicle.policy.rate_limit.max_entries', 60);
+        $seconds = Config::integer('chronicle.policy.rate_limit.decay_seconds', 60);
         $this->maxEntries = $entries;
         $this->decaySeconds = $seconds;
     }

@@ -7,7 +7,10 @@ namespace Chronicle\Console\Commands;
 use Chronicle\Entry\Entry;
 use Illuminate\Console\Command;
 
-class ShowEntryCommand extends Command
+/**
+ * Artisan command that displays the full detail of a single Chronicle entry.
+ */
+final class ShowEntryCommand extends Command
 {
     protected $signature = 'chronicle:show {id : The ULID of the entry to display}';
 

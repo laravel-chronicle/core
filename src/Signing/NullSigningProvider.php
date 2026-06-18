@@ -8,6 +8,9 @@ use Chronicle\Contracts\SigningProvider;
 use RuntimeException;
 use Throwable;
 
+/**
+ * Inert signing provider used when no valid key can be resolved; defers the failure until signing is attempted.
+ */
 final readonly class NullSigningProvider implements SigningProvider
 {
     public function __construct(

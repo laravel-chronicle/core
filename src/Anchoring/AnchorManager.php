@@ -12,14 +12,14 @@ use InvalidArgumentException;
  * Resolves anchor providers from chronicle.anchoring config, mirroring the
  * signing KeyRing/factory. Anchoring is opt-in (enabled defaults to false).
  */
-class AnchorManager
+readonly class AnchorManager
 {
     /**
      * @param  array<string, mixed>  $config
      */
     public function __construct(
-        private readonly Container $container,
-        private readonly array $config,
+        protected Container $container,
+        protected array $config,
     ) {
         //
     }

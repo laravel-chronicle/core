@@ -16,7 +16,7 @@ namespace Chronicle\Exceptions;
  * This exception enforces Chronicle's core design principle:
  * audit events must always identify who initiated them.
  */
-class MissingActorException extends ChronicleException
+final class MissingActorException extends ChronicleException
 {
     /**
      * Create a new exception instance.

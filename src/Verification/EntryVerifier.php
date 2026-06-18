@@ -9,13 +9,16 @@ use Chronicle\Hashing\ChainHasher;
 use Chronicle\Support\CanonicalPayloadSerializer;
 use JsonException;
 
-class EntryVerifier
+/**
+ * Verifies a single entry's payload hash and chain link to its predecessor.
+ */
+final class EntryVerifier
 {
     use ComparesEntryColumns;
 
     public function __construct(
-        private readonly CanonicalPayloadSerializer $serializer,
-        private readonly ChainHasher $chainHasher,
+        protected readonly CanonicalPayloadSerializer $serializer,
+        protected readonly ChainHasher $chainHasher,
     ) {
         //
     }

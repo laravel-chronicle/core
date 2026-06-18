@@ -10,7 +10,10 @@ use Chronicle\Anchoring\CheckpointAnchor;
 use Chronicle\Checkpoints\Checkpoint;
 use Illuminate\Console\Command;
 
-class AnchorVerifyCommand extends Command
+/**
+ * Artisan command that verifies stored checkpoint anchors against their providers.
+ */
+final class AnchorVerifyCommand extends Command
 {
     protected $signature = 'chronicle:anchor:verify {--checkpoint= : Verify anchors for a single checkpoint ULID (default: all anchored)}';
 

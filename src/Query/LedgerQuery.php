@@ -15,7 +15,10 @@ use Illuminate\Support\LazyCollection;
 use InvalidArgumentException;
 use Throwable;
 
-class LedgerQuery
+/**
+ * Fluent query builder for reading entries from the audit ledger.
+ */
+final class LedgerQuery
 {
     protected bool $orderApplied = false;
 

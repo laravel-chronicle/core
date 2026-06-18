@@ -13,7 +13,7 @@ use JsonException;
  * Pipeline processor responsible for computing
  * the payload hash.
  */
-class HashPayload implements EntryProcessor
+final class HashPayload implements EntryProcessor
 {
     protected EntryHasher $hasher;
 

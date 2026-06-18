@@ -16,7 +16,7 @@ use JsonException;
  * This hash is stored alongside the entry and later used
  * for integrity verification and chain hashing.
  */
-class EntryHasher
+final class EntryHasher
 {
     protected CanonicalPayloadSerializer $serializer;
 

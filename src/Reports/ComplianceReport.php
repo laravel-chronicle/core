@@ -12,6 +12,9 @@ use Illuminate\Support\Carbon;
 use JsonException;
 use RuntimeException;
 
+/**
+ * Generates a signed compliance report summarizing ledger integrity and coverage.
+ */
 class ComplianceReport
 {
     public function __construct(

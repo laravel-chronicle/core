@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\Event;
 /**
  * Persists the entry using the configured store.
  */
-class PersistEntry implements EntryProcessor
+final class PersistEntry implements EntryProcessor
 {
     protected StorageDriver $store;
 

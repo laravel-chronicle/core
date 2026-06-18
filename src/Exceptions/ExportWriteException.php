@@ -4,7 +4,10 @@ declare(strict_types=1);
 
 namespace Chronicle\Exceptions;
 
-class ExportWriteException extends ChronicleException
+/**
+ * Thrown when an audit export cannot be written to its destination.
+ */
+final class ExportWriteException extends ChronicleException
 {
     public static function directoryCreationFailed(string $path, ?string $reason = null): self
     {

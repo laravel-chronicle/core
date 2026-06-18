@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -13,9 +14,9 @@ return new class extends Migration
      *
      * Reads from config so Chronicle can use a dedicated connection.
      */
-    public function getConnection(): ?string
+    public function getConnection(): string
     {
-        return config('chronicle.connection');
+        return Config::string('chronicle.connection');
     }
 
     /**
@@ -23,7 +24,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        $tableName = config('chronicle.tables.entries', 'chronicle_entries');
+        $tableName = Config::string('chronicle.tables.entries', 'chronicle_entries');
 
         Schema::connection($this->getConnection())->create($tableName, function (Blueprint $table) use ($tableName) {
             $table->ulid('id')->primary();
@@ -46,7 +47,7 @@ return new class extends Migration
 
             $table->foreign('checkpoint_id')
                 ->references('id')
-                ->on(config('chronicle.tables.checkpoints', 'chronicle_checkpoints'))
+                ->on(Config::string('chronicle.tables.checkpoints', 'chronicle_checkpoints'))
                 ->nullOnDelete();
 
             $table->index(['actor_type', 'actor_id'], "{$tableName}_actor_type_actor_id_index");
@@ -64,7 +65,7 @@ return new class extends Migration
      */
     public function down(): void
     {
-        $table = config('chronicle.tables.entries', 'chronicle_entries');
+        $table = Config::string('chronicle.tables.entries', 'chronicle_entries');
 
         Schema::connection($this->getConnection())->dropIfExists($table);
     }

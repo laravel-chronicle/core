@@ -17,9 +17,9 @@ use SodiumException;
  */
 final class LocalKeyEncryptionProvider implements KeyEncryptionProvider
 {
-    private string $kek;
+    protected string $kek;
 
-    private string $kekId;
+    protected string $kekId;
 
     /**
      * @param  array<string, mixed>  $config

@@ -6,17 +6,21 @@ namespace Chronicle\Policy;
 
 use Chronicle\Entry\PendingEntry;
 use Chronicle\Exceptions\ActionForbiddenException;
+use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Str;
 
-class ForbiddenActionsPolicy extends AbstractPolicy
+/**
+ * Opt-in policy that rejects entries whose action is on the configured denylist.
+ */
+final class ForbiddenActionsPolicy extends AbstractPolicy
 {
     /** @var string[] */
-    private readonly array $forbiddenActions;
+    protected readonly array $forbiddenActions;
 
     public function __construct()
     {
         /** @var string[] $actions */
-        $actions = config('chronicle.policy.forbidden_actions', []);
+        $actions = Config::array('chronicle.policy.forbidden_actions', []);
         $this->forbiddenActions = $actions;
     }
 

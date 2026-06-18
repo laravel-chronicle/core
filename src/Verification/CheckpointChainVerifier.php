@@ -15,7 +15,7 @@ use JsonException;
  * the head entry's chain_hash, previous_checkpoint_id linkage, and entry_count
  * contiguity. Does NOT recompute per-entry hashes.
  */
-class CheckpointChainVerifier
+final class CheckpointChainVerifier
 {
     use VerifiesCheckpointSignature;
 

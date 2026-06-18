@@ -11,7 +11,10 @@ use Chronicle\Exceptions\InvalidDiffException;
 use Chronicle\Pipeline\ExtensionStage;
 use Closure;
 
-class DiffStructureValidator implements EntryExtension, PrioritizedEntryExtension
+/**
+ * Entry extension that validates the structure of a model diff payload.
+ */
+final class DiffStructureValidator implements EntryExtension, PrioritizedEntryExtension
 {
     /**
      * Indicates that this extension runs during the validation stage.
@@ -100,7 +103,7 @@ class DiffStructureValidator implements EntryExtension, PrioritizedEntryExtensio
      *
      * @throws InvalidDiffException If a Closure, resource, or object is found.
      */
-    private function assertSerializable(mixed $value, string $key, string $side): void
+    protected function assertSerializable(mixed $value, string $key, string $side): void
     {
         if ($value instanceof Closure) {
             throw InvalidDiffException::valueContainsClosure($key, $side);

@@ -9,8 +9,12 @@ use Chronicle\Contracts\PrioritizedEntryExtension;
 use Chronicle\Entry\PendingEntry;
 use Chronicle\Exceptions\InvalidTagsException;
 use Chronicle\Pipeline\ExtensionStage;
+use Illuminate\Support\Facades\Config;
 
-class TagsValidator implements EntryExtension, PrioritizedEntryExtension
+/**
+ * Entry extension that validates tag values (type and length) for an entry.
+ */
+final class TagsValidator implements EntryExtension, PrioritizedEntryExtension
 {
     /**
      * Indicates that this extension runs during the validation stage.
@@ -91,8 +95,7 @@ class TagsValidator implements EntryExtension, PrioritizedEntryExtension
      */
     protected function maxLength(): int
     {
-        /** @var int $length */
-        $length = config('chronicle.validation.tag_max_length', 50);
+        $length = Config::integer('chronicle.validation.tag_max_length', 50);
 
         return $length;
     }

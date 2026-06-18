@@ -9,6 +9,9 @@ use Chronicle\Contracts\EntryExtension;
 use Chronicle\Entry\PendingEntry;
 use Chronicle\Pipeline\ExtensionStage;
 
+/**
+ * Base class for context resolvers; runs as an entry extension and merges its resolved data under a named context key.
+ */
 abstract class AbstractContextResolver implements ContextResolver, EntryExtension
 {
     public function stage(): ExtensionStage

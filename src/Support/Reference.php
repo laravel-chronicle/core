@@ -12,7 +12,7 @@ namespace Chronicle\Support;
  * Every actor and subject is converted into a Reference,
  * so the ledger stores deterministic identifiers.
  */
-class Reference
+final class Reference
 {
     /**
      * Reference type (usually class name).

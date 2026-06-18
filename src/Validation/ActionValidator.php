@@ -9,8 +9,12 @@ use Chronicle\Contracts\PrioritizedEntryExtension;
 use Chronicle\Entry\PendingEntry;
 use Chronicle\Exceptions\InvalidActionException;
 use Chronicle\Pipeline\ExtensionStage;
+use Illuminate\Support\Facades\Config;
 
-class ActionValidator implements EntryExtension, PrioritizedEntryExtension
+/**
+ * Entry extension that validates an entry's action is present and within the configured length.
+ */
+final class ActionValidator implements EntryExtension, PrioritizedEntryExtension
 {
     public function stage(): ExtensionStage
     {
@@ -45,8 +49,7 @@ class ActionValidator implements EntryExtension, PrioritizedEntryExtension
 
     protected function maxLength(): int
     {
-        /** @var int $length */
-        $length = config('chronicle.validation.action_max_length', 255);
+        $length = Config::integer('chronicle.validation.action_max_length', 255);
 
         return $length;
     }

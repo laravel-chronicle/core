@@ -6,8 +6,12 @@ namespace Chronicle\Storage;
 
 use Chronicle\Contracts\StorageDriver;
 use Chronicle\Entry\Entry;
+use LogicException;
 
-class QueuedDriver implements StorageDriver
+/**
+ * Storage driver that defers entry persistence to a queued job on the single-worker chronicle queue.
+ */
+final class QueuedDriver implements StorageDriver
 {
     /**
      * @param  array<string, mixed>  $entry
@@ -17,6 +21,6 @@ class QueuedDriver implements StorageDriver
         // ChronicleManager::runCommit() detects QueuedDriver and dispatches
         // PersistChronicleEntryJob directly - this method is never called on
         // the normal code path. Throw to make any accidental direct call visible.
-        throw new \LogicException('QueuedDriver::store() must not be called directly. Dispatch is handled by ChronicleManager::runCommit().');
+        throw new LogicException('QueuedDriver::store() must not be called directly. Dispatch is handled by ChronicleManager::runCommit().');
     }
 }

@@ -7,6 +7,7 @@ namespace Chronicle\Encryption;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Config;
 
 /**
  * A wrapped per-subject Data Encryption Key (DEK).
@@ -49,7 +50,7 @@ class SubjectKey extends Model
     public function getConnectionName(): ?string
     {
         /** @var string|null $configured */
-        $configured = config('chronicle.connection');
+        $configured = Config::get('chronicle.connection');
 
         if (is_string($configured) && $configured !== '') {
             return $configured;
@@ -60,8 +61,7 @@ class SubjectKey extends Model
 
     public function getTable(): string
     {
-        /** @var string $table */
-        $table = config('chronicle.tables.subject_keys', 'chronicle_subject_keys');
+        $table = Config::string('chronicle.tables.subject_keys', 'chronicle_subject_keys');
 
         return $table;
     }

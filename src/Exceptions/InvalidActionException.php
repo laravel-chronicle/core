@@ -4,7 +4,10 @@ declare(strict_types=1);
 
 namespace Chronicle\Exceptions;
 
-class InvalidActionException extends ChronicleException
+/**
+ * Thrown when an entry's action is missing or fails validation (empty or too long).
+ */
+final class InvalidActionException extends ChronicleException
 {
     public static function mustBeString(mixed $action): self
     {

@@ -4,7 +4,10 @@ declare(strict_types=1);
 
 namespace Chronicle\Exceptions;
 
-class InvalidCorrelationIdException extends ChronicleException
+/**
+ * Thrown when an entry's correlation id exceeds the configured maximum length.
+ */
+final class InvalidCorrelationIdException extends ChronicleException
 {
     /**
      * Create an InvalidCorrelationIdException for a value that is not a string.

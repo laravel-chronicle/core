@@ -9,7 +9,10 @@ use Chronicle\Lifecycle\LegalHold;
 use Illuminate\Console\Command;
 use Throwable;
 
-class SubjectEraseCommand extends Command
+/**
+ * Artisan command that crypto-shreds a subject (GDPR Art. 17) and records a PII-free erasure proof.
+ */
+final class SubjectEraseCommand extends Command
 {
     protected $signature = 'chronicle:subject:erase
         {type : Subject type}
