@@ -264,7 +264,7 @@ Upgrading an existing ledger? Run `chronicle:checkpoints:backfill` once so histo
 
 ## GDPR erasure (crypto-shredding)
 
-An append-only ledger seems to collide with the GDPR Article 17 right to erasure — you can't delete an entry without breaking the chain. Chronicle resolves this with **crypto-shredding**: PII-bearing payload fields are encrypted under a **per-subject key** *before* hashing, so the chain is computed over ciphertext. To honour an erasure request you destroy that subject's key. The ciphertext stays in place (the ledger still verifies, byte-for-byte), but the content is permanently unreadable. What remains is the pseudonymised *fact* that an event occurred — the evidence, not the personal data.
+An append-only ledger seems to collide with the GDPR Article 17 right to erasure - you can't delete an entry without breaking the chain. Chronicle resolves this with **crypto-shredding**: PII-bearing payload fields are encrypted under a **per-subject key** *before* hashing, so the chain is computed over ciphertext. To honour an erasure request you destroy that subject's key. The ciphertext stays in place (the ledger still verifies, byte-for-byte), but the content is permanently unreadable. What remains is the pseudonymised *fact* that an event occurred - the evidence, not the personal data.
 
 Encryption is **opt-in** and, when disabled, behaviour is identical to pre-1.12.
 
@@ -292,7 +292,7 @@ php artisan chronicle:encryption:rotate-kek --old-key=... # re-wrap all DEKs und
 
 Erasing a subject is itself recorded as a verifiable, PII-free `subject.erased` entry, so you can prove to a regulator that erasure happened and when. The cleartext envelope (actor, action, subject reference, timestamp, tags) stays queryable; reads of erased fields return a tombstone. Legal holds block erasure and pruning of subjects under litigation hold.
 
-> Crypto-shredding guarantees erasure in the live store. Backups taken before erasure still contain recoverable data and are governed by your backup-retention policy. Whether retaining a pseudonymised event record satisfies a given erasure request is a legal/DPO determination — this is not legal advice.
+> Crypto-shredding guarantees erasure in the live store. Backups taken before erasure still contain recoverable data and are governed by your backup-retention policy. Whether retaining a pseudonymised event record satisfies a given erasure request is a legal/DPO determination - this is not legal advice.
 
 See [Crypto-Shredding](https://laravel-chronicle.github.io/docs/crypto-shredding) and the [GDPR erasure guide](https://laravel-chronicle.github.io/docs/gdpr-erasure).
 
