@@ -4,8 +4,10 @@ namespace Chronicle\Console\Commands;
 
 use Carbon\Carbon;
 use Chronicle\Entry\Entry;
+use Chronicle\Lifecycle\LegalHold;
 use Illuminate\Console\Command;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Query\Builder as QueryBuilder;
 use Illuminate\Support\Facades\DB;
 use Throwable;
 
@@ -152,6 +154,17 @@ class PruneCommand extends Command
         if (! $force && $respectCheckpoints) {
             $query->whereNull('checkpoint_id');
         }
+
+        $holdsTable = (new LegalHold)->getTable();
+        $entriesTable = (new Entry)->getTable();
+
+        $query->whereNotExists(function (QueryBuilder $sub) use ($holdsTable, $entriesTable) {
+            $sub->select(DB::raw(1))
+                ->from($holdsTable)
+                ->whereColumn($holdsTable.'.subject_type', $entriesTable.'.subject_type')
+                ->whereColumn($holdsTable.'.subject_id', $entriesTable.'.subject_id')
+                ->whereNull($holdsTable.'.released_at');
+        });
 
         return $query;
     }

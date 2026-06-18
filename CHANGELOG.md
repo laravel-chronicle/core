@@ -26,6 +26,7 @@ breaking changes between any two versions - see upgrade notes per version.
 ### Changed
 
 - `PayloadCipher` AAD now binds `(id, subject_type, subject_id, action)` and no longer includes `sequence`. Encryption runs before the chain assigns a sequence (and the queued driver assigns it in a deferred job), so `sequence` is not available at encrypt-time; the per-entry ULID `id` keeps the AAD unique, so ciphertext still cannot be transplanted between entries.
+- `chronicle:prune` now excludes entries belonging to subjects under an active legal hold, so held subjects survive retention pruning. The exclusion is not overridable by `--force`.
 
 ---
 
