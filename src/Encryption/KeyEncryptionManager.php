@@ -24,6 +24,17 @@ final class KeyEncryptionManager
         /** @var array<string, mixed> $config */
         $config = (array) config('chronicle.encryption.kek', []);
 
+        return $this->providerFor($config);
+    }
+
+    /**
+     * Build a provider from an explicit KEK config block. Used by KEK rotation
+     * to construct the OLD provider while the container/config hold the NEW KEK.
+     *
+     * @param  array<string, mixed>  $config
+     */
+    public function providerFor(array $config): KeyEncryptionProvider
+    {
         $providerClass = $config['provider'] ?? null;
 
         if (! is_string($providerClass) || ! is_a($providerClass, KeyEncryptionProvider::class, true)) {

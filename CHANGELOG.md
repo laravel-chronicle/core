@@ -23,6 +23,7 @@ breaking changes between any two versions - see upgrade notes per version.
 - Legal holds: new `chronicle_legal_holds` table (`chronicle.tables.legal_holds`) and `LegalHold` model with `isHeld()`/`place()`/`release()` (place is idempotent - one active hold per subject), plus a `chronicle:legal-hold {place|release} {type} {id} {--reason=} {--by=}` command. An active hold blocks erasure and pruning of the subject.
 - `chronicle:subject:erase {type} {id} {--reason=} {--force}`: CLI for `Chronicle::eraseSubject()`. Refuses subjects under an active legal hold unless `--force` is given; a forced override is itself audited via a `legal_hold_override` flag in the `subject.erased` proof.
 - `chronicle:subject:keys {--subject=} {--status=} {--json}`: lists each subject's key state (active/erased), `created_at`/`erased_at`, and entry count for operators/DPOs. Never prints wrapped key material.
+- `chronicle:encryption:rotate-kek {--old-key=} {--old-kek-id=} {--chunk=}`: re-wraps every active subject DEK from the previous KEK to the new (configured) KEK and updates `kek_id`, chunked and idempotent (rows already on the new `kek_id` are skipped, erased subjects skipped). Entry ciphertext, `payload_hash`, and `chain_hash` are never touched, so the ledger is unaffected. Backed by a new `KeyEncryptionManager::providerFor()`.
 
 ### Changed
 
