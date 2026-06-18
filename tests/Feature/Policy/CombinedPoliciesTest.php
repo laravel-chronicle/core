@@ -1,6 +1,6 @@
 <?php
 
-// tests/Feature/Policy/CombinedPoliciesTest.php
+declare(strict_types=1);
 
 use Chronicle\Exceptions\ActionForbiddenException;
 use Chronicle\Exceptions\ActionNotAllowedException;

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use Chronicle\Facades\Chronicle;
 use Chronicle\Reports\ComplianceReport;
 use Illuminate\Support\Str;

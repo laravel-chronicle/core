@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use Chronicle\Events\EntryRejected;
 use Chronicle\Exceptions\ChronicleException;
 use Chronicle\Facades\Chronicle;

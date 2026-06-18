@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use Chronicle\Signing\Ed25519SigningProvider;
 
 it('throws when private key is missing', function () {

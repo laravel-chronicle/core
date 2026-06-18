@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Chronicle\Encryption;
 
 use Illuminate\Database\Eloquent\Concerns\HasUlids;

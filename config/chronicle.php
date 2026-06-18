@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use Chronicle\Encryption\LocalKeyEncryptionProvider;
 use Chronicle\Signing\Ed25519SigningProvider;
 use Chronicle\Validation\ActionValidator;

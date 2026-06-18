@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use Chronicle\Lifecycle\LegalHold;
 
 beforeEach(fn () => $this->useEloquentDriver());

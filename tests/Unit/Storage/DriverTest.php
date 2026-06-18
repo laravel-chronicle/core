@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use Chronicle\Entry\Entry;
 use Chronicle\Storage\ArrayDriver;
 use Chronicle\Storage\NullDriver;

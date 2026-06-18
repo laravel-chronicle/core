@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use Chronicle\Facades\Chronicle;
 use Chronicle\Jobs\PersistChronicleEntryJob;
 use Chronicle\Storage\QueuedDriver;

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use Chronicle\Context\EnvironmentContextResolver;
 use Chronicle\Entry\PendingEntry;
 use Chronicle\Pipeline\ExtensionStage;

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use Chronicle\Encryption\PayloadCipher;
 
 it('produces unique nonces across a large batch of encryptions', function () {

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Chronicle\Http\Controllers;
 
 use Chronicle\Checkpoints\Checkpoint;

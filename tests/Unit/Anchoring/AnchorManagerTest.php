@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use Chronicle\Anchoring\AnchorManager;
 use Chronicle\Anchoring\NullAnchor;
 

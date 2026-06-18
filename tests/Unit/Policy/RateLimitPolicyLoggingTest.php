@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use Chronicle\Exceptions\RateLimitExceededException;
 use Chronicle\Policy\RateLimitPolicy;
 use Illuminate\Support\Facades\Log;

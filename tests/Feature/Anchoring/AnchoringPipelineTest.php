@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use Chronicle\Anchoring\AnchorReceipt;
 use Chronicle\Anchoring\CheckpointAnchorer;
 use Chronicle\Anchoring\CheckpointDigest;

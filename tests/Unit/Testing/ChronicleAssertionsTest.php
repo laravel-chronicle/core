@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use Chronicle\Storage\ArrayDriver;
 use Chronicle\Testing\ChronicleAssertions;
 use PHPUnit\Framework\AssertionFailedError;

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use Chronicle\Support\DefaultReferenceResolver;
 use Chronicle\Support\Reference;
 use Illuminate\Database\Eloquent\Model;

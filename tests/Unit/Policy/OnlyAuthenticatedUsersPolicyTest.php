@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use Chronicle\Exceptions\UnauthenticatedActorException;
 use Chronicle\Policy\OnlyAuthenticatedUsersPolicy;
 use Illuminate\Support\Facades\Auth;

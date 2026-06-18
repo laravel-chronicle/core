@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Chronicle\Tests\Feature\Infrastructure;
 
 use Chronicle\Tests\TestCase;

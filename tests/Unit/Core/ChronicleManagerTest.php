@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use Chronicle\ChronicleManager;
 use Chronicle\Contracts\EntryExtension;
 use Chronicle\Contracts\LedgerReader;

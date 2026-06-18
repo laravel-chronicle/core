@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use Chronicle\Hashing\ChainHasher;
 
 it('exposes the genesis seed as a shared constant', function () {

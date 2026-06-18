@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use Chronicle\Http\Middleware\ChronicleUiEnabled;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpKernel\Exception\HttpException;

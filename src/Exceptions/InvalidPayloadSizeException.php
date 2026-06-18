@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Chronicle\Exceptions;
 
 class InvalidPayloadSizeException extends ChronicleException

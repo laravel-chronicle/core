@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use Chronicle\Support\CanonicalPayloadSerializer;
 
 it('fails checkpoint command when ledger is empty', function () {

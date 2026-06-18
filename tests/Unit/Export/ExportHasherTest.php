@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use Chronicle\Exports\ExportHasher;
 
 it('computes a sha256 hash for a file', function () {

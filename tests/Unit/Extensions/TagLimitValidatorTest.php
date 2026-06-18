@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use Chronicle\Entry\PendingEntry;
 use Chronicle\Exceptions\InvalidTagsException;
 use Chronicle\Pipeline\ExtensionStage;

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use Chronicle\Encryption\SubjectKey;
 use Illuminate\Database\QueryException;
 

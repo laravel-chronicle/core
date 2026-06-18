@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use Chronicle\Contracts\LedgerReader as LedgerReaderContract;
 use Chronicle\Entry\Entry;
 use Chronicle\Facades\Chronicle;

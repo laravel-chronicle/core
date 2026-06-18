@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use Chronicle\Storage\SerializesEntryAttributes;
 use Illuminate\Support\Carbon;
 

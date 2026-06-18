@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use Chronicle\Jobs\PersistChronicleEntryJob;
 
 it('has tries set to 1', function () {

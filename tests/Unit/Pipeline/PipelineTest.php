@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use Chronicle\Contracts\EntryProcessor;
 use Chronicle\Contracts\StorageDriver;
 use Chronicle\Entry\Entry;
