@@ -24,6 +24,7 @@ breaking changes between any two versions - see upgrade notes per version.
 - `chronicle:subject:erase {type} {id} {--reason=} {--force}`: CLI for `Chronicle::eraseSubject()`. Refuses subjects under an active legal hold unless `--force` is given; a forced override is itself audited via a `legal_hold_override` flag in the `subject.erased` proof.
 - `chronicle:subject:keys {--subject=} {--status=} {--json}`: lists each subject's key state (active/erased), `created_at`/`erased_at`, and entry count for operators/DPOs. Never prints wrapped key material.
 - `chronicle:encryption:rotate-kek {--old-key=} {--old-kek-id=} {--chunk=}`: re-wraps every active subject DEK from the previous KEK to the new (configured) KEK and updates `kek_id`, chunked and idempotent (rows already on the new `kek_id` are skipped, erased subjects skipped). Entry ciphertext, `payload_hash`, and `chain_hash` are never touched, so the ledger is unaffected. Backed by a new `KeyEncryptionManager::providerFor()`.
+- `EncryptBackfiller`: the re-baselining engine behind `chronicle:encrypt-backfill`. Walks the ledger in `sequence` order, encrypts the configured fields of historical entries under each subject DEK (rewriting both the hashed payload copy and the denormalized columns), recomputes `payload_hash`, and re-links `chain_hash` from the first rewritten entry to the head. Idempotent (re-runs and dry-runs write nothing), skips already-encrypted fields, and respects legal holds (held subjects stay cleartext). Returns a `BackfillReport` of scanned/encrypted/relinked counts.
 
 ### Changed
 
