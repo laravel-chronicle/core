@@ -1,9 +1,14 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Chronicle\Eloquent;
 
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * Builds a before/after attribute diff for an audited Eloquent model change.
+ */
 final class ModelDiffBuilder
 {
     /**

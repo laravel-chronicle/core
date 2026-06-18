@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Chronicle\Validation;
 
 use Chronicle\Contracts\EntryExtension;
@@ -7,8 +9,12 @@ use Chronicle\Contracts\PrioritizedEntryExtension;
 use Chronicle\Entry\PendingEntry;
 use Chronicle\Exceptions\InvalidCorrelationIdException;
 use Chronicle\Pipeline\ExtensionStage;
+use Illuminate\Support\Facades\Config;
 
-class CorrelationValidator implements EntryExtension, PrioritizedEntryExtension
+/**
+ * Entry extension that validates the correlation id length against the configured maximum.
+ */
+final class CorrelationValidator implements EntryExtension, PrioritizedEntryExtension
 {
     /**
      * Indicates that this extension runs during the validation stage.
@@ -75,8 +81,7 @@ class CorrelationValidator implements EntryExtension, PrioritizedEntryExtension
      */
     protected function maxLength(): int
     {
-        /** @var int $length */
-        $length = config('chronicle.validation.correlation_id_max_length', 255);
+        $length = Config::integer('chronicle.validation.correlation_id_max_length', 255);
 
         return $length;
     }

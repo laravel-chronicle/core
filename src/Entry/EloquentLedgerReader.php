@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Chronicle\Entry;
 
 use Chronicle\Contracts\LedgerReader as LedgerReaderContract;
@@ -11,7 +13,7 @@ use Illuminate\Support\LazyCollection;
 /**
  * Default Chronicle ledger reader implementation.
  */
-class EloquentLedgerReader implements LedgerReaderContract
+final class EloquentLedgerReader implements LedgerReaderContract
 {
     /**
      * Cursor paginate entries.

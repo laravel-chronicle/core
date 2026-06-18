@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Chronicle\Events;
 
 use Throwable;
@@ -10,14 +12,14 @@ use Throwable;
  * The $reason is the exception that caused the rejection.
  * The $payload is the raw entry attributes at the point of rejection.
  */
-class EntryRejected
+readonly class EntryRejected
 {
     /**
      * @param  array<string, mixed>  $payload
      */
     public function __construct(
-        public readonly Throwable $reason,
-        public readonly array $payload
+        public Throwable $reason,
+        public array $payload
     ) {
         //
     }

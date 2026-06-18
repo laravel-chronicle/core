@@ -1,8 +1,13 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Chronicle\Exceptions;
 
-class UnserializablePayloadException extends ChronicleException
+/**
+ * Thrown when an entry payload contains a value that cannot be canonically serialized.
+ */
+final class UnserializablePayloadException extends ChronicleException
 {
     public static function containsClosure(): self
     {

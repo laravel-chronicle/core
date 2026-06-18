@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Chronicle\Checkpoints;
 
 use Chronicle\Anchoring\CheckpointAnchor;
@@ -10,6 +12,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Config;
 
 /**
  * Represents a cryptographic anchor in the Chronicle ledger.
@@ -19,6 +22,7 @@ use Illuminate\Support\Carbon;
  *
  * Checkpoints are immutable once created.
  *
+ * @property string $id
  * @property string $chain_hash
  * @property string $signature
  * @property string $algorithm
@@ -37,8 +41,7 @@ class Checkpoint extends Model
      */
     public function getConnectionName(): ?string
     {
-        /** @var string|null $configured */
-        $configured = config('chronicle.connection');
+        $configured = Config::get('chronicle.connection');
 
         if (is_string($configured) && $configured !== '') {
             return $configured;
@@ -53,10 +56,7 @@ class Checkpoint extends Model
      */
     public function getTable(): string
     {
-        /** @var string $table */
-        $table = config('chronicle.tables.checkpoints', 'chronicle_checkpoints');
-
-        return $table;
+        return Config::string('chronicle.tables.checkpoints', 'chronicle_checkpoints');
     }
 
     public $incrementing = false;

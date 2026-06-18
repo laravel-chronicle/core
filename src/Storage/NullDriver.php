@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Chronicle\Storage;
 
 use Chronicle\Contracts\StorageDriver;
@@ -19,7 +21,7 @@ use JsonException;
  * Returns an unsaved Entry model hydrated from the PendingEntry so that
  * call sites which use the return value don't need null checks.
  */
-class NullDriver implements StorageDriver
+final class NullDriver implements StorageDriver
 {
     use SerializesEntryAttributes;
 

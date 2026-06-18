@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Chronicle\Transaction;
 
 use Chronicle\ChronicleManager;
@@ -11,7 +13,7 @@ use Chronicle\Entry\EntryBuilder;
  * A transaction groups multiple entries under a shared
  * correlation identifier.
  */
-class ChronicleTransaction
+final class ChronicleTransaction
 {
     protected ChronicleManager $manager;
 

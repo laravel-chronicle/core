@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use Chronicle\Support\CanonicalPayloadSerializer;
 
 it('produces deterministic json', function () {

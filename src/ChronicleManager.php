@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Chronicle;
 
 use Chronicle\Contracts\EntryExtension;
@@ -26,6 +28,7 @@ use Chronicle\Transaction\ChronicleTransaction;
 use Illuminate\Contracts\Container\BindingResolutionException;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Str;
@@ -63,7 +66,7 @@ class ChronicleManager
 
     protected EntryExtensionRegistry $extensions;
 
-    private ?StorageDriver $resolvedDriver = null;
+    protected ?StorageDriver $resolvedDriver = null;
 
     protected EntryPipeline $prePipeline;
 
@@ -294,11 +297,10 @@ class ChronicleManager
             $entry = new PendingEntry($payload);
             $entry = $this->prePipeline->process($entry);
 
-            /** @var string $queue */
-            $queue = config('chronicle.queue.name', 'chronicle');
+            $queue = Config::string('chronicle.queue.name', 'chronicle');
 
             /** @var string|null $connection */
-            $connection = config('chronicle.queue.connection');
+            $connection = Config::get('chronicle.queue.connection');
 
             $attrs = $entry->toDatabasePayload();
 
@@ -314,7 +316,7 @@ class ChronicleManager
         }
 
         /** @var string|null $connection */
-        $connection = config('chronicle.connection');
+        $connection = Config::get('chronicle.connection');
 
         DB::connection($connection)->transaction(function () use ($payload) {
             $entry = new PendingEntry($payload);
@@ -352,8 +354,7 @@ class ChronicleManager
     public function getActiveDriver(): StorageDriver
     {
         if ($this->resolvedDriver === null) {
-            /** @var string $driver */
-            $driver = config('chronicle.driver', 'eloquent');
+            $driver = Config::string('chronicle.driver', 'eloquent');
 
             $this->resolvedDriver = $this->drivers->resolve($driver);
         }

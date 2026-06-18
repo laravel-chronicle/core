@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Chronicle\Anchoring;
 
 use Chronicle\Checkpoints\Checkpoint;
@@ -13,10 +15,11 @@ use Throwable;
  * failure marks the row 'failed' and rethrows so the queue can retry; it never
  * affects the checkpoint itself (the checkpoint is already committed).
  */
-class CheckpointAnchorer
+readonly class CheckpointAnchorer
 {
-    public function __construct(private readonly AnchorManager $manager)
-    {
+    public function __construct(
+        protected AnchorManager $manager,
+    ) {
         //
     }
 

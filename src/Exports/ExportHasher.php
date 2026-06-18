@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Chronicle\Exports;
 
 use RuntimeException;
@@ -7,7 +9,7 @@ use RuntimeException;
 /**
  * Computes the cryptographic hash of an exported Chronicle dataset.
  */
-class ExportHasher
+final class ExportHasher
 {
     /**
      * Hash a file using SHA-256.

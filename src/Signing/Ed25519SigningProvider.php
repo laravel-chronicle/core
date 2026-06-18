@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Chronicle\Signing;
 
 use Chronicle\Contracts\SigningProvider;
@@ -10,7 +12,7 @@ use SodiumException;
 /**
  * Ed25519 signing provider using libsodium.
  */
-class Ed25519SigningProvider implements SigningProvider
+final class Ed25519SigningProvider implements SigningProvider
 {
     protected ?string $privateKey = null;
 
@@ -52,7 +54,7 @@ class Ed25519SigningProvider implements SigningProvider
     /**
      * @param  array{private_key?: ?string, public_key?: string, key_id?: string}  $config
      */
-    private function bootFromConfig(array $config): void
+    protected function bootFromConfig(array $config): void
     {
         // private_key is optional - null means verify-only
         $rawPrivate = $config['private_key'] ?? null;
@@ -114,7 +116,7 @@ class Ed25519SigningProvider implements SigningProvider
         );
     }
 
-    private function decodeBase64(?string $encoded, string $envName, int $expectedBytes): string
+    protected function decodeBase64(?string $encoded, string $envName, int $expectedBytes): string
     {
         if (! is_string($encoded) || $encoded === '') {
             throw new InvalidArgumentException(

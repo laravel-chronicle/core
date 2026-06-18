@@ -1,7 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Schema;
 
 /**
@@ -21,9 +24,9 @@ return new class extends Migration
      *
      * Reads from config so Chronicle can use a dedicated connection.
      */
-    public function getConnection(): ?string
+    public function getConnection(): string
     {
-        return config('chronicle.connection');
+        return Config::string('chronicle.connection');
     }
 
     /**
@@ -31,8 +34,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        $checkpoints = config('chronicle.tables.checkpoints', 'chronicle_checkpoints');
-        $entries = config('chronicle.tables.entries', 'chronicle_entries');
+        $checkpoints = Config::string('chronicle.tables.checkpoints', 'chronicle_checkpoints');
+        $entries = Config::string('chronicle.tables.entries', 'chronicle_entries');
         $schema = Schema::connection($this->getConnection());
 
         $schema->table($checkpoints, function (Blueprint $table) use ($checkpoints) {
@@ -56,8 +59,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        $checkpoints = config('chronicle.tables.checkpoints', 'chronicle_checkpoints');
-        $entries = config('chronicle.tables.entries', 'chronicle_entries');
+        $checkpoints = Config::string('chronicle.tables.checkpoints', 'chronicle_checkpoints');
+        $entries = Config::string('chronicle.tables.entries', 'chronicle_entries');
         $schema = Schema::connection($this->getConnection());
 
         $schema->table($checkpoints, function (Blueprint $table) use ($checkpoints) {
@@ -78,7 +81,7 @@ return new class extends Migration
         $schema = Schema::connection($this->getConnection());
 
         foreach ($schema->getIndexes($table) as $existing) {
-            if (($existing['name'] ?? null) === $index) {
+            if ($existing['name'] === $index) {
                 return true;
             }
         }

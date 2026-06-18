@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Chronicle\Entry;
 
 use Chronicle\ChronicleManager;
@@ -40,7 +42,7 @@ use Throwable;
  *      ->tags(['billing'])
  *      ->build();
  */
-class EntryBuilder
+final class EntryBuilder
 {
     /**
      * Resolver used to convert actor and subject values

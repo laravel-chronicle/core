@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Chronicle\Exports;
 
 /**
@@ -8,7 +10,7 @@ namespace Chronicle\Exports;
  * This object is returned by the EntryExporter after streaming entries
  * to the export file.
  */
-class EntryExportResult
+final class EntryExportResult
 {
     /**
      * Create a new export result instance.

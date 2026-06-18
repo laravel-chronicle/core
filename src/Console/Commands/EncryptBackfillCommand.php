@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Chronicle\Console\Commands;
 
 use Chronicle\Checkpoints\CheckpointCreator;
@@ -7,6 +9,7 @@ use Chronicle\Encryption\BackfillReport;
 use Chronicle\Encryption\EncryptBackfiller;
 use Illuminate\Console\Command;
 use Illuminate\Console\ConfirmableTrait;
+use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Throwable;
@@ -18,7 +21,7 @@ use Throwable;
  * rewritten entry to the head, then creates a fresh signed checkpoint. This is
  * the only sanctioned ledger rewrite - it is never wired into normal recording.
  */
-class EncryptBackfillCommand extends Command
+final class EncryptBackfillCommand extends Command
 {
     use ConfirmableTrait;
 
@@ -35,7 +38,7 @@ class EncryptBackfillCommand extends Command
      */
     public function handle(EncryptBackfiller $backfiller, CheckpointCreator $checkpoints): int
     {
-        if (config('chronicle.encryption.enabled', false) !== true) {
+        if (Config::boolean('chronicle.encryption.enabled', false) !== true) {
             $this->error('chronicle.encryption.enabled is false. Enable encryption before backfilling.');
 
             return self::FAILURE;
@@ -69,8 +72,8 @@ class EncryptBackfillCommand extends Command
             }
         }
 
-        /** @var string|null $conn */
-        $conn = config('chronicle.connection');
+        $conn = Config::get('chronicle.connection');
+        $conn = is_string($conn) ? $conn : null;
 
         if ($dryRun) {
             $report = $backfiller->run($from, $chunk, true);
@@ -103,7 +106,7 @@ class EncryptBackfillCommand extends Command
         return self::SUCCESS;
     }
 
-    private function report(BackfillReport $report): int
+    protected function report(BackfillReport $report): int
     {
         $prefix = $report->dryRun ? '[dry run] ' : '';
 

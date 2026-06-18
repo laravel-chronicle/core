@@ -1,8 +1,11 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Chronicle\Exports;
 
 use Chronicle\Exceptions\ExportWriteException;
+use JsonException;
 
 /**
  * Coordinates Chronicle dataset exports.
@@ -26,6 +29,8 @@ class ExportManager
      * dataset hash will not match the actual exported data. In production, ensure
      * the export path is outside any publicly writable location and that no
      * concurrent export jobs target the same path.
+     *
+     * @throws JsonException
      */
     public function export(string $path): ExportResult
     {

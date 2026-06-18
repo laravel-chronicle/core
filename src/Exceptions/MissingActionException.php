@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Chronicle\Exceptions;
 
 /**
@@ -14,7 +16,7 @@ namespace Chronicle\Exceptions;
  * Chronicle requires actions to be explicit to maintain
  * a meaningful and searchable audit trail.
  */
-class MissingActionException extends ChronicleException
+final class MissingActionException extends ChronicleException
 {
     /**
      * Create a new exception instance.

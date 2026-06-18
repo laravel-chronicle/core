@@ -1,7 +1,12 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Chronicle\Verification;
 
+/**
+ * Enumerates the reasons an entry or ledger verification can fail.
+ */
 enum VerificationFailure: string
 {
     // Entry-level

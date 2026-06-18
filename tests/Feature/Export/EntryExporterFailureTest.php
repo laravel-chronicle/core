@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use Chronicle\Entry\Entry;
 use Chronicle\Exceptions\ExportWriteException;
 use Chronicle\Exports\EntryExporter;

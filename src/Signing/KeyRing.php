@@ -1,10 +1,15 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Chronicle\Signing;
 
 use Chronicle\Contracts\SigningProvider;
 use Chronicle\Exceptions\UnknownSigningKeyException;
 
+/**
+ * Contract for a signing key ring that resolves signing and verifying providers by key id.
+ */
 interface KeyRing
 {
     /**

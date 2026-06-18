@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Chronicle\Support;
 
 use BackedEnum;
@@ -24,7 +26,7 @@ use UnitEnum;
  *
  * The serializer recursively sorts keys and normalizes values.
  */
-class CanonicalPayloadSerializer
+final class CanonicalPayloadSerializer
 {
     /**
      * Serialize a payload into canonical JSON.

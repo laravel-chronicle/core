@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Chronicle\Console\Commands;
 
 use Chronicle\Signing\Ed25519SigningProvider;
@@ -7,7 +9,10 @@ use Illuminate\Console\Command;
 use Illuminate\Support\Str;
 use SodiumException;
 
-class KeyGenerateCommand extends Command
+/**
+ * Artisan command that generates an Ed25519 keypair for use in signing.keys.
+ */
+final class KeyGenerateCommand extends Command
 {
     protected $signature = 'chronicle:key:generate
         {--id= : Key ID to use in the config snippet (defaults to chronicle-key-YYYYMMDD)}';

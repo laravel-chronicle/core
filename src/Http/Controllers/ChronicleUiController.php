@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Chronicle\Http\Controllers;
 
 use Chronicle\Checkpoints\Checkpoint;
@@ -8,10 +10,14 @@ use Chronicle\Query\LedgerStats;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Config;
 use Illuminate\View\View;
 use Throwable;
 
-class ChronicleUiController
+/**
+ * Read-only controller backing the Chronicle Blade UI for browsing entries and checkpoints.
+ */
+final class ChronicleUiController
 {
     public function index(Request $request): View
     {
@@ -62,8 +68,7 @@ class ChronicleUiController
 
         $query->orderBy('id', $sort);
 
-        /** @var int $perPage */
-        $perPage = config('chronicle.ui.per_page', 25);
+        $perPage = Config::integer('chronicle.ui.per_page', 25);
 
         $entries = $query->paginate($perPage)->withQueryString();
 

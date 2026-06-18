@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Chronicle\Console\Commands;
 
 use Chronicle\Anchoring\AnchorManager;
@@ -14,7 +16,7 @@ use Throwable;
  * Creates a cryptographic checkpoint anchoring the current
  * Chronicle ledger head.
  */
-class CreateCheckpointCommand extends Command
+final class CreateCheckpointCommand extends Command
 {
     /**
      * Command signature.

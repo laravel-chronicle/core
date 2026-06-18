@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Chronicle\Exports;
 
 use Chronicle\Contracts\SigningProvider;
@@ -9,7 +11,7 @@ use JsonException;
 /**
  * Builds the Chronicle export manifest.
  */
-class ExportManifestBuilder
+final class ExportManifestBuilder
 {
     protected SigningProvider $signer;
 

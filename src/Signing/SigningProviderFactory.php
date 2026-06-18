@@ -1,15 +1,20 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Chronicle\Signing;
 
 use Chronicle\Contracts\SigningProvider;
 use Illuminate\Contracts\Container\Container;
 use RuntimeException;
 
-final class SigningProviderFactory
+/**
+ * Builds signing providers (Ed25519, ECDSA) from a key's configuration.
+ */
+final readonly class SigningProviderFactory
 {
     public function __construct(
-        private readonly Container $container,
+        protected Container $container,
     ) {
         //
     }

@@ -1,14 +1,17 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Chronicle\Console\Commands;
 
 use Chronicle\Verification\ExportVerifier;
 use Illuminate\Console\Command;
+use JsonException;
 
 /**
  * Verify a Chronicle export dataset.
  */
-class VerifyExportCommand extends Command
+final class VerifyExportCommand extends Command
 {
     /**
      * Command signature.
@@ -23,6 +26,8 @@ class VerifyExportCommand extends Command
 
     /**
      * Execute the console command.
+     *
+     * @throws JsonException
      */
     public function handle(ExportVerifier $verifier): int
     {

@@ -1,20 +1,25 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Chronicle\Context;
 
 use Chronicle\Entry\PendingEntry;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 
+/**
+ * Context resolver that captures inbound HTTP request metadata (IP, method, path).
+ */
 class RequestContextResolver extends AbstractContextResolver
 {
     /** @var string[] */
-    private const SENSITIVE_PARAMS = ['password', 'secret', 'token', 'api_token', 'key', 'access_token'];
+    protected const SENSITIVE_PARAMS = ['password', 'secret', 'token', 'api_token', 'key', 'access_token'];
 
-    private const USER_AGENT_MAX_LENGTH = 512;
+    protected const USER_AGENT_MAX_LENGTH = 512;
 
     public function __construct(
-        private readonly Request $request,
+        protected readonly Request $request,
     ) {
         //
     }

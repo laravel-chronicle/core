@@ -1,20 +1,26 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Chronicle\Policy;
 
 use Chronicle\Entry\PendingEntry;
 use Chronicle\Exceptions\ActionNotAllowedException;
+use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Str;
 
-class AllowedActionsPolicy extends AbstractPolicy
+/**
+ * Opt-in policy that only permits entries whose action is on the configured allowlist.
+ */
+final class AllowedActionsPolicy extends AbstractPolicy
 {
     /** @var string[] */
-    private readonly array $allowedActions;
+    protected readonly array $allowedActions;
 
     public function __construct()
     {
         /** @var string[] $actions */
-        $actions = config('chronicle.policy.allowed_actions', []);
+        $actions = Config::array('chronicle.policy.allowed_actions', []);
         $this->allowedActions = $actions;
     }
 

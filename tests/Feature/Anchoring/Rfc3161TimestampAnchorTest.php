@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use Chronicle\Anchoring\Rfc3161TimestampAnchor;
 use Illuminate\Support\Facades\Http;
 use Symfony\Component\Process\Process;

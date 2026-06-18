@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use Chronicle\Encryption\CipherEnvelope;
 use Chronicle\Encryption\SubjectKeyManager;
 use Chronicle\Entry\Entry;

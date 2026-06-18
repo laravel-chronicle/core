@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Chronicle\Hashing;
 
 use Chronicle\Entry\PendingEntry;
@@ -14,7 +16,7 @@ use JsonException;
  * This hash is stored alongside the entry and later used
  * for integrity verification and chain hashing.
  */
-class EntryHasher
+final class EntryHasher
 {
     protected CanonicalPayloadSerializer $serializer;
 

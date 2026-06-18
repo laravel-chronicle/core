@@ -1,11 +1,14 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Chronicle\Checkpoints;
 
 use Chronicle\Anchoring\AnchorManager;
 use Chronicle\Contracts\SigningProvider;
 use Chronicle\Entry\Entry;
 use Chronicle\Jobs\AnchorCheckpointJob;
+use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use JsonException;
@@ -18,7 +21,7 @@ use Throwable;
  * Responsible for creating cryptographic checkpoints
  * that anchor the Chronicle ledger.
  */
-class CheckpointCreator
+final class CheckpointCreator
 {
     protected SigningProvider $signer;
 
@@ -37,8 +40,8 @@ class CheckpointCreator
      */
     public function create(): Checkpoint
     {
-        /** @var string|null $connection */
-        $connection = config('chronicle.connection');
+        $connection = Config::get('chronicle.connection');
+        $connection = is_string($connection) ? $connection : null;
 
         $created = false;
 
@@ -149,8 +152,8 @@ class CheckpointCreator
             return;
         }
 
-        /** @var string|null $queue */
-        $queue = config('chronicle.anchoring.queue');
+        $queue = Config::get('chronicle.anchoring.queue');
+        $queue = is_string($queue) && $queue !== '' ? $queue : null;
 
         foreach ($this->anchors->providerNames() as $providerName) {
             $job = new AnchorCheckpointJob($checkpoint->id, $providerName);

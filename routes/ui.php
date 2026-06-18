@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use Chronicle\Http\Controllers\ChronicleUiController;
 use Chronicle\Http\Middleware\ChronicleUiEnabled;
 use Illuminate\Support\Facades\Route;

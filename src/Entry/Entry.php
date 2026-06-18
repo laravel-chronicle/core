@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Chronicle\Entry;
 
 use Carbon\CarbonImmutable;
@@ -12,6 +14,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Facades\Config;
 use Illuminate\Support\LazyCollection;
 use JsonException;
 use SodiumException;
@@ -55,7 +58,7 @@ class Entry extends Model
     public function getConnectionName(): ?string
     {
         /** @var string|null $configured */
-        $configured = config('chronicle.connection');
+        $configured = Config::get('chronicle.connection');
 
         if (is_string($configured) && $configured !== '') {
             return $configured;
@@ -70,8 +73,7 @@ class Entry extends Model
      */
     public function getTable(): string
     {
-        /** @var string $table */
-        $table = config('chronicle.tables.entries', 'chronicle_entries');
+        $table = Config::string('chronicle.tables.entries', 'chronicle_entries');
 
         return $table;
     }
@@ -182,6 +184,9 @@ class Entry extends Model
      * Decrypt the metadata field for display. Returns plaintext when the
      * subject DEK exists, the raw value when it was never encrypted, or an
      * erased tombstone when the DEK has been destroyed.
+     *
+     * @throws SodiumException
+     * @throws JsonException
      */
     public function decryptedMetadata(): mixed
     {
@@ -214,7 +219,7 @@ class Entry extends Model
         return $this->decryptor()->isErased($this);
     }
 
-    private function decryptor(): EntryDecryptor
+    protected function decryptor(): EntryDecryptor
     {
         /** @var EntryDecryptor $decryptor */
         $decryptor = app(EntryDecryptor::class);
@@ -228,7 +233,7 @@ class Entry extends Model
      * @param  Builder<$this>  $query
      * @return Builder<$this>
      */
-    public function scopeForActor(Builder $query, Model $actor): Builder
+    final public function scopeForActor(Builder $query, Model $actor): Builder
     {
         return $query
             ->where('actor_type', $actor::class)
@@ -241,7 +246,7 @@ class Entry extends Model
      * @param  Builder<$this>  $query
      * @return Builder<$this>
      */
-    public function scopeForSubject(Builder $query, Model $subject): Builder
+    final public function scopeForSubject(Builder $query, Model $subject): Builder
     {
         return $query
             ->where('subject_type', $subject::class)
@@ -254,7 +259,7 @@ class Entry extends Model
      * @param  Builder<$this>  $query
      * @return Builder<$this>
      */
-    public function scopeAction(Builder $query, string $action): Builder
+    final public function scopeAction(Builder $query, string $action): Builder
     {
         return $query->where('action', $action);
     }
@@ -265,7 +270,7 @@ class Entry extends Model
      * @param  Builder<$this>  $query
      * @return Builder<$this>
      */
-    public function scopeCorrelation(Builder $query, string $id): Builder
+    final public function scopeCorrelation(Builder $query, string $id): Builder
     {
         return $query->where('correlation_id', $id);
     }
@@ -276,7 +281,7 @@ class Entry extends Model
      * @param  Builder<$this>  $query
      * @return Builder<$this>
      */
-    public function scopeWorkflow(Builder $query, string $rootCorrelation): Builder
+    final public function scopeWorkflow(Builder $query, string $rootCorrelation): Builder
     {
         $escaped = str_replace(['!', '%', '_'], ['!!', '!%', '!_'], $rootCorrelation);
 
@@ -292,7 +297,7 @@ class Entry extends Model
      * @param  Builder<$this>  $query
      * @return Builder<$this>
      */
-    public function scopeActionPrefix(Builder $query, string $prefix): Builder
+    final public function scopeActionPrefix(Builder $query, string $prefix): Builder
     {
         $escaped = str_replace(['!', '%', '_'], ['!!', '!%', '!_'], $prefix);
 
@@ -305,7 +310,7 @@ class Entry extends Model
      * @param  Builder<$this>  $query
      * @return Builder<$this>
      */
-    public function scopeWithTag(Builder $query, string $tag): Builder
+    final public function scopeWithTag(Builder $query, string $tag): Builder
     {
         return $query->whereJsonContains('tags', $tag);
     }
@@ -317,7 +322,7 @@ class Entry extends Model
      * @param  list<string>  $tags
      * @return Builder<$this>
      */
-    public function scopeWithTags(Builder $query, array $tags): Builder
+    final public function scopeWithTags(Builder $query, array $tags): Builder
     {
         foreach ($tags as $tag) {
             $query->whereJsonContains('tags', $tag);
@@ -332,7 +337,7 @@ class Entry extends Model
      * @param  Builder<$this>  $query
      * @return Builder<$this>
      */
-    public function scopeBetween(Builder $query, CarbonInterface $start, CarbonInterface $end): Builder
+    final public function scopeBetween(Builder $query, CarbonInterface $start, CarbonInterface $end): Builder
     {
         return $query->whereBetween('created_at', [$start, $end]);
     }
@@ -343,7 +348,7 @@ class Entry extends Model
      * @param  Builder<$this>  $query
      * @return Builder<$this>
      */
-    public function scopeLatestFirst(Builder $query): Builder
+    final public function scopeLatestFirst(Builder $query): Builder
     {
         return $query->orderByDesc('id');
     }
@@ -357,7 +362,7 @@ class Entry extends Model
      * @param  Builder<$this>  $query
      * @return CursorPaginator<int, $this>
      */
-    public function scopeCursorPaginateLedger(
+    final public function scopeCursorPaginateLedger(
         Builder $query,
         int $perPage = 50,
         ?string $cursor = null
@@ -376,7 +381,7 @@ class Entry extends Model
      * @param  Builder<$this>  $query
      * @return CursorPaginator<int, $this>
      */
-    public function scopeCursorPaginateLatest(
+    final public function scopeCursorPaginateLatest(
         Builder $query,
         int $perPage = 50,
         ?string $cursor = null
@@ -398,7 +403,7 @@ class Entry extends Model
      * @param  Builder<$this>  $query
      * @return LazyCollection<int, $this>
      */
-    public function scopeStream(Builder $query): LazyCollection
+    final public function scopeStream(Builder $query): LazyCollection
     {
         return $query
             ->orderBy('id')
@@ -411,7 +416,7 @@ class Entry extends Model
      * @param  Builder<$this>  $query
      * @return LazyCollection<int, $this>
      */
-    public function scopeStreamLatest(Builder $query): LazyCollection
+    final public function scopeStreamLatest(Builder $query): LazyCollection
     {
         return $query
             ->orderByDesc('id')

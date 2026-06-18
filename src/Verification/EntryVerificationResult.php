@@ -1,16 +1,21 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Chronicle\Verification;
 
 use Chronicle\Entry\Entry;
 
-class EntryVerificationResult
+/**
+ * Immutable result of verifying a single entry's hash and chain linkage.
+ */
+readonly class EntryVerificationResult
 {
-    private function __construct(
-        private readonly bool $valid,
-        public readonly ?Entry $entry,
-        private readonly ?string $failureCode,
-        public readonly ?string $missingId,
+    protected function __construct(
+        protected bool $valid,
+        public ?Entry $entry,
+        protected ?string $failureCode,
+        public ?string $missingId,
     ) {
         //
     }

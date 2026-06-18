@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Chronicle\Signing;
 
 use InvalidArgumentException;
@@ -16,7 +18,7 @@ use RuntimeException;
  *   'public_key' => PEM string (required)
  *   'key_id' => string identifier
  */
-class EcdsaSigningProvider extends LocalVerifyProvider
+final class EcdsaSigningProvider extends LocalVerifyProvider
 {
     protected ?string $privatePem = null;
 
@@ -75,7 +77,7 @@ class EcdsaSigningProvider extends LocalVerifyProvider
         return 'ecdsa-p256';
     }
 
-    public function keyId(): ?string
+    public function keyId(): string
     {
         return $this->keyId;
     }

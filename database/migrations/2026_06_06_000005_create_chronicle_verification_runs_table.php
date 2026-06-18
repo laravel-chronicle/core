@@ -1,7 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Schema;
 
 /**
@@ -16,9 +19,9 @@ return new class extends Migration
      *
      * Reads from config so Chronicle can use a dedicated connection.
      */
-    public function getConnection(): ?string
+    public function getConnection(): string
     {
-        return config('chronicle.connection');
+        return Config::string('chronicle.connection');
     }
 
     /**
@@ -26,7 +29,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        $table = config('chronicle.tables.verification_runs', 'chronicle_verification_runs');
+        $table = Config::string('chronicle.tables.verification_runs', 'chronicle_verification_runs');
 
         Schema::connection($this->getConnection())->create($table, function (Blueprint $t) use ($table) {
             $t->ulid('id')->primary();
@@ -45,7 +48,7 @@ return new class extends Migration
      */
     public function down(): void
     {
-        $table = config('chronicle.tables.verification_runs', 'chronicle_verification_runs');
+        $table = Config::string('chronicle.tables.verification_runs', 'chronicle_verification_runs');
 
         Schema::connection($this->getConnection())->dropIfExists($table);
     }

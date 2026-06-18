@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use Chronicle\Exports\ExportManager;
 use Chronicle\Facades\Chronicle;
 

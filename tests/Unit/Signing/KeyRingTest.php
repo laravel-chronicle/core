@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use Chronicle\Contracts\SigningProvider;
 use Chronicle\Exceptions\ChronicleException;
 use Chronicle\Exceptions\UnknownSigningKeyException;

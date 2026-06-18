@@ -1,8 +1,13 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Chronicle\Exceptions;
 
-class RateLimitExceededException extends PolicyViolationException
+/**
+ * Thrown when entry recording exceeds the configured rate limit.
+ */
+final class RateLimitExceededException extends PolicyViolationException
 {
     public static function exceededLimit(int $retryAfter): self
     {

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Chronicle\Query;
 
 use Carbon\CarbonInterface;
@@ -13,7 +15,10 @@ use Illuminate\Support\LazyCollection;
 use InvalidArgumentException;
 use Throwable;
 
-class LedgerQuery
+/**
+ * Fluent query builder for reading entries from the audit ledger.
+ */
+final class LedgerQuery
 {
     protected bool $orderApplied = false;
 

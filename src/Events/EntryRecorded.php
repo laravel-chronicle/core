@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Chronicle\Events;
 
 use Chronicle\Entry\Entry;
@@ -10,10 +12,10 @@ use Chronicle\Entry\Entry;
  * Note: when using the 'queued' driver, this event fires inside the
  * queued job - not in the HTTP request.
  */
-class EntryRecorded
+readonly class EntryRecorded
 {
     public function __construct(
-        public readonly Entry $entry,
+        public Entry $entry,
     ) {
         //
     }

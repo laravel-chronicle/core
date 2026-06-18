@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Chronicle\Pipeline;
 
 use Chronicle\Contracts\EntryExtension;
@@ -8,14 +10,17 @@ use Illuminate\Contracts\Container\BindingResolutionException;
 use Illuminate\Contracts\Container\Container;
 use InvalidArgumentException;
 
-class EntryExtensionRegistry
+/**
+ * Registers and orders the entry extensions (validators, policies, resolvers) the pipeline runs.
+ */
+final class EntryExtensionRegistry
 {
     /**
      * Legacy extension class aliases kept for backward compatibility.
      *
      * @var array<string, string>
      */
-    private static array $legacyClassMap = [
+    protected static array $legacyClassMap = [
         'Chronicle\\Extensions\\ActorPresenceValidator' => 'Chronicle\\Validation\\ActorPresenceValidator',
         'Chronicle\\Extensions\\ActionValidator' => 'Chronicle\\Validation\\ActionValidator',
     ];

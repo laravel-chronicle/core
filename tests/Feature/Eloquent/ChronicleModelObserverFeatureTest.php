@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use Chronicle\Eloquent\ChronicleModelObserver;
 use Chronicle\Facades\Chronicle;
 use Illuminate\Database\Eloquent\Model;

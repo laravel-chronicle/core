@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use Chronicle\Context\QueueJobContext;
 use Illuminate\Contracts\Queue\Job;
 

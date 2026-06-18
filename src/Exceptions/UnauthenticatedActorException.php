@@ -1,8 +1,13 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Chronicle\Exceptions;
 
-class UnauthenticatedActorException extends PolicyViolationException
+/**
+ * Thrown when an entry requires an authenticated actor but none is present.
+ */
+final class UnauthenticatedActorException extends PolicyViolationException
 {
     public static function notAuthenticated(): self
     {

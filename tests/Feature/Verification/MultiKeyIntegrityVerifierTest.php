@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use Chronicle\Checkpoints\CheckpointCreator;
 use Chronicle\Contracts\SigningProvider;
 use Chronicle\Entry\Entry;

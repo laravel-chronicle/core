@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Chronicle\Pipeline;
 
 use Chronicle\Contracts\EntryProcessor;
@@ -9,7 +11,7 @@ use Chronicle\Support\CanonicalPayloadSerializer;
 /**
  * Canonicalizes the entry payload before persistence.
  */
-class CanonicalizePayload implements EntryProcessor
+final class CanonicalizePayload implements EntryProcessor
 {
     protected CanonicalPayloadSerializer $serializer;
 

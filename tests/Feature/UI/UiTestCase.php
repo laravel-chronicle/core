@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Chronicle\Tests\Feature\UI;
 
 use Illuminate\Support\Facades\Gate;

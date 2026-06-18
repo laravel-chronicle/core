@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use Chronicle\Entry\Entry;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;

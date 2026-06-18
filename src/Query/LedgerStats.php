@@ -1,24 +1,30 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Chronicle\Query;
 
 use Carbon\CarbonInterface;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\DB;
 
-class LedgerStats
+/**
+ * Immutable snapshot of aggregate ledger statistics (counts, range, checkpoints).
+ */
+readonly class LedgerStats
 {
     /**
      * @param  list<array{action: string, count: int}>  $topActions
      * @param  list<array{date: string, count: int}>  $dailyActivity
      */
     public function __construct(
-        protected readonly int $totalEntries,
-        protected readonly ?Carbon $oldestEntryAt,
-        protected readonly ?Carbon $newestEntryAt,
-        protected readonly int $checkpointCount,
-        protected readonly array $topActions,
-        protected readonly array $dailyActivity,
+        protected int $totalEntries,
+        protected ?Carbon $oldestEntryAt,
+        protected ?Carbon $newestEntryAt,
+        protected int $checkpointCount,
+        protected array $topActions,
+        protected array $dailyActivity,
     ) {
         //
     }
@@ -69,17 +75,15 @@ class LedgerStats
         ?CarbonInterface $to = null,
     ): self {
         /** @var string|null $configured */
-        $configured = config('chronicle.connection');
+        $configured = Config::get('chronicle.connection');
 
         $db = is_string($configured) && $configured !== ''
             ? DB::connection($configured)
             : DB::connection();
 
-        /** @var string $entriesTable */
-        $entriesTable = config('chronicle.tables.entries', 'chronicle_entries');
+        $entriesTable = Config::string('chronicle.tables.entries', 'chronicle_entries');
 
-        /** @var string $checkpointsTable */
-        $checkpointsTable = config('chronicle.tables.checkpoints', 'chronicle_checkpoints');
+        $checkpointsTable = Config::string('chronicle.tables.checkpoints', 'chronicle_checkpoints');
 
         $baseQuery = $db->table($entriesTable);
 

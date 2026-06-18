@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use Chronicle\Entry\Entry;
 use Chronicle\Tests\Fakes\FakeUser;
 use Illuminate\Database\Schema\Blueprint;

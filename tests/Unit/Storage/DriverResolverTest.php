@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use Chronicle\Contracts\StorageDriver;
 use Chronicle\Storage\DriverResolver;
 use Illuminate\Container\Container;

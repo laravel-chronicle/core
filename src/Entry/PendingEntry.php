@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Chronicle\Entry;
 
 /**
@@ -9,7 +11,7 @@ namespace Chronicle\Entry;
  * A PendingEntry is mutable while inside the pipeline.
  * Once persisted, it becomes an immutable Entry record.
  */
-class PendingEntry
+final class PendingEntry
 {
     /**
      * Base entry attributes produced by EntryBuilder.

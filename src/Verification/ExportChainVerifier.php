@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Chronicle\Verification;
 
 use Chronicle\Hashing\ChainHasher;
@@ -8,7 +10,7 @@ use JsonException;
 /**
  * Verifies the hash chain of exported Chronicle entries.
  */
-class ExportChainVerifier
+final class ExportChainVerifier
 {
     /**
      * Verify the chain integrity of the exported dataset.

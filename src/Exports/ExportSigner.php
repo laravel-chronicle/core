@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Chronicle\Exports;
 
 use Chronicle\Contracts\SigningProvider;
@@ -9,7 +11,7 @@ use JsonException;
 /**
  * Signs Chronicle export datasets.
  */
-class ExportSigner
+final class ExportSigner
 {
     protected SigningProvider $signer;
 

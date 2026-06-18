@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Chronicle\Console\Commands;
 
 use Carbon\Carbon;
@@ -7,7 +9,10 @@ use Chronicle\Reports\ComplianceReport;
 use Illuminate\Console\Command;
 use Throwable;
 
-class ReportCommand extends Command
+/**
+ * Artisan command that generates a signed compliance report for the ledger.
+ */
+final class ReportCommand extends Command
 {
     protected $signature = 'chronicle:report
         {path : File path where the HTML report will be written}

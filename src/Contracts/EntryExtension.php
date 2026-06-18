@@ -1,10 +1,15 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Chronicle\Contracts;
 
 use Chronicle\Entry\PendingEntry;
 use Chronicle\Pipeline\ExtensionStage;
 
+/**
+ * Contract for pipeline extensions that observe or transform a pending entry.
+ */
 interface EntryExtension
 {
     /**

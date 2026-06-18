@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use Chronicle\Checkpoints\CheckpointCreator;
 use Chronicle\Facades\Chronicle;
 use Chronicle\Verification\IntegrityVerifier;

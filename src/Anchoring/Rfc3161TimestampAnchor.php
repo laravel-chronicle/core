@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Chronicle\Anchoring;
 
 use Chronicle\Checkpoints\Checkpoint;
@@ -24,13 +26,13 @@ use Symfony\Component\Process\Process;
  * skips ALL cert/CA trust, which is unacceptable for an anchor. The `ts` verb
  * applies the correct purpose.
  */
-class Rfc3161TimestampAnchor implements AnchorProvider
+final class Rfc3161TimestampAnchor implements AnchorProvider
 {
-    private const SHA256_OID = '2.16.840.1.101.3.4.2.1';
+    protected const SHA256_OID = '2.16.840.1.101.3.4.2.1';
 
-    private string $tsaUrl;
+    protected string $tsaUrl;
 
-    private string $tsaCertificatePath;
+    protected string $tsaCertificatePath;
 
     /**
      * @param  array<string, mixed>  $config
@@ -136,7 +138,7 @@ class Rfc3161TimestampAnchor implements AnchorProvider
         }
     }
 
-    private function buildRequest(string $digest): string
+    protected function buildRequest(string $digest): string
     {
         // TimeStampReq ::= SEQUENCE { version INTEGER(1), messageImprint, certReq BOOLEAN }
         $messageImprint = Asn1::sequence(
@@ -151,7 +153,7 @@ class Rfc3161TimestampAnchor implements AnchorProvider
         );
     }
 
-    private function tempFile(string $contents): string
+    protected function tempFile(string $contents): string
     {
         $path = (string) tempnam(sys_get_temp_dir(), 'chr-tsa-');
         file_put_contents($path, $contents);

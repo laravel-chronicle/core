@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Chronicle\Support;
 
 use Chronicle\Contracts\ReferenceResolver;
@@ -16,7 +18,7 @@ use InvalidArgumentException;
  *  - Scalar values
  *  - Objects with id property
  */
-class DefaultReferenceResolver implements ReferenceResolver
+final class DefaultReferenceResolver implements ReferenceResolver
 {
     /**
      * Resolve a value into a Chronicle reference.
@@ -55,12 +57,17 @@ class DefaultReferenceResolver implements ReferenceResolver
      */
     protected function resolveModel(Model $model): Reference
     {
-        /** @var int|null $key */
         $key = $model->getKey();
 
         if ($key === null) {
             throw new InvalidArgumentException(
                 sprintf('Chronicle: model %s has no primary key - pass a persisted model.', $model::class)
+            );
+        }
+
+        if (! is_int($key) && ! is_string($key)) {
+            throw new InvalidArgumentException(
+                sprintf('Chronicle: model %s has an unsupported primary key type.', $model::class)
             );
         }
 

@@ -1,12 +1,17 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Chronicle\Signing;
 
 use Illuminate\Support\Facades\Log;
 
+/**
+ * Adapts the pre-key-ring single-key signing config into the current keys/active structure.
+ */
 final class LegacySigningConfigAdapter
 {
-    private static bool $noticed = false;
+    protected static bool $noticed = false;
 
     /**
      * Return true when the config uses the pre-1.10 flat signing shape (no `keys` key).

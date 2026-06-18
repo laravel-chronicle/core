@@ -1,8 +1,13 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Chronicle\Exceptions;
 
-class ActionNotAllowedException extends PolicyViolationException
+/**
+ * Thrown when an entry's action is not on the configured allowed-actions list.
+ */
+final class ActionNotAllowedException extends PolicyViolationException
 {
     public static function notInAllowlist(string $action): self
     {

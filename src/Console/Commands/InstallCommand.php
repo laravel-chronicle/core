@@ -1,11 +1,16 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Chronicle\Console\Commands;
 
 use Chronicle\ChronicleServiceProvider;
 use Illuminate\Console\Command;
 
-class InstallCommand extends Command
+/**
+ * Artisan command that installs Chronicle by publishing its config and migrations.
+ */
+final class InstallCommand extends Command
 {
     protected $signature = 'chronicle:install
         {--force : Overwrite any existing published files}
@@ -65,7 +70,7 @@ class InstallCommand extends Command
         return self::SUCCESS;
     }
 
-    private function publishMigrations(): bool
+    protected function publishMigrations(): bool
     {
         $source = __DIR__.'/../../../database/migrations';
         $destination = database_path('migrations');
@@ -98,7 +103,7 @@ class InstallCommand extends Command
         return true;
     }
 
-    private function migrationExists(string $directory, string $filename): bool
+    protected function migrationExists(string $directory, string $filename): bool
     {
         $existing = glob($directory.'/*.php');
         if ($existing === false) {
@@ -116,7 +121,7 @@ class InstallCommand extends Command
         return false;
     }
 
-    private function stripTimestamp(string $filename): string
+    protected function stripTimestamp(string $filename): string
     {
         return (string) preg_replace('/^\d{4}_\d{2}_\d{2}_\d{6}_/', '', $filename);
     }

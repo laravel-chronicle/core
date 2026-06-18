@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use Chronicle\Verification\VerificationFailure;
 
 it('defines the checkpoint-chain and segment failure reasons', function () {

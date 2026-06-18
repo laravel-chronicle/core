@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Chronicle\Console\Commands;
 
 use Chronicle\Checkpoints\Checkpoint;
@@ -15,6 +17,7 @@ use Chronicle\Verification\VerificationRun;
 use Chronicle\Verification\VerifiesCheckpointSignature;
 use Illuminate\Console\Command;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Schema;
 use JsonException;
 
@@ -25,7 +28,7 @@ use JsonException;
  * speed and fall back to full verification (with a warning) when checkpoints
  * are not yet backfilled.
  */
-class VerifyEntryCommand extends Command
+final class VerifyEntryCommand extends Command
 {
     use VerifiesCheckpointSignature;
 
@@ -339,10 +342,9 @@ class VerifyEntryCommand extends Command
 
     protected function resumeTableAvailable(): bool
     {
-        /** @var string $table */
-        $table = config('chronicle.tables.verification_runs', 'chronicle_verification_runs');
+        $table = Config::string('chronicle.tables.verification_runs', 'chronicle_verification_runs');
         /** @var string|null $connection */
-        $connection = config('chronicle.connection');
+        $connection = Config::get('chronicle.connection');
 
         return Schema::connection($connection)->hasTable($table);
     }

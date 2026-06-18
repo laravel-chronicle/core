@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Chronicle\Verification;
 
 use Chronicle\Checkpoints\Checkpoint;
@@ -11,7 +13,10 @@ use Chronicle\Signing\KeyRing;
 use Chronicle\Support\CanonicalPayloadSerializer;
 use JsonException;
 
-class IntegrityVerifier
+/**
+ * Verifies the full ledger (or a bounded segment) hash chain and checkpoint signatures.
+ */
+final class IntegrityVerifier
 {
     use ComparesEntryColumns, VerifiesCheckpointSignature;
 

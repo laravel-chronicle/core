@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Chronicle\Pipeline;
 
 use Chronicle\Contracts\EntryProcessor;
@@ -19,11 +21,11 @@ use Illuminate\Support\Facades\Config;
  * Self-gates on chronicle.encryption.enabled - a no-op when disabled, so
  * behaviour is identical to pre-1.12.
  */
-class EncryptPayload implements EntryProcessor
+readonly class EncryptPayload implements EntryProcessor
 {
     public function __construct(
-        protected readonly PayloadCipher $cipher,
-        protected readonly SubjectKeyManager $keys,
+        protected PayloadCipher $cipher,
+        protected SubjectKeyManager $keys,
     ) {
         //
     }
@@ -33,7 +35,7 @@ class EncryptPayload implements EntryProcessor
      */
     public function process(PendingEntry $entry): PendingEntry
     {
-        if (config('chronicle.encryption.enabled', false) !== true) {
+        if (Config::boolean('chronicle.encryption.enabled', false) !== true) {
             return $entry;
         }
 

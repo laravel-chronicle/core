@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use Chronicle\Checkpoints\Checkpoint;
 use Chronicle\Checkpoints\CheckpointCreator;
 use Chronicle\Facades\Chronicle;

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Chronicle\Console\Commands;
 
 use Carbon\Carbon;
@@ -8,10 +10,14 @@ use Chronicle\Lifecycle\LegalHold;
 use Illuminate\Console\Command;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Query\Builder as QueryBuilder;
+use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\DB;
 use Throwable;
 
-class PruneCommand extends Command
+/**
+ * Artisan command that prunes audit entries according to the configured retention policy.
+ */
+final class PruneCommand extends Command
 {
     protected $signature = 'chronicle:prune
         {--older-than= : Delete entries older than N days}
@@ -34,8 +40,7 @@ class PruneCommand extends Command
         $force = (bool) $this->option('force');
         $dryRun = (bool) $this->option('dry-run');
 
-        /** @var bool $respectCheckpoints */
-        $respectCheckpoints = config('chronicle.prune.respect_checkpoints', true);
+        $respectCheckpoints = Config::boolean('chronicle.prune.respect_checkpoints', true);
 
         if (! $force && $respectCheckpoints) {
             $anchored = Entry::query()
@@ -81,11 +86,10 @@ class PruneCommand extends Command
             return self::SUCCESS;
         }
 
-        /** @var string $table */
-        $table = config('chronicle.tables.entries', 'chronicle_entries');
+        $table = Config::string('chronicle.tables.entries', 'chronicle_entries');
 
         /** @var string|null $conn */
-        $conn = config('chronicle.connection');
+        $conn = Config::get('chronicle.connection');
 
         $this->warn('Pruning removes ledger history. After this, `IntegrityVerifier::verify()` (from genesis)');
         $this->warn('will no longer pass. Verify pruned ledgers from a boundary checkpoint via');
@@ -135,7 +139,7 @@ class PruneCommand extends Command
         }
 
         /** @var int|null $configured */
-        $configured = config('chronicle.prune.default_retention_days');
+        $configured = Config::get('chronicle.prune.default_retention_days');
 
         if ($configured !== null) {
             return Carbon::now()->subDays($configured);

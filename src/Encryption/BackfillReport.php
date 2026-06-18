@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Chronicle\Encryption;
 
 /**
@@ -8,15 +10,15 @@ namespace Chronicle\Encryption;
  * any row changed (and therefore a fresh checkpoint is warranted). `headChainHash`
  * is the chain hash of the final entry after the walk (the new ledger head).
  */
-final class BackfillReport
+final readonly class BackfillReport
 {
     public function __construct(
-        public readonly int $scanned,
-        public readonly int $encrypted,
-        public readonly int $relinked,
-        public readonly bool $changed,
-        public readonly ?string $headChainHash,
-        public readonly bool $dryRun,
+        public int $scanned,
+        public int $encrypted,
+        public int $relinked,
+        public bool $changed,
+        public ?string $headChainHash,
+        public bool $dryRun,
     ) {
         //
     }

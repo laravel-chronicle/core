@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Chronicle\Console\Commands;
 
 use Chronicle\Exports\ExportManager;
@@ -9,7 +11,7 @@ use Throwable;
 /**
  * Export Chronicle entries to a verifiable dataset.
  */
-class ExportCommand extends Command
+final class ExportCommand extends Command
 {
     /**
      * The command signature.

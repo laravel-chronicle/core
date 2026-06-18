@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Chronicle;
 
 use Chronicle\Anchoring\AnchorManager;
@@ -66,12 +68,16 @@ use Illuminate\Queue\Events\JobExceptionOccurred;
 use Illuminate\Queue\Events\JobFailed;
 use Illuminate\Queue\Events\JobProcessed;
 use Illuminate\Queue\Events\JobProcessing;
+use Illuminate\Support\Facades\Config;
 use Illuminate\Support\ServiceProvider;
 use InvalidArgumentException;
 use RuntimeException;
 use Throwable;
 
-class ChronicleServiceProvider extends ServiceProvider
+/**
+ * Laravel service provider that registers Chronicle's services, drivers, commands, and queue listeners.
+ */
+final class ChronicleServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
@@ -130,11 +136,7 @@ class ChronicleServiceProvider extends ServiceProvider
         $this->app->singleton(CanonicalPayloadSerializer::class);
         $this->app->singleton(EntryExtensionRegistry::class, function (Application $app) {
             $registry = new EntryExtensionRegistry($app);
-            $configured = config('chronicle.extensions', []);
-
-            if (! is_array($configured)) {
-                throw new InvalidArgumentException('Chronicle extensions configuration must be an array.');
-            }
+            $configured = Config::array('chronicle.extensions', []);
 
             foreach ($configured as $extension) {
                 if (! is_string($extension) && ! $extension instanceof EntryExtension) {
@@ -177,8 +179,7 @@ class ChronicleServiceProvider extends ServiceProvider
         $this->app->singleton(ReferenceResolver::class, DefaultReferenceResolver::class);
 
         $this->app->singleton(StorageDriver::class, function (Application $app) {
-            $configured = config('chronicle.driver', 'eloquent');
-            $driver = is_string($configured) ? $configured : 'eloquent';
+            $driver = Config::string('chronicle.driver', 'eloquent');
 
             return $app->make(DriverResolver::class)->resolve($driver);
         });
@@ -340,7 +341,7 @@ class ChronicleServiceProvider extends ServiceProvider
             __DIR__.'/../resources/views' => resource_path('views/vendor/chronicle'),
         ], 'chronicle-views');
 
-        if (config('chronicle.ui.enabled', false)) {
+        if (Config::boolean('chronicle.ui.enabled', false)) {
             $this->loadRoutesFrom(__DIR__.'/../routes/ui.php');
         }
     }

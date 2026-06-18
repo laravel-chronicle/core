@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Chronicle\Validation;
 
 use Chronicle\Contracts\EntryExtension;
@@ -7,9 +9,13 @@ use Chronicle\Contracts\PrioritizedEntryExtension;
 use Chronicle\Entry\PendingEntry;
 use Chronicle\Exceptions\InvalidPayloadSizeException;
 use Chronicle\Pipeline\ExtensionStage;
+use Illuminate\Support\Facades\Config;
 use JsonException;
 
-class PayloadSizeValidator implements EntryExtension, PrioritizedEntryExtension
+/**
+ * Entry extension that rejects payloads exceeding the configured maximum size.
+ */
+final class PayloadSizeValidator implements EntryExtension, PrioritizedEntryExtension
 {
     /**
      * Indicates that this extension runs during the validation stage.
@@ -74,8 +80,7 @@ class PayloadSizeValidator implements EntryExtension, PrioritizedEntryExtension
      */
     protected function maxPayloadSize(): int
     {
-        /** @var int $size */
-        $size = config('chronicle.validation.max_payload_size', 65536);
+        $size = Config::integer('chronicle.validation.max_payload_size', 65536);
 
         return $size;
     }

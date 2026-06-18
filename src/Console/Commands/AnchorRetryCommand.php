@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Chronicle\Console\Commands;
 
 use Chronicle\Anchoring\CheckpointAnchor;
@@ -8,7 +10,10 @@ use Chronicle\Checkpoints\Checkpoint;
 use Illuminate\Console\Command;
 use Throwable;
 
-class AnchorRetryCommand extends Command
+/**
+ * Artisan command that re-attempts outstanding (pending or failed) checkpoint anchors.
+ */
+final class AnchorRetryCommand extends Command
 {
     protected $signature = 'chronicle:anchor:retry {--status=failed : Retry anchors in this status (pending|failed)}';
 

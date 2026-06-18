@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Chronicle\Validation;
 
 use Chronicle\Contracts\EntryExtension;
@@ -8,7 +10,10 @@ use Chronicle\Entry\PendingEntry;
 use Chronicle\Exceptions\MissingActorException;
 use Chronicle\Pipeline\ExtensionStage;
 
-class ActorPresenceValidator implements EntryExtension, PrioritizedEntryExtension
+/**
+ * Entry extension that rejects entries recorded without an actor.
+ */
+final class ActorPresenceValidator implements EntryExtension, PrioritizedEntryExtension
 {
     public function stage(): ExtensionStage
     {

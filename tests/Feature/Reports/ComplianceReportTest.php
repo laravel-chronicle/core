@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use Chronicle\Reports\ComplianceReportResult;
 use Illuminate\Support\Carbon;
 

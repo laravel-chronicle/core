@@ -1,11 +1,16 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Chronicle\Pipeline;
 
 use Chronicle\Contracts\EntryProcessor;
 use Chronicle\Entry\PendingEntry;
 
-class RunExtensions implements EntryProcessor
+/**
+ * Pipeline stage that runs the registered entry extensions against a pending entry.
+ */
+final class RunExtensions implements EntryProcessor
 {
     public function __construct(
         protected EntryExtensionRegistry $extensions

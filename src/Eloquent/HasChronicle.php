@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Chronicle\Eloquent;
 
 use Chronicle\Facades\Chronicle;
@@ -7,6 +9,9 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use Throwable;
 
+/**
+ * Trait that gives an Eloquent model automatic Chronicle audit logging on create, update, and delete.
+ */
 trait HasChronicle
 {
     /** @var list<string> */

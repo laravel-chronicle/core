@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use Chronicle\Hashing\ChainHasher;
 
 it('computes chain hash deterministically', function () {

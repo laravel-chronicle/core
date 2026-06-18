@@ -1,8 +1,13 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Chronicle\Exceptions;
 
-class InvalidDiffException extends ChronicleException
+/**
+ * Thrown when a model diff payload is malformed or contains a non-serializable value.
+ */
+final class InvalidDiffException extends ChronicleException
 {
     /**
      * Create an InvalidDiffException for a diff value that is not an array.

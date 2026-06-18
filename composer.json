@@ -69,9 +69,15 @@
     "scripts": {
         "post-autoload-dump": "@composer run prepare",
         "prepare": "@php vendor/bin/testbench package:discover --ansi",
-        "analyse": "vendor/bin/phpstan analyse --memory-limit=2G",
-        "test": "vendor/bin/pest",
-        "test-coverage": "vendor/bin/pest --parallel --coverage",
-        "format": "vendor/bin/pint"
+        "lint": "vendor/bin/pint",
+        "test:lint": "vendor/bin/pint --test -v",
+        "test:types": "vendor/bin/phpstan analyse",
+        "test:unit": "vendor/bin/pest",
+        "test": [
+            "@test:lint",
+            "@test:types",
+            "@test:unit"
+        ],
+        "test-coverage": "vendor/bin/pest --parallel --coverage"
     }
 }

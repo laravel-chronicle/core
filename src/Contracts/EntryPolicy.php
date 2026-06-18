@@ -1,9 +1,14 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Chronicle\Contracts;
 
 use Chronicle\Entry\PendingEntry;
 
+/**
+ * Contract for opt-in policies that may reject a pending entry.
+ */
 interface EntryPolicy
 {
     /**

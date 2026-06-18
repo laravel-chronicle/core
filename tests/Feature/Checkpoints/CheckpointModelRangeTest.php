@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use Chronicle\Anchoring\CheckpointAnchor;
 use Chronicle\Checkpoints\Checkpoint;
 use Illuminate\Support\Str;

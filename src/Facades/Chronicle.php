@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Chronicle\Facades;
 
 use Chronicle\Contracts\EntryExtension;
@@ -40,7 +42,7 @@ use Illuminate\Support\Facades\Facade;
  * @method static ChronicleAssertions fake()
  * @method static void observe(string $mode, ?string $observer = null)
  */
-class Chronicle extends Facade
+final class Chronicle extends Facade
 {
     /**
      * Get the service container binding key.

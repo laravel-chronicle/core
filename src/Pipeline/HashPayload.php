@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Chronicle\Pipeline;
 
 use Chronicle\Contracts\EntryProcessor;
@@ -11,7 +13,7 @@ use JsonException;
  * Pipeline processor responsible for computing
  * the payload hash.
  */
-class HashPayload implements EntryProcessor
+final class HashPayload implements EntryProcessor
 {
     protected EntryHasher $hasher;
 

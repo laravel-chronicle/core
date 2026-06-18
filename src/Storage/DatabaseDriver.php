@@ -1,9 +1,12 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Chronicle\Storage;
 
 use Chronicle\Contracts\StorageDriver;
 use Chronicle\Entry\Entry;
+use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\DB;
 use JsonException;
 
@@ -15,7 +18,7 @@ use JsonException;
  *  - Created_at is never touched by Eloquent timestamp machinery
  *  - The insert is a single, transparent DB operation
  */
-class DatabaseDriver implements StorageDriver
+final class DatabaseDriver implements StorageDriver
 {
     use SerializesEntryAttributes;
 
@@ -26,11 +29,10 @@ class DatabaseDriver implements StorageDriver
      */
     public function store(array $entry): Entry
     {
-        /** @var string $table */
-        $table = config('chronicle.tables.entries', 'chronicle_entries');
+        $table = Config::string('chronicle.tables.entries', 'chronicle_entries');
 
         /** @var string|null $configured */
-        $configured = config('chronicle.connection');
+        $configured = Config::get('chronicle.connection');
 
         $db = is_string($configured) && $configured !== ''
             ? DB::connection($configured)

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Chronicle\Exports;
 
 /**
@@ -7,7 +9,7 @@ namespace Chronicle\Exports;
  *
  * Returned by ExportManager after a successful export.
  */
-class ExportResult
+final class ExportResult
 {
     /**
      * Total number of exported entries.

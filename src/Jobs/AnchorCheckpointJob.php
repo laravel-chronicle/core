@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Chronicle\Jobs;
 
 use Chronicle\Anchoring\CheckpointAnchorer;
@@ -13,7 +15,7 @@ use Throwable;
  * failure rethrows from the anchorer so the queue re-runs it. Dispatched after
  * the checkpoint transaction commits, so it can never roll the checkpoint back.
  */
-class AnchorCheckpointJob implements ShouldQueue
+final class AnchorCheckpointJob implements ShouldQueue
 {
     use Queueable;
 

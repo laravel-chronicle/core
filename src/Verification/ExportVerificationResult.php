@@ -1,11 +1,13 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Chronicle\Verification;
 
 /**
  * Result of verifying a Chronicle export dataset.
  */
-class ExportVerificationResult
+final class ExportVerificationResult
 {
     protected bool $valid;
 
@@ -17,7 +19,7 @@ class ExportVerificationResult
 
     protected ?string $chainHead;
 
-    private function __construct(
+    protected function __construct(
         bool $valid,
         ?string $failure = null,
         ?int $entryCount = null,

@@ -1,19 +1,25 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Chronicle\Policy;
 
 use Chronicle\Entry\PendingEntry;
 use Chronicle\Exceptions\RequiredContextMissingException;
+use Illuminate\Support\Facades\Config;
 
-class ContextPolicy extends AbstractPolicy
+/**
+ * Opt-in policy that requires entries to carry the configured context keys.
+ */
+final class ContextPolicy extends AbstractPolicy
 {
     /** @var string[] */
-    private readonly array $requiredKeys;
+    protected readonly array $requiredKeys;
 
     public function __construct()
     {
         /** @var string[] $keys */
-        $keys = config('chronicle.policy.required_context_keys', []);
+        $keys = Config::array('chronicle.policy.required_context_keys', []);
         $this->requiredKeys = $keys;
     }
 

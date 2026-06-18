@@ -1,11 +1,16 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Chronicle\Console\Commands;
 
 use Chronicle\Lifecycle\LegalHold;
 use Illuminate\Console\Command;
 
-class LegalHoldCommand extends Command
+/**
+ * Artisan command that places or releases a legal hold on a subject, blocking erasure and pruning.
+ */
+final class LegalHoldCommand extends Command
 {
     protected $signature = 'chronicle:legal-hold
         {action : place or release}

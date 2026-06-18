@@ -1,8 +1,13 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Chronicle\Exceptions;
 
-class OutsideTimeWindowException extends PolicyViolationException
+/**
+ * Thrown when an entry is recorded outside the configured allowed time window.
+ */
+final class OutsideTimeWindowException extends PolicyViolationException
 {
     public static function outsideWindow(string $start, string $end): self
     {

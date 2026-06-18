@@ -1,11 +1,14 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Chronicle\Pipeline;
 
 use Chronicle\Contracts\EntryProcessor;
 use Chronicle\Entry\Entry;
 use Chronicle\Entry\PendingEntry;
 use Chronicle\Hashing\ChainHasher;
+use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\DB;
 use LogicException;
 
@@ -16,7 +19,7 @@ use LogicException;
  *
  * This processor expects to run inside an open DB transaction.
  */
-class ChainHashEntry implements EntryProcessor
+final class ChainHashEntry implements EntryProcessor
 {
     protected ChainHasher $hasher;
 
@@ -28,7 +31,7 @@ class ChainHashEntry implements EntryProcessor
     public function process(PendingEntry $entry): PendingEntry
     {
         /** @var string|null $configured */
-        $configured = config('chronicle.connection');
+        $configured = Config::get('chronicle.connection');
 
         $db = is_string($configured) && $configured !== ''
             ? DB::connection($configured)
