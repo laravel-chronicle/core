@@ -45,9 +45,14 @@ class LegalHold extends Model
 
     public function getConnectionName(): ?string
     {
-        $configured = Config::string('chronicle.connection');
+        /** @var string|null $configured */
+        $configured = Config::get('chronicle.connection');
 
-        return $configured !== '' ? $configured : parent::getConnectionName();
+        if (is_string($configured) && $configured !== '') {
+            return $configured;
+        }
+
+        return parent::getConnectionName();
     }
 
     public function getTable(): string

@@ -10,6 +10,17 @@ breaking changes between any two versions - see upgrade notes per version.
 
 ## [Unreleased]
 
+---
+
+## [1.12.1] - 2026-06-18
+
+### Fixed
+- Running the package migrations on a fresh installation failed with `Configuration value for key [chronicle.connection] must be a string, NULL given.` when `CHRONICLE_DB_CONNECTION` was unset. The migrations and the `LegalHold` model now treat a null or empty `chronicle.connection` as "use the default Laravel connection" instead of throwing (regression from the `Config` facade migration above).
+
+---
+
+## [1.12.0] - 2026-06-18
+
 ### Added
 
 - `chronicle_subject_keys` table and `SubjectKey` model (v1.12 crypto-shredding foundation): one wrapped per-subject Data Encryption Key per `(subject_type, subject_id)`, the GDPR erasure unit. `wrapped_dek` is nullable so erasure can destroy the key material in place while the tombstone row (`status='erased'`, `erased_at`) survives. Table name from `chronicle.tables.subject_keys`; respects `chronicle.connection`.
@@ -33,6 +44,9 @@ breaking changes between any two versions - see upgrade notes per version.
 - `chronicle:prune` now excludes entries belonging to subjects under an active legal hold, so held subjects survive retention pruning. The exclusion is not overridable by `--force`.
 - Add `declare(strict_types=1)` to all `.php` files
 - Update `README.md`
+- Migrated every internal `config()` helper call to the typed `Illuminate\Support\Facades\Config` facade.
+- Marked internal classes `final` where subclassing is not a supported extension point.
+- Added a class-level docblock description to every class, interface, trait, and enum in `src/`.
 
 ### Security
 

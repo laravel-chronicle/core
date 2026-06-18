@@ -24,9 +24,11 @@ return new class extends Migration
      *
      * Reads from config so Chronicle can use a dedicated connection.
      */
-    public function getConnection(): string
+    public function getConnection(): ?string
     {
-        return Config::string('chronicle.connection');
+        $configured = Config::get('chronicle.connection');
+
+        return is_string($configured) && $configured !== '' ? $configured : null;
     }
 
     /**
