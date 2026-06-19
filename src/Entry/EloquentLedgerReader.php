@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Chronicle\Entry;
 
 use Chronicle\Contracts\LedgerReader as LedgerReaderContract;
+use Chronicle\Facades\Chronicle;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Pagination\CursorPaginator;
 use Illuminate\Support\Collection;
@@ -22,7 +23,7 @@ final class EloquentLedgerReader implements LedgerReaderContract
         int $perPage = 50,
         ?string $cursor = null,
     ): CursorPaginator {
-        return Entry::query()
+        return Chronicle::newEntryQuery()
             ->orderBy('id')
             ->cursorPaginate(
                 perPage: $perPage,
@@ -34,7 +35,7 @@ final class EloquentLedgerReader implements LedgerReaderContract
      */
     public function stream(): LazyCollection
     {
-        return Entry::query()
+        return Chronicle::newEntryQuery()
             ->orderBy('id')
             ->cursor();
     }
@@ -44,7 +45,8 @@ final class EloquentLedgerReader implements LedgerReaderContract
      */
     public function forActor(Model $actor): Collection
     {
-        return Entry::forActor($actor)
+        return Chronicle::newEntryQuery()
+            ->forActor($actor)
             ->latestFirst()
             ->get();
     }
@@ -54,7 +56,8 @@ final class EloquentLedgerReader implements LedgerReaderContract
      */
     public function forSubject(Model $subject): Collection
     {
-        return Entry::forSubject($subject)
+        return Chronicle::newEntryQuery()
+            ->forSubject($subject)
             ->latestFirst()
             ->get();
     }
@@ -64,7 +67,8 @@ final class EloquentLedgerReader implements LedgerReaderContract
      */
     public function action(string $action): Collection
     {
-        return Entry::action($action)
+        return Chronicle::newEntryQuery()
+            ->action($action)
             ->latestFirst()
             ->get();
     }
@@ -74,7 +78,8 @@ final class EloquentLedgerReader implements LedgerReaderContract
      */
     public function correlation(string $id): Collection
     {
-        return Entry::correlation($id)
+        return Chronicle::newEntryQuery()
+            ->correlation($id)
             ->latestFirst()
             ->get();
     }
@@ -86,7 +91,8 @@ final class EloquentLedgerReader implements LedgerReaderContract
      */
     public function workflow(string $rootCorrelation): Collection
     {
-        return Entry::workflow($rootCorrelation)
+        return Chronicle::newEntryQuery()
+            ->workflow($rootCorrelation)
             ->latestFirst()
             ->get();
     }
@@ -98,7 +104,8 @@ final class EloquentLedgerReader implements LedgerReaderContract
      */
     public function withTag(string $tag): Collection
     {
-        return Entry::withTag($tag)
+        return Chronicle::newEntryQuery()
+            ->withTag($tag)
             ->latestFirst()
             ->get();
     }
@@ -111,7 +118,8 @@ final class EloquentLedgerReader implements LedgerReaderContract
      */
     public function withTags(array $tags): Collection
     {
-        return Entry::withTags($tags)
+        return Chronicle::newEntryQuery()
+            ->withTags($tags)
             ->latestFirst()
             ->get();
     }
