@@ -8,6 +8,7 @@ use Chronicle\Checkpoints\Checkpoint;
 use Chronicle\Checkpoints\CheckpointCreator;
 use Chronicle\Entry\Entry;
 use Chronicle\Exceptions\UnknownSigningKeyException;
+use Chronicle\Facades\Chronicle;
 use Chronicle\Hashing\ChainHasher;
 use Chronicle\Signing\KeyRing;
 use Chronicle\Support\CanonicalPayloadSerializer;
@@ -69,7 +70,7 @@ final class IntegrityVerifier
             return $result;
         }
 
-        $afterSequence = Entry::query()
+        $afterSequence = Chronicle::newEntryQuery()
             ->where('chain_hash', $checkpoint->chain_hash)
             ->value('sequence');
 
@@ -128,7 +129,7 @@ final class IntegrityVerifier
 
         /** @var Entry $entry */
         foreach (
-            Entry::query()
+            Chronicle::newEntryQuery()
                 ->where('sequence', '>', $afterSequence)
                 ->when($throughSequence !== null, fn ($q) => $q->where('sequence', '<=', $throughSequence))
                 ->orderBy('sequence')

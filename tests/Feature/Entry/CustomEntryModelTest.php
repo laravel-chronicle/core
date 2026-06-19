@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use Chronicle\Facades\Chronicle;
 use Chronicle\Tests\Fakes\CustomEntry;
+use Chronicle\Verification\IntegrityVerifier;
 
 beforeEach(function () {
     config(['chronicle.models.entry' => CustomEntry::class]);
@@ -22,4 +23,27 @@ it('returns the configured subclass from the fluent query', function () {
     Chronicle::record()->actor(ref('a'))->action('query.read')->subject(ref('s'))->commit();
 
     expect(Chronicle::query()->action('query.read')->first())->toBeInstanceOf(CustomEntry::class);
+});
+
+it('verifies a clean ledger recorded under the configured subclass', function () {
+    Chronicle::record()->actor(ref('a'))->action('verify.one')->subject(ref('s'))->commit();
+    Chronicle::record()->actor(ref('a'))->action('verify.two')->subject(ref('s'))->commit();
+
+    $result = app(IntegrityVerifier::class)->verify();
+
+    expect($result->isValid())->toBeTrue();
+});
+
+it('detects tampering inside a ledger recorded under the configured subclass', function () {
+    Chronicle::record()->actor(ref('a'))->action('verify.tamper')->subject(ref('s'))->commit();
+
+    $entry = Chronicle::newEntryQuery()->first();
+    DB::connection(config('chronicle.connection'))
+        ->table((new CustomEntry)->getTable())
+        ->where('id', $entry->id)
+        ->update(['action' => 'verify.tampered']);
+
+    $result = app(IntegrityVerifier::class)->verify();
+
+    expect($result->isValid())->toBeFalse();
 });

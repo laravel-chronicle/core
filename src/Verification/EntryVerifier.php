@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Chronicle\Verification;
 
 use Chronicle\Entry\Entry;
+use Chronicle\Facades\Chronicle;
 use Chronicle\Hashing\ChainHasher;
 use Chronicle\Support\CanonicalPayloadSerializer;
 use JsonException;
@@ -28,7 +29,7 @@ final class EntryVerifier
      */
     public function verify(string $id): EntryVerificationResult
     {
-        $entry = Entry::find($id);
+        $entry = Chronicle::newEntryQuery()->find($id);
 
         if ($entry === null) {
             return EntryVerificationResult::notFound($id);
@@ -46,7 +47,7 @@ final class EntryVerifier
         }
 
         /** @var string $previousChainHash */
-        $previousChainHash = Entry::query()
+        $previousChainHash = Chronicle::newEntryQuery()
             ->where('sequence', '<', $entry->sequence)
             ->orderByDesc('sequence')
             ->value('chain_hash') ?? ChainHasher::GENESIS;

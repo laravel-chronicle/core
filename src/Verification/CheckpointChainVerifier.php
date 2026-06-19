@@ -6,6 +6,7 @@ namespace Chronicle\Verification;
 
 use Chronicle\Checkpoints\Checkpoint;
 use Chronicle\Entry\Entry;
+use Chronicle\Facades\Chronicle;
 use Chronicle\Signing\KeyRing;
 use JsonException;
 
@@ -58,7 +59,7 @@ final class CheckpointChainVerifier
             // 2. chain_hash must equal the head entry's chain_hash.
             $headChain = $checkpoint->head_id === null
                 ? null
-                : Entry::query()->whereKey($checkpoint->head_id)->value('chain_hash');
+                : Chronicle::newEntryQuery()->whereKey($checkpoint->head_id)->value('chain_hash');
 
             if (! is_string($headChain) || ! hash_equals($headChain, $checkpoint->chain_hash)) {
                 $result->fail(VerificationFailure::CheckpointHeadMismatch->value, $checkpoint->id);

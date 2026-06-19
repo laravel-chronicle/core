@@ -12,8 +12,7 @@ breaking changes between any two versions - see upgrade notes per version.
 
 ### Added
 
-- Config-resolvable entry model: a new `chronicle.models.entry` config key (default `\Chronicle\Entry\Entry::class`) with a validated resolution seam - `Chronicle::entryModel()` / `Chronicle::newEntryQuery()`. An override that does not extend `Chronicle\Entry\Entry` throws `InvalidEntryModelException`. With the key unset, behavior is identical to v1.12.x.
-- Config-resolvable entry model: a new `chronicle.models.entry` config key (default `\Chronicle\Entry\Entry::class`) lets hosts point Chronicle at a subclass of `Chronicle\Entry\Entry`. Resolved through a single seam - `Chronicle::entryModel()` / `Chronicle::newEntryQuery()` - threaded through `Chronicle::query()` and the ledger reader so reads return the configured model. An override that does not extend `Chronicle\Entry\Entry` throws `InvalidEntryModelException`. With the key unset, behavior is identical to v1.12.x.
+- Config-resolvable entry model: a new `chronicle.models.entry` config key (default `\Chronicle\Entry\Entry::class`) lets hosts point Chronicle at a subclass of `Chronicle\Entry\Entry`. Resolved through a single seam - `Chronicle::entryModel()` / `Chronicle::newEntryQuery()` - threaded through `Chronicle::query()`, the ledger reader, and all three verifiers (`EntryVerifier`, `IntegrityVerifier`, `CheckpointChainVerifier`). An override that does not extend `Chronicle\Entry\Entry` throws `InvalidEntryModelException`. With the key unset, behavior is identical to v1.12.x.
 
 ---
 
