@@ -66,7 +66,7 @@ final class DefaultReferenceLookup implements ReferenceLookup
      *
      * @return class-string|null
      */
-    private function classFor(string $type): ?string
+    protected function classFor(string $type): ?string
     {
         $mapped = Relation::getMorphedModel($type);
 
@@ -81,7 +81,7 @@ final class DefaultReferenceLookup implements ReferenceLookup
         return null;
     }
 
-    private function defaultLabel(string $type, string $id, ?string $class): string
+    protected function defaultLabel(string $type, string $id, ?string $class): string
     {
         if ($type === 'system') {
             return 'System';
