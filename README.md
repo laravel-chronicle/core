@@ -191,6 +191,35 @@ Entry::cursorPaginateLedger(50);
 
 See the [Query API reference](https://laravel-chronicle.github.io/docs/query-api).
 
+### Resolving references
+
+Entries store actors and subjects as a `(type, id)` pair, where `type` is the
+class name (or a configured morph alias). To turn one back into something
+displayable, use the reverse resolver - it honours `Relation::morphMap()` and
+**does not touch the database**:
+
+```php
+use Chronicle\Facades\Chronicle;
+
+$ref = Chronicle::resolveReference($entry->subject_type, $entry->subject_id);
+$ref->class;   // resolved FQCN, or null when unknown
+$ref->label;   // e.g. "Order #123" - humanised basename + id
+$ref->exists();
+
+Chronicle::referenceLabel($entry->actor_type, $entry->actor_id); // "System", "User #5", …
+```
+When you actually want the row, opt in to hydration (this is the only path that
+queries). The label can read a configurable attribute (`chronicle.references.label_attribute`,
+default `name`):
+
+```php
+$model = Chronicle::referenceModel($entry->subject_type, $entry->subject_id); // ?Model
+$name  = Chronicle::referenceLabel($entry->subject_type, $entry->subject_id, hydrate: true);
+```
+
+Bind your own `Chronicle\Contracts\ReferenceLookup` implementation in the
+container to fully customise resolution or labelling.
+
 ---
 
 ## Checkpoints
