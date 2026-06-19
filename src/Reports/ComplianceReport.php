@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Chronicle\Reports;
 
 use Carbon\CarbonInterface;
-use Chronicle\Entry\Entry;
 use Chronicle\Exceptions\UnknownSigningKeyException;
 use Chronicle\Facades\Chronicle;
 use Chronicle\Signing\KeyRing;

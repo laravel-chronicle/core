@@ -13,6 +13,7 @@ breaking changes between any two versions - see upgrade notes per version.
 ### Added
 
 - Config-resolvable entry model: a new `chronicle.models.entry` config key (default `\Chronicle\Entry\Entry::class`) lets hosts and downstream packages point Chronicle at a subclass of `Chronicle\Entry\Entry`. Resolved through a single seam - `Chronicle::entryModel()` / `Chronicle::newEntryQuery()` - threaded through the manager query, the ledger reader, all three verifiers (`EntryVerifier`, `IntegrityVerifier`, `CheckpointChainVerifier`), the storage drivers, and the write-path/tooling (checkpointing, export, compliance report, read-only UI, encrypt-backfill, and the entry-touching console commands). The override is validated to extend `Chronicle\Entry\Entry` (a clear `InvalidEntryModelException` otherwise), preserving immutability and the chain contract. With the key unset, behavior is byte-for-byte identical to v1.12.x. `Chronicle\Entry\Entry` is now documented as stable, subclassable public API.
+- Entry-bounded segment verification (foundation): an `EnclosingCheckpointResolver` that resolves the signed checkpoints enclosing an arbitrary entry range - the latest checkpoint whose head sequence is `< fromSequence` and the earliest whose head sequence is `>= toSequence`.
 
 ---
 

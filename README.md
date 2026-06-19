@@ -401,7 +401,7 @@ class AuditEntry extends Entry
 }
 ```
 
-The override **must** extend `Chronicle\Entry\Entry` — Chronicle validates this and throws `InvalidEntryModelException` otherwise, so the append-only immutability guarantee and the hash-chain contract are always preserved. `Chronicle\Entry\Entry` is stable, subclassable public API: do not override `save()`, `update()`, `delete()`, the `$fillable` set, or the hashed columns.
+The override **must** extend `Chronicle\Entry\Entry` - Chronicle validates this and throws `InvalidEntryModelException` otherwise, so the append-only immutability guarantee and the hash-chain contract are always preserved. `Chronicle\Entry\Entry` is stable, subclassable public API: do not override `save()`, `update()`, `delete()`, the `$fillable` set, or the hashed columns.
 
 ---
 

@@ -76,8 +76,8 @@
         "test": [
             "@test:lint",
             "@test:types",
-            "@test:unit"
+            "@test:coverage"
         ],
-        "test-coverage": "vendor/bin/pest --parallel --coverage"
+        "test:coverage": "vendor/bin/pest --parallel"
     }
 }
