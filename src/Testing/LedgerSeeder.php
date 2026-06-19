@@ -55,6 +55,33 @@ final class LedgerSeeder
         return $this;
     }
 
+    public function action(string|Closure $action): self
+    {
+        $this->action = $action;
+
+        return $this;
+    }
+
+    /**
+     * A value, or a Closure(int $index): mixed. 'system' records a system actor.
+     */
+    public function actor(mixed $actor): self
+    {
+        $this->actor = $actor;
+
+        return $this;
+    }
+
+    /**
+     * A value (Eloquent model or object with an $id), or a Closure(int $index): mixed.
+     */
+    public function subject(mixed $subject): self
+    {
+        $this->subject = $subject;
+
+        return $this;
+    }
+
     /**
      * @throws Throwable
      */

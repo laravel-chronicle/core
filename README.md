@@ -222,6 +222,34 @@ container to fully customise resolution or labelling.
 
 ---
 
+### Seeding a ledger in tests
+
+Building DB-backed test data one `Chronicle::record()->commit()` at a time is slow,
+and raw factory inserts produce a ledger that fails verification (they skip the
+hash chain and signing). `Chronicle\Testing\LedgerSeeder` drives the real write
+path inside a single transaction, so the result verifies:
+
+```php
+use Chronicle\Testing\LedgerSeeder;
+
+$seeded = LedgerSeeder::make()
+    ->count(1000)
+    ->checkpointEvery(100)            // periodic signed checkpoints (+ a final one)
+    ->action(fn (int $i) => "order.$i")
+    ->subject(fn (int $i) => Order::factory()->create())
+    ->seed();
+
+$seeded->entries;            // 1000
+$seeded->checkpoints;        // 10
+$seeded->lastCheckpointId;   // string|null
+```
+
+Requires the eloquent driver (`$this->useEloquentDriver()` in the package test
+suite) and a configured signing key. The seeded chain passes both
+`IntegrityVerifier::verify()` and `CheckpointChainVerifier::verify()`.
+
+---
+
 ## Checkpoints
 
 Chronicle can create cryptographic checkpoints that anchor the ledger. A checkpoint signs the current chain head along with an entry count and timestamp, so auditors can verify integrity even if the database is later compromised.

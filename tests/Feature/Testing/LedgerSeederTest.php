@@ -52,3 +52,17 @@ it('does not add a redundant final checkpoint when the count aligns', function (
         ->and(Checkpoint::query()->count())->toBe(2)
         ->and(app(IntegrityVerifier::class)->verify()->isValid())->toBeTrue();
 });
+
+it('lets the caller customise action, actor, and subject', function () {
+    LedgerSeeder::make()
+        ->count(3)
+        ->action(fn (int $i) => "order.$i")
+        ->subject(fn (int $i) => (object) ['id' => 100 + $i])
+        ->seed();
+
+    $first = Chronicle::query()->oldest()->first();
+
+    expect($first->action)->toBe('order.1')
+        ->and($first->subject_id)->toBe('101')
+        ->and(app(IntegrityVerifier::class)->verify()->isValid())->toBeTrue();
+});
