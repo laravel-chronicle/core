@@ -6,6 +6,7 @@ namespace Chronicle\Storage;
 
 use Chronicle\Contracts\StorageDriver;
 use Chronicle\Entry\Entry;
+use Chronicle\Facades\Chronicle;
 use JsonException;
 
 /**
@@ -32,7 +33,8 @@ final class NullDriver implements StorageDriver
      */
     public function store(array $entry): Entry
     {
-        $model = new Entry;
+        $class = Chronicle::entryModel();
+        $model = new $class;
 
         $model->forceFill($this->toEntryAttributes($entry));
 

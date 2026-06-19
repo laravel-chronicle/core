@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Chronicle\Events\EntryRecorded;
 use Chronicle\Facades\Chronicle;
 use Chronicle\Tests\Fakes\CustomEntry;
 use Chronicle\Verification\IntegrityVerifier;
@@ -46,4 +47,15 @@ it('detects tampering inside a ledger recorded under the configured subclass', f
     $result = app(IntegrityVerifier::class)->verify();
 
     expect($result->isValid())->toBeFalse();
+});
+
+it('persists and emits the configured subclass on record', function () {
+    Event::fake([EntryRecorded::class]);
+
+    Chronicle::record()->actor(ref('a'))->action('store.read')->subject(ref('s'))->commit();
+
+    Event::assertDispatched(
+        EntryRecorded::class,
+        fn (EntryRecorded $event) => $event->entry instanceof CustomEntry,
+    );
 });

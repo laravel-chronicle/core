@@ -6,6 +6,7 @@ namespace Chronicle\Storage;
 
 use Chronicle\Contracts\StorageDriver;
 use Chronicle\Entry\Entry;
+use Chronicle\Facades\Chronicle;
 use Illuminate\Support\Collection;
 use JsonException;
 
@@ -39,7 +40,8 @@ final class ArrayDriver implements StorageDriver
         ArrayDriver::$entries[] = $entry;
         $this->instanceEntries[] = $entry;
 
-        $model = new Entry;
+        $class = Chronicle::entryModel();
+        $model = new $class;
 
         $model->forceFill($this->toEntryAttributes($entry));
 
