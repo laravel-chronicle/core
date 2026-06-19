@@ -73,11 +73,12 @@
         "test:lint": "vendor/bin/pint --test -v",
         "test:types": "vendor/bin/phpstan analyse",
         "test:unit": "vendor/bin/pest",
+        "test:parallel": "vendor/bin/pest --parallel",
+        "test:coverage": "vendor/bin/pest --parallel --coverage",
         "test": [
             "@test:lint",
             "@test:types",
-            "@test:coverage"
-        ],
-        "test:coverage": "vendor/bin/pest --parallel"
+            "@test:parallel"
+        ]
     }
 }

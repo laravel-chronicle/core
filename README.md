@@ -13,6 +13,7 @@ cryptographic audit log
 ⭐ If you find Chronicle useful, please consider starring the repository.
 
 ![Packagist Version](https://img.shields.io/packagist/v/laravel-chronicle/core)
+![Packagist Downloads](https://img.shields.io/packagist/dt/laravel-chronicle/core)
 [![Tests](https://github.com/laravel-chronicle/core/actions/workflows/run-tests.yml/badge.svg)](https://github.com/laravel-chronicle/core/actions)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![All Contributors](https://img.shields.io/github/all-contributors/laravel-chronicle/core?color=ee8449&style=flat-square)](#contributors)

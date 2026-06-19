@@ -6,6 +6,7 @@ namespace Chronicle;
 
 use Chronicle\Contracts\EntryExtension;
 use Chronicle\Contracts\LedgerReader as LedgerReaderContract;
+use Chronicle\Contracts\ReferenceLookup;
 use Chronicle\Contracts\ReferenceResolver;
 use Chronicle\Contracts\StorageDriver;
 use Chronicle\Eloquent\ChronicleModelObserver;
@@ -24,6 +25,7 @@ use Chronicle\Storage\ArrayDriver;
 use Chronicle\Storage\DriverResolver;
 use Chronicle\Storage\NullDriver;
 use Chronicle\Storage\QueuedDriver;
+use Chronicle\Support\ResolvedReference;
 use Chronicle\Testing\ChronicleAssertions;
 use Chronicle\Transaction\ChronicleTransaction;
 use Illuminate\Contracts\Container\BindingResolutionException;
@@ -68,6 +70,8 @@ class ChronicleManager
 
     protected EntryExtensionRegistry $extensions;
 
+    protected ReferenceLookup $lookup;
+
     protected ?StorageDriver $resolvedDriver = null;
 
     protected EntryPipeline $prePipeline;
@@ -89,6 +93,7 @@ class ChronicleManager
         LedgerReaderContract $reader,
         DriverResolver $drivers,
         EntryExtensionRegistry $extensions,
+        ReferenceLookup $lookup,
     ) {
         $this->resolver = $resolver;
         $this->pipeline = $pipeline;
@@ -96,6 +101,7 @@ class ChronicleManager
         $this->reader = $reader;
         $this->drivers = $drivers;
         $this->extensions = $extensions;
+        $this->lookup = $lookup;
     }
 
     /**
@@ -466,5 +472,32 @@ class ChronicleManager
         assert($observerInstance instanceof ChronicleModelObserver);
 
         $model::observe($observerInstance);
+    }
+
+    /**
+     * Reverse-resolve a stored (type, id) reference into a descriptor (class +
+     * display label). Never queries the database.
+     */
+    public function resolveReference(string $type, string $id): ResolvedReference
+    {
+        return $this->lookup->resolve($type, $id);
+    }
+
+    /**
+     * Display label for a stored (type, id) reference. Queries the database only
+     * when $hydrate is true.
+     */
+    public function referenceLabel(string $type, string $id, bool $hydrate = false): string
+    {
+        return $this->lookup->label($type, $id, $hydrate);
+    }
+
+    /**
+     * Opt-in: hydrate the Eloquent model behind a stored (type, id) reference.
+     * Queries the database. Null if the type is not an Eloquent model or no row exists.
+     */
+    public function referenceModel(string $type, string $id): ?Model
+    {
+        return $this->lookup->model($type, $id);
     }
 }

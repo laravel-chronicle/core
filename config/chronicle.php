@@ -111,6 +111,22 @@ return [
         'entry' => Entry::class,
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Reference Resolution
+    |--------------------------------------------------------------------------
+    |
+    | Controls how stored (type, id) references are turned back into display
+    | labels. label_attribute is the model attribute read when a label is
+    | requested with hydration (Chronicle::referenceLabel($type, $id, true)).
+    | Reverse resolution honours Relation::morphMap() and never queries the
+    | database unless hydration is explicitly requested.
+    |
+    */
+    'references' => [
+        'label_attribute' => 'name',
+    ],
+
     'signing' => [
         /*
         |----------------------------------------------------------------------
