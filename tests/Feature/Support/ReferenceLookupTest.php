@@ -6,6 +6,7 @@ use Chronicle\Facades\Chronicle;
 use Chronicle\Support\DefaultReferenceLookup;
 use Chronicle\Tests\Fakes\FakeChronicleModel;
 use Illuminate\Database\Eloquent\Relations\Relation;
+use Illuminate\Database\Schema\Blueprint;
 
 afterEach(function () {
     // morphMap is process-static; reset so tests don't leak into each other.
@@ -63,4 +64,57 @@ it('exposes the resolver through the Chronicle facade', function () {
         ->toBe('Fake Chronicle Model #5')
         ->and(Chronicle::referenceLabel('App\\Models\\Ghost', '9'))
         ->toBe('Ghost #9');
+});
+
+it('does not query the database when resolving or labelling without hydration', function () {
+    $lookup = new DefaultReferenceLookup;
+
+    DB::enableQueryLog();
+    DB::flushQueryLog();
+
+    $lookup->resolve(FakeChronicleModel::class, '1');
+    $lookup->label(FakeChronicleModel::class, '1');
+
+    expect(DB::getQueryLog())->toHaveCount(0);
+});
+
+it('hydrates the model and reads the configured label attribute when asked', function () {
+    Schema::create('fake_chronicle_models', function (Blueprint $table) {
+        $table->id();
+        $table->string('name')->nullable();
+        $table->timestamps();
+    });
+
+    FakeChronicleModel::create(['name' => 'Alice']); // id 1
+
+    $lookup = new DefaultReferenceLookup;
+
+    expect($lookup->model(FakeChronicleModel::class, '1')?->getAttribute('name'))->toBe('Alice')
+        ->and($lookup->label(FakeChronicleModel::class, '1', hydrate: true))->toBe('Alice')
+        ->and(Chronicle::referenceModel(FakeChronicleModel::class, '1')?->getAttribute('name'))->toBe('Alice');
+
+    Schema::dropIfExists('fake_chronicle_models');
+});
+
+it('falls back to the default label when hydration finds no row', function () {
+    Schema::create('fake_chronicle_models', function (Blueprint $table) {
+        $table->id();
+        $table->string('name')->nullable();
+        $table->timestamps();
+    });
+
+    $lookup = new DefaultReferenceLookup;
+
+    expect($lookup->label(FakeChronicleModel::class, '999', hydrate: true))
+        ->toBe('Fake Chronicle Model #999')
+        ->and($lookup->model(FakeChronicleModel::class, '999'))->toBeNull();
+
+    Schema::dropIfExists('fake_chronicle_models');
+});
+
+it('returns null from model() for an unknown or non-model class', function () {
+    $lookup = new DefaultReferenceLookup;
+
+    expect($lookup->model('App\\Models\\Ghost', '1'))->toBeNull()
+        ->and($lookup->model('system', 'system'))->toBeNull();
 });

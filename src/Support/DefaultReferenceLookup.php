@@ -7,6 +7,7 @@ namespace Chronicle\Support;
 use Chronicle\Contracts\ReferenceLookup;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\Relation;
+use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Str;
 
 /**
@@ -31,15 +32,33 @@ final class DefaultReferenceLookup implements ReferenceLookup
 
     public function label(string $type, string $id, bool $hydrate = false): string
     {
-        // The query-free body lands here; Task 2 adds the $hydrate branch above
-        // this line.
+        if ($hydrate) {
+            $model = $this->model($type, $id);
+
+            if ($model !== null) {
+                $attribute = Config::string('chronicle.references.label_attribute', 'name');
+                $value = $model->getAttribute($attribute);
+
+                if (is_scalar($value) && (string) $value !== '') {
+                    return (string) $value;
+                }
+            }
+        }
+
         return $this->defaultLabel($type, $id, $this->classFor($type));
     }
 
     public function model(string $type, string $id): ?Model
     {
-        // Implemented in Task 2.
-        return null;
+        $class = $this->classFor($type);
+
+        if ($class === null || ! is_subclass_of($class, Model::class)) {
+            return null;
+        }
+
+        $instance = new $class;
+
+        return $instance->newQuery()->find($id);
     }
 
     /**
