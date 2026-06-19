@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Chronicle\Testing;
 
+use Chronicle\Checkpoints\CheckpointCreator;
 use Chronicle\Facades\Chronicle;
 use Closure;
 use Illuminate\Support\Facades\Config;
@@ -33,6 +34,8 @@ final class LedgerSeeder
 
     protected mixed $subject = null;
 
+    protected int $checkpointEvery = 0;
+
     public static function make(): self
     {
         return new self;
@@ -45,6 +48,13 @@ final class LedgerSeeder
         return $this;
     }
 
+    public function checkpointEvery(int $every): self
+    {
+        $this->checkpointEvery = $every;
+
+        return $this;
+    }
+
     /**
      * @throws Throwable
      */
@@ -53,17 +63,34 @@ final class LedgerSeeder
         $connection = Config::get('chronicle.connection');
         $connection = is_string($connection) && $connection !== '' ? $connection : null;
 
-        DB::connection($connection)->transaction(function (): void {
+        $creator = app(CheckpointCreator::class);
+
+        $checkpoints = 0;
+        $lastCheckpointId = null;
+
+        DB::connection($connection)->transaction(function () use ($creator, &$checkpoints, &$lastCheckpointId): void {
             for ($i = 1; $i <= $this->count; $i++) {
                 Chronicle::record()
                     ->actor($this->actorFor($i))
                     ->action($this->actionFor($i))
                     ->subject($this->subjectFor($i))
                     ->commit();
+
+                if ($this->checkpointEvery > 0 && $i % $this->checkpointEvery === 0) {
+                    $lastCheckpointId = $creator->create()->id;
+                    $checkpoints++;
+                }
+            }
+
+            // Cap any unanchored tail with a final checkpoint so every entry is
+            // covered (skipped when the last entry was already a boundary).
+            if ($this->checkpointEvery > 0 && $this->count > 0 && $this->count % $this->checkpointEvery !== 0) {
+                $lastCheckpointId = $creator->create()->id;
+                $checkpoints++;
             }
         });
 
-        return new SeededLedger($this->count, 0, null);
+        return new SeededLedger($this->count, $checkpoints, $lastCheckpointId);
     }
 
     protected function actionFor(int $i): string
