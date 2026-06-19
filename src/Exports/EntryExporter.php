@@ -6,6 +6,7 @@ namespace Chronicle\Exports;
 
 use Chronicle\Entry\Entry;
 use Chronicle\Exceptions\ExportWriteException;
+use Chronicle\Facades\Chronicle;
 use JsonException;
 
 /**
@@ -32,7 +33,7 @@ class EntryExporter
         $hashContext = hash_init('sha256');
 
         try {
-            Entry::query()
+            Chronicle::newEntryQuery()
                 ->orderBy('sequence')
                 ->chunk(500, function ($entries) use (
                     &$handle,

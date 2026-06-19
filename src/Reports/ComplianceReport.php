@@ -7,6 +7,7 @@ namespace Chronicle\Reports;
 use Carbon\CarbonInterface;
 use Chronicle\Entry\Entry;
 use Chronicle\Exceptions\UnknownSigningKeyException;
+use Chronicle\Facades\Chronicle;
 use Chronicle\Signing\KeyRing;
 use Illuminate\Support\Carbon;
 use JsonException;
@@ -96,7 +97,7 @@ class ComplianceReport
      */
     protected function collectStats(?CarbonInterface $from, ?CarbonInterface $to): array
     {
-        $query = Entry::query();
+        $query = Chronicle::newEntryQuery();
 
         if ($from !== null) {
             $query->where('created_at', '>=', $from);

@@ -7,6 +7,7 @@ namespace Chronicle\Checkpoints;
 use Chronicle\Anchoring\AnchorManager;
 use Chronicle\Contracts\SigningProvider;
 use Chronicle\Entry\Entry;
+use Chronicle\Facades\Chronicle;
 use Chronicle\Jobs\AnchorCheckpointJob;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\DB;
@@ -48,7 +49,7 @@ final class CheckpointCreator
         $checkpoint = DB::connection($connection)->transaction(function () use (&$created) {
             // Resolve the head by sequence (the canonical ledger order), not id.
             /** @var Entry|null $head */
-            $head = Entry::query()
+            $head = Chronicle::newEntryQuery()
                 ->orderByDesc('sequence')
                 ->lockForUpdate()
                 ->first(['id', 'sequence', 'chain_hash']);
@@ -70,7 +71,7 @@ final class CheckpointCreator
             $id = (string) Str::ulid();
             $createdAt = now();
 
-            $entryCount = Entry::query()
+            $entryCount = Chronicle::newEntryQuery()
                 ->where('sequence', '<=', $head->sequence)
                 ->count();
 
@@ -107,7 +108,7 @@ final class CheckpointCreator
             // query-builder UPDATE, so it bypasses the Entry model immutability
             // guard by design; checkpoint_id is NOT part of any hashed payload,
             // so no payload_hash/chain_hash is affected.
-            Entry::query()
+            Chronicle::newEntryQuery()
                 ->whereNull('checkpoint_id')
                 ->where('sequence', '<=', $head->sequence)
                 ->update(['checkpoint_id' => $id]);

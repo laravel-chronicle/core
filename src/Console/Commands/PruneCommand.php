@@ -44,7 +44,7 @@ final class PruneCommand extends Command
         $respectCheckpoints = Config::boolean('chronicle.prune.respect_checkpoints', true);
 
         if (! $force && $respectCheckpoints) {
-            $anchored = Entry::query()
+            $anchored = Chronicle::newEntryQuery()
                 ->where('created_at', '<', $cutoff)
                 ->whereNotNull('checkpoint_id')
                 ->count();
@@ -154,7 +154,7 @@ final class PruneCommand extends Command
      */
     protected function buildPruneQuery(Carbon $cutoff, bool $force, bool $respectCheckpoints): Builder
     {
-        $query = Entry::query()->where('created_at', '<', $cutoff);
+        $query = Chronicle::newEntryQuery()->where('created_at', '<', $cutoff);
 
         if (! $force && $respectCheckpoints) {
             $query->whereNull('checkpoint_id');

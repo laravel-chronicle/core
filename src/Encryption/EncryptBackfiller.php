@@ -6,6 +6,7 @@ namespace Chronicle\Encryption;
 
 use Chronicle\Entry\Entry;
 use Chronicle\Entry\PendingEntry;
+use Chronicle\Facades\Chronicle;
 use Chronicle\Hashing\ChainHasher;
 use Chronicle\Hashing\EntryHasher;
 use Chronicle\Lifecycle\LegalHold;
@@ -49,7 +50,7 @@ final readonly class EncryptBackfiller
         $lastSequence = $startSequence - 1;
 
         do {
-            $batch = Entry::query()
+            $batch = Chronicle::newEntryQuery()
                 ->where('sequence', '>', $lastSequence)
                 ->orderBy('sequence')
                 ->limit($chunk)
@@ -77,7 +78,7 @@ final readonly class EncryptBackfiller
                     $relinked++;
 
                     if (! $dryRun) {
-                        Entry::query()->whereKey($entry->id)->update(array_merge($columnUpdates, [
+                        Chronicle::newEntryQuery()->whereKey($entry->id)->update(array_merge($columnUpdates, [
                             'payload' => $payload,
                             'payload_hash' => $newPayloadHash,
                             'chain_hash' => $newChainHash,
@@ -175,7 +176,7 @@ final readonly class EncryptBackfiller
         }
 
         /** @var Entry|null $from */
-        $from = Entry::query()->whereKey($fromId)->first(['sequence']);
+        $from = Chronicle::newEntryQuery()->whereKey($fromId)->first(['sequence']);
 
         if ($from === null) {
             throw new InvalidArgumentException("No entry found with id [$fromId].");
@@ -184,7 +185,7 @@ final readonly class EncryptBackfiller
         $startSequence = $from->sequence;
 
         /** @var Entry|null $before */
-        $before = Entry::query()
+        $before = Chronicle::newEntryQuery()
             ->where('sequence', '<', $startSequence)
             ->orderByDesc('sequence')
             ->first(['chain_hash']);

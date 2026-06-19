@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Chronicle\Console\Commands;
 
 use Chronicle\Checkpoints\Checkpoint;
-use Chronicle\Entry\Entry;
+use Chronicle\Facades\Chronicle;
 use Chronicle\Signing\KeyRing;
 use Chronicle\Verification\AnchorVerifier;
 use Chronicle\Verification\CheckpointChainVerifier;
@@ -187,7 +187,7 @@ final class VerifyEntryCommand extends Command
             return null;
         }
 
-        $sequence = Entry::query()->whereKey($checkpoint->head_id)->value('sequence');
+        $sequence = Chronicle::newEntryQuery()->whereKey($checkpoint->head_id)->value('sequence');
 
         return is_numeric($sequence) ? (int) $sequence : null;
     }
@@ -221,7 +221,7 @@ final class VerifyEntryCommand extends Command
         $this->newLine();
         $this->line('Verifying entries');
 
-        $total = Entry::query()->count();
+        $total = Chronicle::newEntryQuery()->count();
         $bar = $this->output->createProgressBar($total);
         $bar->start();
 
