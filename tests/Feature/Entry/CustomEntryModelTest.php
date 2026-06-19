@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Chronicle\Checkpoints\CheckpointCreator;
 use Chronicle\Events\EntryRecorded;
 use Chronicle\Facades\Chronicle;
 use Chronicle\Tests\Fakes\CustomEntry;
@@ -58,4 +59,19 @@ it('persists and emits the configured subclass on record', function () {
         EntryRecorded::class,
         fn (EntryRecorded $event) => $event->entry instanceof CustomEntry,
     );
+});
+
+it('records, checkpoints, and verifies end-to-end under the configured subclass', function () {
+    for ($i = 0; $i < 5; $i++) {
+        Chronicle::record()->actor(ref('a'))->action("e2e.$i")->subject(ref('s'))->commit();
+    }
+
+    app(CheckpointCreator::class)->create();
+
+    Chronicle::record()->actor(ref('a'))->action('e2e.tail')->subject(ref('s'))->commit();
+
+    $result = app(IntegrityVerifier::class)->verify();
+
+    expect($result->isValid())->toBeTrue()
+        ->and(Chronicle::query()->count())->toBe(6);
 });

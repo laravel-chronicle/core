@@ -6,6 +6,7 @@ namespace Chronicle\Console\Commands;
 
 use Carbon\Carbon;
 use Chronicle\Entry\Entry;
+use Chronicle\Facades\Chronicle;
 use Chronicle\Lifecycle\LegalHold;
 use Illuminate\Console\Command;
 use Illuminate\Database\Eloquent\Builder;
@@ -160,7 +161,8 @@ final class PruneCommand extends Command
         }
 
         $holdsTable = (new LegalHold)->getTable();
-        $entriesTable = (new Entry)->getTable();
+        $entryClass = Chronicle::entryModel();
+        $entriesTable = (new $entryClass)->getTable();
 
         $query->whereNotExists(function (QueryBuilder $sub) use ($holdsTable, $entriesTable) {
             $sub->select(DB::raw(1))

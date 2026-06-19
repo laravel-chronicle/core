@@ -7,6 +7,7 @@ namespace Chronicle\Pipeline;
 use Chronicle\Contracts\EntryProcessor;
 use Chronicle\Entry\Entry;
 use Chronicle\Entry\PendingEntry;
+use Chronicle\Facades\Chronicle;
 use Chronicle\Hashing\ChainHasher;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\DB;
@@ -42,7 +43,7 @@ final class ChainHashEntry implements EntryProcessor
         }
 
         /** @var Entry|null $head */
-        $head = Entry::query()
+        $head = Chronicle::newEntryQuery()
             ->orderByDesc('sequence')
             ->lockForUpdate()
             ->first(['sequence', 'chain_hash']);
