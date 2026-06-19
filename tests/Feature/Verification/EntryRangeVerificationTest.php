@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 use Chronicle\Checkpoints\Checkpoint;
 use Chronicle\Checkpoints\CheckpointCreator;
+use Chronicle\Entry\Entry;
 use Chronicle\Facades\Chronicle;
 use Chronicle\Verification\IntegrityVerifier;
+use Chronicle\Verification\VerificationFailure;
 
 beforeEach(fn () => $this->useEloquentDriver());
 
@@ -89,4 +91,47 @@ it('verifies a range when no checkpoints exist (genesis to head)', function () {
 
     expect($result->isValid())->toBeTrue()
         ->and($result->checked())->toBe(3);
+});
+
+it('detects tampering with a row inside the requested range', function () {
+    rangeSeedSegments(3); // entries 1..6, heads 2,4,6
+
+    // Tamper entry at sequence 4, which is inside the requested range [3,5].
+    $target = Entry::query()->where('sequence', 4)->firstOrFail();
+    DB::table('chronicle_entries')->where('id', $target->id)
+        ->update(['payload_hash' => str_repeat('0', 64)]);
+
+    $result = app(IntegrityVerifier::class)->verifyEntryRange(3, 5);
+
+    expect($result->isValid())->toBeFalse()
+        ->and($result->failureType())->toBe(VerificationFailure::PayloadHashMismatch->value)
+        ->and($result->entryId())->toBe($target->id);
+});
+
+it('fails when the enclosing start checkpoint signature is invalid', function () {
+    [$c0, $c1, $c2] = rangeSeedSegments(3); // heads 2,4,6
+
+    // For range [3,4] the start anchor is c0 (head 2). Corrupt its signature.
+    DB::table('chronicle_checkpoints')->where('id', $c0->id)
+        ->update(['signature' => base64_encode(str_repeat('x', 64))]);
+
+    $result = app(IntegrityVerifier::class)->verifyEntryRange(3, 4);
+
+    expect($result->isValid())->toBeFalse()
+        ->and($result->failureType())->toBe(VerificationFailure::CheckpointSignatureInvalid->value)
+        ->and($result->entryId())->toBe($c0->id);
+});
+
+it('fails when the enclosing end checkpoint signature is invalid', function () {
+    [$c0, $c1, $c2] = rangeSeedSegments(3); // heads 2,4,6
+
+    // For range [1,4] the start is genesis and the end anchor is c1 (head 4).
+    DB::table('chronicle_checkpoints')->where('id', $c1->id)
+        ->update(['signature' => base64_encode(str_repeat('x', 64))]);
+
+    $result = app(IntegrityVerifier::class)->verifyEntryRange(1, 4);
+
+    expect($result->isValid())->toBeFalse()
+        ->and($result->failureType())->toBe(VerificationFailure::CheckpointSignatureInvalid->value)
+        ->and($result->entryId())->toBe($c1->id);
 });
