@@ -260,6 +260,30 @@ php artisan chronicle:verify --checkpoints-only --anchors
 
 Upgrading an existing ledger? Run `chronicle:checkpoints:backfill` once so historical checkpoints gain their head/count/link metadata; until then the incremental modes safely fall back to a full verify. See [Scalable Verification](https://laravel-chronicle.github.io/docs/scalable-verification).
 
+### Verifying an arbitrary entry range
+
+To verify a span of entries without working out checkpoint bounds yourself, pass
+the first and last entry ULIDs:
+
+```bash
+php artisan chronicle:verify --from={first-entry-ulid} --to={last-entry-ulid}
+```
+
+Chronicle resolves the **signed** checkpoints that enclose the range, verifies
+their signatures, and recomputes the chain between them - so the verification of
+the requested rows rides on the signed checkpoint anchors, never on an entry's
+own stored hash. Programmatically:
+
+```php
+use Chronicle\Verification\IntegrityVerifier;
+
+$result = app(IntegrityVerifier::class)->verifyEntryRange($fromSequence, $toSequence);
+```
+
+If the range extends past the last checkpoint, the unanchored tail is recomputed
+from the last enclosing signed checkpoint to the head - the same trust as
+`--since-last-checkpoint`.
+
 ---
 
 ## GDPR erasure (crypto-shredding)
