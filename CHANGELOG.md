@@ -10,6 +10,10 @@ breaking changes between any two versions - see upgrade notes per version.
 
 ## [Unreleased]
 
+### Added
+
+- Config-resolvable entry model: a new `chronicle.models.entry` config key (default `\Chronicle\Entry\Entry::class`) with a validated resolution seam - `Chronicle::entryModel()` / `Chronicle::newEntryQuery()`. An override that does not extend `Chronicle\Entry\Entry` throws `InvalidEntryModelException`. With the key unset, behavior is identical to v1.12.x.
+
 ---
 
 ## [1.12.1] - 2026-06-18
@@ -59,7 +63,7 @@ breaking changes between any two versions - see upgrade notes per version.
 ### Added
 
 - Monotonic `sequence` column on `chronicle_entries`, assigned under the chain row-lock in `ChainHashEntry`, with `unique(sequence)` and `unique(chain_hash)` constraints. A concurrent chain fork now fails with a database uniqueness error instead of corrupting the ledger silently.
-- `2026_06_06_000000_add_sequence_to_chronicle_entries_table` migration: backfills `sequence` for existing ledgers in chain order and is a no-op on fresh installs.
+- `2026_06_06_000000_add_sequence_to_chronicle_entries_table` migration: backfills `sequence` for existing ledgers in chain order and is a no-op on fresh installations.
 - `IntegrityVerifier::verifyFrom(Checkpoint $checkpoint)` verifies a ledger starting from a known-good checkpoint instead of genesis, so ledgers whose early history was pruned remain verifiable. The checkpoint signature is verified before its `chain_hash` is used as the walk seed.
 - Range-aware checkpoints: `chronicle_checkpoints` gains `head_id`, `entry_count`, and `previous_checkpoint_id` columns (additive migration; no artifact format or hash change). New `chronicle_checkpoint_anchors` table for external-anchor receipts and optional `chronicle_verification_runs` table for resumable-verification progress. New `chronicle.tables.checkpoint_anchors` / `chronicle.tables.verification_runs` config keys.
 - `Checkpoint` model exposes the new range columns (`head_id`, `entry_count`, `previous_checkpoint_id`) with casts plus `previousCheckpoint()` and `anchors()` relations. Checkpoint immutability guards are unchanged.
@@ -79,7 +83,7 @@ breaking changes between any two versions - see upgrade notes per version.
 ### Changed
 
 - Ledger order is now derived from `sequence` everywhere it matters - `ChainHashEntry`, `IntegrityVerifier`, `EntryVerifier`, and `EntryExporter` - instead of the ULID `id` sort. This eliminates false `chain_hash_mismatch` / `chain_invalid` results when two entries share a millisecond across processes.
-- `chronicle_entries.payload`, `payload_hash`, and `chain_hash` are now `NOT NULL` on fresh installs.
+- `chronicle_entries.payload`, `payload_hash`, and `chain_hash` are now `NOT NULL` on fresh installations.
 - `CheckpointCreator` now signs a canonical object binding `id`, `chain_hash`, `algorithm`, `key_id`, and `created_at` (mirroring `ExportSigner`) instead of the bare chain hash. `IntegrityVerifier` verifies the new format and transparently falls back to the legacy bare-hash format, so checkpoints created before this release still verify. The shared `CheckpointCreator::signaturePayload()` keeps signing and verification in lockstep.
 - `chronicle:prune` now warns that from-genesis verification will not pass after a prune and points operators to `verifyFrom()` with a boundary checkpoint.
 - `RateLimitPolicy` now logs a `warning` (actor, action, retry-after) before rejecting an over-limit entry, so audit suppression via the optional rate-limit policy is observable rather than silent.

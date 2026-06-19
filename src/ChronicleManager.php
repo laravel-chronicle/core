@@ -15,6 +15,7 @@ use Chronicle\Entry\EntryBuilder;
 use Chronicle\Entry\PendingEntry;
 use Chronicle\Events\EntryRejected;
 use Chronicle\Exceptions\ChronicleException;
+use Chronicle\Exceptions\InvalidEntryModelException;
 use Chronicle\Jobs\PersistChronicleEntryJob;
 use Chronicle\Pipeline\EntryExtensionRegistry;
 use Chronicle\Pipeline\EntryPipeline;
@@ -26,6 +27,7 @@ use Chronicle\Storage\QueuedDriver;
 use Chronicle\Testing\ChronicleAssertions;
 use Chronicle\Transaction\ChronicleTransaction;
 use Illuminate\Contracts\Container\BindingResolutionException;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Config;
@@ -167,7 +169,38 @@ class ChronicleManager
      */
     public function query(): LedgerQuery
     {
-        return new LedgerQuery(Entry::query());
+        return new LedgerQuery($this->newEntryQuery());
+    }
+
+    /**
+     * Resolve the configured Chronicle entry model class.
+     *
+     * Defaults to Chronicle\Entry\Entry. Hosts may point chronicle.models.entry
+     * at a subclass; this validates that the override extends Entry so the
+     * immutability and chain contract are preserved.
+     *
+     * @return class-string<Entry>
+     */
+    public function entryModel(): string
+    {
+        $class = Config::string('chronicle.models.entry', Entry::class);
+
+        if (! class_exists($class) || ! is_a($class, Entry::class, true)) {
+            throw InvalidEntryModelException::for($class);
+        }
+
+        /** @var class-string<Entry> $class */
+        return $class;
+    }
+
+    /**
+     * Start a fresh Eloquent query on the configured entry model.
+     *
+     * @return Builder<Entry>
+     */
+    public function newEntryQuery(): Builder
+    {
+        return $this->entryModel()::query();
     }
 
     /**
