@@ -30,6 +30,10 @@ use SodiumException;
  * directly in the application code.
  * Use Chronicle::record()->...->commit() exclusively.
  *
+ * Stable, subclassable public API. Point `chronicle.models.entry` at a subclass
+ * to extend this model; the subclass must not relax immutability or alter the
+ * hashed columns. See InvalidEntryModelException.
+ *
  * @property string $id
  * @property string $actor_type
  * @property string $actor_id
@@ -73,9 +77,7 @@ class Entry extends Model
      */
     public function getTable(): string
     {
-        $table = Config::string('chronicle.tables.entries', 'chronicle_entries');
-
-        return $table;
+        return Config::string('chronicle.tables.entries', 'chronicle_entries');
     }
 
     public $incrementing = false;

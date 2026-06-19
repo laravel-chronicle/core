@@ -379,6 +379,30 @@ Read more in [Philosophy](https://laravel-chronicle.github.io/docs/philosophy) a
 
 Chronicle is designed to be extended. You can write custom validators, policies, and context resolvers, swap in custom storage drivers or signing providers (for example, AWS KMS), and listen to ledger events. See the [Extending Chronicle](https://laravel-chronicle.github.io/docs/extending-chronicle) guide.
 
+### Custom entry model
+
+Chronicle resolves its Eloquent entry model from `chronicle.models.entry` (default `\Chronicle\Entry\Entry::class`). Point it at your own subclass to add accessors, relationships, or casts:
+
+```php
+// config/chronicle.php
+'models' => [
+    'entry' => \App\Models\AuditEntry::class,
+],
+```
+
+```php
+namespace App\Models;
+
+use Chronicle\Entry\Entry;
+
+class AuditEntry extends Entry
+{
+    // add accessors / relationships here
+}
+```
+
+The override **must** extend `Chronicle\Entry\Entry` — Chronicle validates this and throws `InvalidEntryModelException` otherwise, so the append-only immutability guarantee and the hash-chain contract are always preserved. `Chronicle\Entry\Entry` is stable, subclassable public API: do not override `save()`, `update()`, `delete()`, the `$fillable` set, or the hashed columns.
+
 ---
 
 ## Roadmap
