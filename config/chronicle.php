@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use Chronicle\Encryption\LocalKeyEncryptionProvider;
+use Chronicle\Entry\Entry;
 use Chronicle\Signing\Ed25519SigningProvider;
 use Chronicle\Validation\ActionValidator;
 use Chronicle\Validation\ActorPresenceValidator;
@@ -92,6 +93,38 @@ return [
         'verification_runs' => env('CHRONICLE_TABLE_VERIFICATION_RUNS', 'chronicle_verification_runs'),
         'subject_keys' => env('CHRONICLE_TABLE_SUBJECT_KEYS', 'chronicle_subject_keys'),
         'legal_holds' => env('CHRONICLE_TABLE_LEGAL_HOLDS', 'chronicle_legal_holds'),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Eloquent Models
+    |--------------------------------------------------------------------------
+    |
+    | The Eloquent model Chronicle uses for audit entries. Point this at your
+    | own subclass of Chronicle\Entry\Entry to add accessors, relationships, or
+    | casts. The override MUST extend Chronicle\Entry\Entry so the immutability
+    | guarantee and hash-chain contract are preserved. Leave as the default for
+    | identical behavior to previous versions.
+    |
+    */
+    'models' => [
+        'entry' => Entry::class,
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Reference Resolution
+    |--------------------------------------------------------------------------
+    |
+    | Controls how stored (type, id) references are turned back into display
+    | labels. label_attribute is the model attribute read when a label is
+    | requested with hydration (Chronicle::referenceLabel($type, $id, true)).
+    | Reverse resolution honours Relation::morphMap() and never queries the
+    | database unless hydration is explicitly requested.
+    |
+    */
+    'references' => [
+        'label_attribute' => 'name',
     ],
 
     'signing' => [

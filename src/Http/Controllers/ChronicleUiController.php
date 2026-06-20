@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Chronicle\Http\Controllers;
 
 use Chronicle\Checkpoints\Checkpoint;
-use Chronicle\Entry\Entry;
+use Chronicle\Facades\Chronicle;
 use Chronicle\Query\LedgerStats;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -21,7 +21,7 @@ final class ChronicleUiController
 {
     public function index(Request $request): View
     {
-        $query = Entry::query();
+        $query = Chronicle::newEntryQuery();
 
         if ($request->filled('action')) {
             $query->where('action', $request->string('action')->toString());
@@ -84,7 +84,7 @@ final class ChronicleUiController
             abort(404);
         }
 
-        $entry = Entry::find($id);
+        $entry = Chronicle::newEntryQuery()->find($id);
 
         if ($entry === null) {
             return redirect()

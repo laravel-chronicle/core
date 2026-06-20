@@ -6,6 +6,7 @@ namespace Chronicle\Console\Commands;
 
 use Carbon\Carbon;
 use Chronicle\Entry\Entry;
+use Chronicle\Facades\Chronicle;
 use Chronicle\Lifecycle\LegalHold;
 use Illuminate\Console\Command;
 use Illuminate\Database\Eloquent\Builder;
@@ -43,7 +44,7 @@ final class PruneCommand extends Command
         $respectCheckpoints = Config::boolean('chronicle.prune.respect_checkpoints', true);
 
         if (! $force && $respectCheckpoints) {
-            $anchored = Entry::query()
+            $anchored = Chronicle::newEntryQuery()
                 ->where('created_at', '<', $cutoff)
                 ->whereNotNull('checkpoint_id')
                 ->count();
@@ -153,14 +154,15 @@ final class PruneCommand extends Command
      */
     protected function buildPruneQuery(Carbon $cutoff, bool $force, bool $respectCheckpoints): Builder
     {
-        $query = Entry::query()->where('created_at', '<', $cutoff);
+        $query = Chronicle::newEntryQuery()->where('created_at', '<', $cutoff);
 
         if (! $force && $respectCheckpoints) {
             $query->whereNull('checkpoint_id');
         }
 
         $holdsTable = (new LegalHold)->getTable();
-        $entriesTable = (new Entry)->getTable();
+        $entryClass = Chronicle::entryModel();
+        $entriesTable = (new $entryClass)->getTable();
 
         $query->whereNotExists(function (QueryBuilder $sub) use ($holdsTable, $entriesTable) {
             $sub->select(DB::raw(1))

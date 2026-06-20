@@ -12,6 +12,17 @@ breaking changes between any two versions - see upgrade notes per version.
 
 ---
 
+## [1.13.0] - 2026-06-19
+
+### Added
+
+- Config-resolvable entry model: a new `chronicle.models.entry` config key (default `\Chronicle\Entry\Entry::class`) lets hosts and downstream packages point Chronicle at a subclass of `Chronicle\Entry\Entry`. Resolved through a single seam - `Chronicle::entryModel()` / `Chronicle::newEntryQuery()` - threaded through the manager query, the ledger reader, all three verifiers (`EntryVerifier`, `IntegrityVerifier`, `CheckpointChainVerifier`), the storage drivers, and the write-path/tooling (checkpointing, export, compliance report, read-only UI, encrypt-backfill, and the entry-touching console commands). The override is validated to extend `Chronicle\Entry\Entry` (a clear `InvalidEntryModelException` otherwise), preserving immutability and the chain contract. With the key unset, behavior is byte-for-byte identical to v1.12.x. `Chronicle\Entry\Entry` is now documented as stable, subclassable public API.
+- Entry-bounded segment verification: `IntegrityVerifier::verifyEntryRange(int $fromSequence, int $toSequence, ?callable $onProgress = null): VerificationResult` verifies an arbitrary entry range without the caller deriving checkpoint bounds. It resolves the enclosing **signed** checkpoints (via `EnclosingCheckpointResolver`), verifies their signatures, derives the trusted starting/ending chain hashes from them, and delegates to the existing `verifySegment` - so verifying the rows transitively rides on the signed anchors. Handles ranges within one checkpoint segment, ranges spanning several, ranges from genesis, and tail ranges past the last checkpoint (recomputed from the last enclosing signed checkpoint to the head, carrying the same trust as `chronicle:verify --since-last-checkpoint`). Tampering with any row inside the requested range, or an invalid enclosing-checkpoint signature, is detected; reuses existing `VerificationFailure` cases with no new enum entries. Exposed on the CLI as `chronicle:verify --from={entry-ulid} --to={entry-ulid}`.
+- Reverse reference resolution: `Chronicle::resolveReference(string $type, string $id): ResolvedReference` and `Chronicle::referenceLabel(string $type, string $id, bool $hydrate = false)` turn a stored `(actor_type/subject_type, *_id)` back into a resolved class and a display label, behind an overridable `ReferenceLookup` contract. Honours `Relation::morphMap()` (alias↔class), guards unknown classes with `class_exists`, and falls back to a humanised class basename + id. Model hydration is opt-in: `Chronicle::referenceModel($type, $id)` and `referenceLabel($type, $id, hydrate: true)` are the only paths that query (reading `chronicle.references.label_attribute`, default `name`); plain resolution and labelling never touch the database. The storage (write) direction is unchanged.
+- Verification-preserving test seeding: `Chronicle\Testing\LedgerSeeder` records N entries through the real write path inside a single transaction and writes periodic signed checkpoints (`->checkpointEvery(K)`), yielding a chain that passes both `IntegrityVerifier::verify()` and `CheckpointChainVerifier::verify()` with every entry anchored. The action, actor, and subject are customisable (value or `Closure(int $index)`), and it returns a `SeededLedger` summary (`entries`, `checkpoints`, `lastCheckpointId`). Test-only (shipped under the `Testing` namespace), with no impact on production code paths.
+
+---
+
 ## [1.12.1] - 2026-06-18
 
 ### Fixed
@@ -59,7 +70,7 @@ breaking changes between any two versions - see upgrade notes per version.
 ### Added
 
 - Monotonic `sequence` column on `chronicle_entries`, assigned under the chain row-lock in `ChainHashEntry`, with `unique(sequence)` and `unique(chain_hash)` constraints. A concurrent chain fork now fails with a database uniqueness error instead of corrupting the ledger silently.
-- `2026_06_06_000000_add_sequence_to_chronicle_entries_table` migration: backfills `sequence` for existing ledgers in chain order and is a no-op on fresh installs.
+- `2026_06_06_000000_add_sequence_to_chronicle_entries_table` migration: backfills `sequence` for existing ledgers in chain order and is a no-op on fresh installations.
 - `IntegrityVerifier::verifyFrom(Checkpoint $checkpoint)` verifies a ledger starting from a known-good checkpoint instead of genesis, so ledgers whose early history was pruned remain verifiable. The checkpoint signature is verified before its `chain_hash` is used as the walk seed.
 - Range-aware checkpoints: `chronicle_checkpoints` gains `head_id`, `entry_count`, and `previous_checkpoint_id` columns (additive migration; no artifact format or hash change). New `chronicle_checkpoint_anchors` table for external-anchor receipts and optional `chronicle_verification_runs` table for resumable-verification progress. New `chronicle.tables.checkpoint_anchors` / `chronicle.tables.verification_runs` config keys.
 - `Checkpoint` model exposes the new range columns (`head_id`, `entry_count`, `previous_checkpoint_id`) with casts plus `previousCheckpoint()` and `anchors()` relations. Checkpoint immutability guards are unchanged.
@@ -79,7 +90,7 @@ breaking changes between any two versions - see upgrade notes per version.
 ### Changed
 
 - Ledger order is now derived from `sequence` everywhere it matters - `ChainHashEntry`, `IntegrityVerifier`, `EntryVerifier`, and `EntryExporter` - instead of the ULID `id` sort. This eliminates false `chain_hash_mismatch` / `chain_invalid` results when two entries share a millisecond across processes.
-- `chronicle_entries.payload`, `payload_hash`, and `chain_hash` are now `NOT NULL` on fresh installs.
+- `chronicle_entries.payload`, `payload_hash`, and `chain_hash` are now `NOT NULL` on fresh installations.
 - `CheckpointCreator` now signs a canonical object binding `id`, `chain_hash`, `algorithm`, `key_id`, and `created_at` (mirroring `ExportSigner`) instead of the bare chain hash. `IntegrityVerifier` verifies the new format and transparently falls back to the legacy bare-hash format, so checkpoints created before this release still verify. The shared `CheckpointCreator::signaturePayload()` keeps signing and verification in lockstep.
 - `chronicle:prune` now warns that from-genesis verification will not pass after a prune and points operators to `verifyFrom()` with a boundary checkpoint.
 - `RateLimitPolicy` now logs a `warning` (actor, action, retry-after) before rejecting an over-limit entry, so audit suppression via the optional rate-limit policy is observable rather than silent.

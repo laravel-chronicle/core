@@ -6,6 +6,7 @@ namespace Chronicle\Console\Commands;
 
 use Chronicle\Checkpoints\Checkpoint;
 use Chronicle\Entry\Entry;
+use Chronicle\Facades\Chronicle;
 use Illuminate\Console\Command;
 
 /**
@@ -45,7 +46,7 @@ final class CheckpointsBackfillCommand extends Command
 
         foreach ($checkpoints as $checkpoint) {
             /** @var Entry|null $head */
-            $head = Entry::query()
+            $head = Chronicle::newEntryQuery()
                 ->where('chain_hash', $checkpoint->chain_hash)
                 ->first(['id', 'sequence']);
 
@@ -56,7 +57,7 @@ final class CheckpointsBackfillCommand extends Command
                 continue;
             }
 
-            $entryCount = Entry::query()
+            $entryCount = Chronicle::newEntryQuery()
                 ->where('sequence', '<=', $head->sequence)
                 ->count();
 
@@ -80,7 +81,7 @@ final class CheckpointsBackfillCommand extends Command
             }
 
             // Stamp checkpoint_id on this segment's still-unstamped entries, chunked.
-            $segment = Entry::query()
+            $segment = Chronicle::newEntryQuery()
                 ->whereNull('checkpoint_id')
                 ->where('sequence', '<=', $head->sequence);
 
@@ -97,7 +98,7 @@ final class CheckpointsBackfillCommand extends Command
                             break;
                         }
 
-                        Entry::query()->whereIn('id', $ids)
+                        Chronicle::newEntryQuery()->whereIn('id', $ids)
                             ->update(['checkpoint_id' => $checkpoint->id]);
                     } while ($ids->count() === $chunk);
                 }

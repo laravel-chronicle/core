@@ -29,6 +29,7 @@ use Chronicle\Console\Commands\VerifyExportCommand;
 use Chronicle\Context\QueueJobContext;
 use Chronicle\Contracts\EntryExtension;
 use Chronicle\Contracts\LedgerReader as LedgerReaderContract;
+use Chronicle\Contracts\ReferenceLookup;
 use Chronicle\Contracts\ReferenceResolver;
 use Chronicle\Contracts\SigningProvider;
 use Chronicle\Contracts\StorageDriver;
@@ -58,6 +59,7 @@ use Chronicle\Signing\SigningProviderFactory;
 use Chronicle\Storage\DriverResolver;
 use Chronicle\Storage\QueuedDriver;
 use Chronicle\Support\CanonicalPayloadSerializer;
+use Chronicle\Support\DefaultReferenceLookup;
 use Chronicle\Support\DefaultReferenceResolver;
 use Chronicle\Verification\ExportChainVerifier;
 use Chronicle\Verification\ExportVerifier;
@@ -177,6 +179,7 @@ final class ChronicleServiceProvider extends ServiceProvider
     {
         $this->app->singleton(DriverResolver::class);
         $this->app->singleton(ReferenceResolver::class, DefaultReferenceResolver::class);
+        $this->app->singleton(ReferenceLookup::class, DefaultReferenceLookup::class);
 
         $this->app->singleton(StorageDriver::class, function (Application $app) {
             $driver = Config::string('chronicle.driver', 'eloquent');
@@ -198,6 +201,7 @@ final class ChronicleServiceProvider extends ServiceProvider
                 reader: $app->make(LedgerReaderContract::class),
                 drivers: $app->make(DriverResolver::class),
                 extensions: $app->make(EntryExtensionRegistry::class),
+                lookup: $app->make(ReferenceLookup::class),
             );
         });
     }

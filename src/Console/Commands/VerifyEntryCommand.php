@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Chronicle\Console\Commands;
 
 use Chronicle\Checkpoints\Checkpoint;
-use Chronicle\Entry\Entry;
+use Chronicle\Facades\Chronicle;
 use Chronicle\Signing\KeyRing;
 use Chronicle\Verification\AnchorVerifier;
 use Chronicle\Verification\CheckpointChainVerifier;
@@ -37,6 +37,8 @@ final class VerifyEntryCommand extends Command
         {--checkpoints-only : Verify only the checkpoint chain (fast 0(checkpoints) attestation)}
         {--from-checkpoint= : Verify the segment seeded from this checkpoint}
         {--to-checkpoint= : With --from-checkpoint, the checkpoint that ends the segment (default: current head)}
+        {--from= : ULID of the first entry in a range to verify (requires --to)}
+        {--to= : ULID of the last entry in a range to verify (requires --from)}
         {--since-last-checkpoint : Trust the latest checkpoint and verify only the trail after it}
         {--anchors : Additionally verify external anchors for the checkpoints in scope}
         {--resume : Continue verification from the last recorded run (full verify if none)}';
@@ -67,9 +69,16 @@ final class VerifyEntryCommand extends Command
         /** @var string|null $fromCheckpoint */
         $fromCheckpoint = $this->option('from-checkpoint');
 
+        /** @var string|null $fromEntry */
+        $fromEntry = $this->option('from');
+        /** @var string|null $toEntry */
+        $toEntry = $this->option('to');
+        $rangeMode = $fromEntry !== null || $toEntry !== null;
+
         $checkpointMode = $this->option('checkpoints-only')
             || $this->option('since-last-checkpoint')
-            || $fromCheckpoint !== null;
+            || $fromCheckpoint !== null
+            || $rangeMode;
 
         if ($checkpointMode && $this->checkpointsNotBackfilled()) {
             $this->warn('Checkpoints are not backfilled (run chronicle:checkpoints:backfill); falling back to full verification');
@@ -79,6 +88,7 @@ final class VerifyEntryCommand extends Command
 
         $baseExit = match (true) {
             (bool) $this->option('checkpoints-only') => $this->reportIncremental($chainVerifier->verify(), 'checkpoints-only'),
+            $rangeMode => $this->verifyRange($verifier, $fromEntry, $toEntry),
             $fromCheckpoint !== null => $this->verifySegmentRange($verifier, $keyRing, $fromCheckpoint),
             (bool) $this->option('since-last-checkpoint') => $this->verifySinceLastCheckpoint($verifier),
             default => $this->verifyLedger($verifier),
@@ -187,7 +197,7 @@ final class VerifyEntryCommand extends Command
             return null;
         }
 
-        $sequence = Entry::query()->whereKey($checkpoint->head_id)->value('sequence');
+        $sequence = Chronicle::newEntryQuery()->whereKey($checkpoint->head_id)->value('sequence');
 
         return is_numeric($sequence) ? (int) $sequence : null;
     }
@@ -221,7 +231,7 @@ final class VerifyEntryCommand extends Command
         $this->newLine();
         $this->line('Verifying entries');
 
-        $total = Entry::query()->count();
+        $total = Chronicle::newEntryQuery()->count();
         $bar = $this->output->createProgressBar($total);
         $bar->start();
 
@@ -420,5 +430,49 @@ final class VerifyEntryCommand extends Command
         $all = $query->get();
 
         return $all;
+    }
+
+    /**
+     * @throws JsonException
+     */
+    protected function verifyRange(IntegrityVerifier $verifier, ?string $fromId, ?string $toId): int
+    {
+        if ($fromId === null || $toId === null) {
+            $this->error('Both --from and --to entry ULIDs are required for a range verification.');
+
+            return self::FAILURE;
+        }
+
+        $fromSequence = $this->sequenceForEntry($fromId);
+        if ($fromSequence === null) {
+            $this->error("From-entry [$fromId] not found.");
+
+            return self::FAILURE;
+        }
+
+        $toSequence = $this->sequenceForEntry($toId);
+        if ($toSequence === null) {
+            $this->error("To-entry [$toId] not found.");
+
+            return self::FAILURE;
+        }
+
+        if ($fromSequence > $toSequence) {
+            $this->error("From-entry sequence ($fromSequence) is after to-entry sequence ($toSequence).");
+
+            return self::FAILURE;
+        }
+
+        return $this->reportIncremental(
+            $verifier->verifyEntryRange($fromSequence, $toSequence),
+            'entry-range',
+        );
+    }
+
+    protected function sequenceForEntry(string $id): ?int
+    {
+        $sequence = Chronicle::newEntryQuery()->whereKey($id)->value('sequence');
+
+        return is_numeric($sequence) ? (int) $sequence : null;
     }
 }

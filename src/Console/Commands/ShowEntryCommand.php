@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Chronicle\Console\Commands;
 
 use Chronicle\Entry\Entry;
+use Chronicle\Facades\Chronicle;
 use Illuminate\Console\Command;
 
 /**
@@ -21,7 +22,7 @@ final class ShowEntryCommand extends Command
         /** @var string $id */
         $id = $this->argument('id');
 
-        $entry = Entry::find($id);
+        $entry = Chronicle::newEntryQuery()->find($id);
 
         if ($entry === null) {
             $this->line("Entry [$id] not found.");

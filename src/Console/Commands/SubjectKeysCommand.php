@@ -6,6 +6,7 @@ namespace Chronicle\Console\Commands;
 
 use Chronicle\Encryption\SubjectKey;
 use Chronicle\Entry\Entry;
+use Chronicle\Facades\Chronicle;
 use Illuminate\Console\Command;
 
 /**
@@ -43,7 +44,7 @@ final class SubjectKeysCommand extends Command
                 'status' => $key->status,
                 'created_at' => $key->created_at->toIso8601String(),
                 'erased_at' => $key->erased_at?->toIso8601String(),
-                'entry_count' => Entry::query()
+                'entry_count' => Chronicle::newEntryQuery()
                     ->where('subject_type', $key->subject_type)
                     ->where('subject_id', $key->subject_id)
                     ->count(),

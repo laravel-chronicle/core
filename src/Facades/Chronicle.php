@@ -7,10 +7,14 @@ namespace Chronicle\Facades;
 use Chronicle\Contracts\EntryExtension;
 use Chronicle\Contracts\LedgerReader;
 use Chronicle\Contracts\StorageDriver;
+use Chronicle\Entry\Entry;
 use Chronicle\Entry\EntryBuilder;
 use Chronicle\Query\LedgerQuery;
+use Chronicle\Support\ResolvedReference;
 use Chronicle\Testing\ChronicleAssertions;
 use Chronicle\Transaction\ChronicleTransaction;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Facade;
 
 /**
@@ -36,6 +40,11 @@ use Illuminate\Support\Facades\Facade;
  * @method static ChronicleTransaction|mixed transaction(?callable $callback = null)
  * @method static LedgerReader reader()
  * @method static LedgerQuery query()
+ * @method static ResolvedReference resolveReference(string $type, string $id)
+ * @method static string referenceLabel(string $type, string $id, bool $hydrate = false)
+ * @method static Model|null referenceModel(string $type, string $id)
+ * @method static class-string<Entry> entryModel()
+ * @method static Builder<Entry> newEntryQuery()
  * @method static ChronicleTransaction|null currentTransaction()
  * @method static string|null currentCorrelation()
  * @method static StorageDriver driver(string $name)

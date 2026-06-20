@@ -6,6 +6,7 @@ namespace Chronicle\Storage;
 
 use Chronicle\Contracts\StorageDriver;
 use Chronicle\Entry\Entry;
+use Chronicle\Facades\Chronicle;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\DB;
 use JsonException;
@@ -42,7 +43,8 @@ final class DatabaseDriver implements StorageDriver
 
         $db->table($table)->insert($attributes);
 
-        $model = new Entry;
+        $class = Chronicle::entryModel();
+        $model = new $class;
 
         $model->forceFill($attributes);
 

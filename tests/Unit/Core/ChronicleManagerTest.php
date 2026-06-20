@@ -5,6 +5,7 @@ declare(strict_types=1);
 use Chronicle\ChronicleManager;
 use Chronicle\Contracts\EntryExtension;
 use Chronicle\Contracts\LedgerReader;
+use Chronicle\Contracts\ReferenceLookup;
 use Chronicle\Contracts\ReferenceResolver;
 use Chronicle\Entry\EntryBuilder;
 use Chronicle\Entry\PendingEntry;
@@ -28,6 +29,7 @@ it('creates entry builder', function () {
         reader: $reader,
         drivers: app(DriverResolver::class),
         extensions: app(EntryExtensionRegistry::class),
+        lookup: app(ReferenceLookup::class),
     );
 
     expect($manager->record())->toBeInstanceOf(EntryBuilder::class);
@@ -65,6 +67,7 @@ it('delegates recording to the pipeline', function () {
         reader: $reader,
         drivers: app(DriverResolver::class),
         extensions: app(EntryExtensionRegistry::class),
+        lookup: app(ReferenceLookup::class),
     );
 
     $manager->commit($payload);
@@ -84,6 +87,7 @@ it('resolves configured active driver', function () {
         reader: $reader,
         drivers: app(DriverResolver::class),
         extensions: app(EntryExtensionRegistry::class),
+        lookup: app(ReferenceLookup::class),
     );
 
     expect($manager->getActiveDriver())->toBeInstanceOf(ArrayDriver::class);
@@ -101,6 +105,7 @@ it('can swap the active driver', function () {
         reader: $reader,
         drivers: app(DriverResolver::class),
         extensions: app(EntryExtensionRegistry::class),
+        lookup: app(ReferenceLookup::class),
     );
 
     $driver = new NullDriver;
@@ -121,6 +126,7 @@ it('resolves driver by name', function () {
         reader: $reader,
         drivers: app(DriverResolver::class),
         extensions: app(EntryExtensionRegistry::class),
+        lookup: app(ReferenceLookup::class),
     );
 
     expect($manager->driver('null'))->toBeInstanceOf(NullDriver::class)
@@ -140,6 +146,7 @@ it('throws for unknown driver names', function () {
         reader: $reader,
         drivers: app(DriverResolver::class),
         extensions: app(EntryExtensionRegistry::class),
+        lookup: app(ReferenceLookup::class),
     );
 
     $manager->driver('unknown');
@@ -157,6 +164,7 @@ it('can register and resolve custom drivers', function () {
         reader: $reader,
         drivers: app(DriverResolver::class),
         extensions: app(EntryExtensionRegistry::class),
+        lookup: app(ReferenceLookup::class),
     );
 
     $manager->extendDriver('custom', fn (): NullDriver => new NullDriver);
@@ -176,6 +184,7 @@ it('throws when attempting to override reserved driver names', function () {
         reader: $reader,
         drivers: app(DriverResolver::class),
         extensions: app(EntryExtensionRegistry::class),
+        lookup: app(ReferenceLookup::class),
     );
 
     $manager->extendDriver('eloquent', fn (): NullDriver => new NullDriver);
@@ -193,6 +202,7 @@ it('throws when attempting to register the same custom driver twice', function (
         reader: $reader,
         drivers: app(DriverResolver::class),
         extensions: app(EntryExtensionRegistry::class),
+        lookup: app(ReferenceLookup::class),
     );
 
     $manager->extendDriver('duplicate-custom', fn (): NullDriver => new NullDriver);
@@ -211,6 +221,7 @@ it('throws when custom driver factory returns invalid type', function () {
         reader: $reader,
         drivers: app(DriverResolver::class),
         extensions: app(EntryExtensionRegistry::class),
+        lookup: app(ReferenceLookup::class),
     );
 
     $manager->extendDriver('invalid', fn (): stdClass => new stdClass);
@@ -229,6 +240,7 @@ it('returns injected ledger reader instance', function () {
         reader: $reader,
         drivers: app(DriverResolver::class),
         extensions: app(EntryExtensionRegistry::class),
+        lookup: app(ReferenceLookup::class),
     );
 
     expect($manager->reader())->toBe($reader);
@@ -247,6 +259,7 @@ it('registers entry extensions', function () {
         reader: $reader,
         drivers: app(DriverResolver::class),
         extensions: $registry,
+        lookup: app(ReferenceLookup::class),
     );
 
     $extension = new class implements EntryExtension
