@@ -30,7 +30,7 @@ Chronicle is designed for systems that require reliable audit trails such as:
 - forensic analysis
 - operational observability
 
-📚 **Full documentation:** https://laravel-chronicle.github.io
+📚 **Full documentation:** https://laravel-chronicle.dev
 
 ---
 
@@ -70,7 +70,7 @@ composer require laravel-chronicle/core
 php artisan chronicle:install
 ```
 
-`chronicle:install` publishes the config file and migrations and offers to run them. See the [Installation guide](https://laravel-chronicle.github.io/docs/installation) for signing-key setup and the recommended production configuration.
+`chronicle:install` publishes the config file and migrations and offers to run them. See the [Installation guide](https://laravel-chronicle.dev/docs/installation) for signing-key setup and the recommended production configuration.
 
 ---
 
@@ -108,7 +108,7 @@ class Invoice extends Model
 }
 ```
 
-`created`, `updated`, and `deleted` events are recorded automatically, with a structured diff for updates. For models you don't own, register an observer instead with `Chronicle::observe(Invoice::class)`. See [Auditing Eloquent Models](https://laravel-chronicle.github.io/docs/auditing-eloquent-models).
+`created`, `updated`, and `deleted` events are recorded automatically, with a structured diff for updates. For models you don't own, register an observer instead with `Chronicle::observe(Invoice::class)`. See [Auditing Eloquent Models](https://laravel-chronicle.dev/docs/auditing-eloquent-models).
 
 ---
 
@@ -118,7 +118,7 @@ Chronicle protects the ledger with a cryptographic hash chain. Each entry refere
 
 `chain_hash(n) = SHA256(chain_hash(n-1) + payload_hash(n))`
 
-If any entry is modified or removed, the chain becomes invalid. See [Hashing](https://laravel-chronicle.github.io/docs/hashing).
+If any entry is modified or removed, the chain becomes invalid. See [Hashing](https://laravel-chronicle.dev/docs/hashing).
 
 ---
 
@@ -153,7 +153,7 @@ php artisan chronicle:key:rotate chronicle-key-2          # anchors a boundary c
 # set CHRONICLE_ACTIVE_KEY=chronicle-key-2 and deploy
 ```
 
-`chronicle:key:rotate` always creates a boundary checkpoint at the current ledger head before handing over, so the epoch boundary between keys is itself verifiable. When you eventually retire a key, **keep its `public_key`** in the ring - drop only the `private_key`. See [Signing and Keys](https://laravel-chronicle.github.io/docs/signing-and-keys) and the [key rotation guide](https://laravel-chronicle.github.io/docs/guide-rotate-signing-keys).
+`chronicle:key:rotate` always creates a boundary checkpoint at the current ledger head before handing over, so the epoch boundary between keys is itself verifiable. When you eventually retire a key, **keep its `public_key`** in the ring - drop only the `private_key`. See [Signing and Keys](https://laravel-chronicle.dev/docs/signing-and-keys) and the [key rotation guide](https://laravel-chronicle.dev/docs/guide-rotate-signing-keys).
 
 ### External signing providers (KMS / HSM)
 
@@ -163,7 +163,7 @@ Signing providers are pluggable, so the private key can live outside the applica
 composer require laravel-chronicle/kms-aws
 ```
 
-To build your own (GCP KMS, Vault, HSM, …), see [Custom Signing Providers](https://laravel-chronicle.github.io/docs/custom-signing-providers).
+To build your own (GCP KMS, Vault, HSM, …), see [Custom Signing Providers](https://laravel-chronicle.dev/docs/custom-signing-providers).
 
 > **Upgrading from 1.9.x?** The previous flat `signing` config (a single `provider` / `private_key` / `public_key` / `key_id`) continues to work unchanged - Chronicle adapts it to a single-key ring automatically. Migrating to the `signing.active` + `signing.keys` shape is recommended but not required.
 
@@ -189,7 +189,7 @@ Entry::stream()->each(fn ($entry) => /* process */);
 Entry::cursorPaginateLedger(50);
 ```
 
-See the [Query API reference](https://laravel-chronicle.github.io/docs/query-api).
+See the [Query API reference](https://laravel-chronicle.dev/docs/query-api).
 
 ### Resolving references
 
@@ -258,7 +258,7 @@ Chronicle can create cryptographic checkpoints that anchor the ledger. A checkpo
 php artisan chronicle:checkpoint
 ```
 
-See [Checkpoints](https://laravel-chronicle.github.io/docs/checkpoints).
+See [Checkpoints](https://laravel-chronicle.dev/docs/checkpoints).
 
 ---
 
@@ -294,7 +294,7 @@ An official AWS S3 Object Lock (WORM) adapter is available as a companion packag
 composer require laravel-chronicle/anchor-s3
 ```
 
-See [Anchoring](https://laravel-chronicle.github.io/docs/anchoring).
+See [Anchoring](https://laravel-chronicle.dev/docs/anchoring).
 
 ---
 
@@ -316,7 +316,7 @@ Combine `--checkpoints-only` with `--anchors` for a fast, externally-rooted inte
 php artisan chronicle:verify --checkpoints-only --anchors
 ```
 
-Upgrading an existing ledger? Run `chronicle:checkpoints:backfill` once so historical checkpoints gain their head/count/link metadata; until then the incremental modes safely fall back to a full verify. See [Scalable Verification](https://laravel-chronicle.github.io/docs/scalable-verification).
+Upgrading an existing ledger? Run `chronicle:checkpoints:backfill` once so historical checkpoints gain their head/count/link metadata; until then the incremental modes safely fall back to a full verify. See [Scalable Verification](https://laravel-chronicle.dev/docs/scalable-verification).
 
 ### Verifying an arbitrary entry range
 
@@ -376,7 +376,7 @@ Erasing a subject is itself recorded as a verifiable, PII-free `subject.erased` 
 
 > Crypto-shredding guarantees erasure in the live store. Backups taken before erasure still contain recoverable data and are governed by your backup-retention policy. Whether retaining a pseudonymised event record satisfies a given erasure request is a legal/DPO determination - this is not legal advice.
 
-See [Crypto-Shredding](https://laravel-chronicle.github.io/docs/crypto-shredding) and the [GDPR erasure guide](https://laravel-chronicle.github.io/docs/gdpr-erasure).
+See [Crypto-Shredding](https://laravel-chronicle.dev/docs/crypto-shredding) and the [GDPR erasure guide](https://laravel-chronicle.dev/docs/gdpr-erasure).
 
 ---
 
@@ -389,7 +389,7 @@ php artisan chronicle:export storage/app/chronicle-export
 php artisan chronicle:verify-export storage/app/chronicle-export
 ```
 
-Verification checks the dataset hash, digital signature, hash-chain integrity, and dataset boundaries - resolving the signing key from the key ring, so exports signed by a now-retired key still verify. See [Exports](https://laravel-chronicle.github.io/docs/exports) and the [Export Format](https://laravel-chronicle.github.io/docs/export-format).
+Verification checks the dataset hash, digital signature, hash-chain integrity, and dataset boundaries - resolving the signing key from the key ring, so exports signed by a now-retired key still verify. See [Exports](https://laravel-chronicle.dev/docs/exports) and the [Export Format](https://laravel-chronicle.dev/docs/export-format).
 
 ---
 
@@ -418,7 +418,7 @@ Verification checks the dataset hash, digital signature, hash-chain integrity, a
 | `chronicle:encryption:rotate-kek`           | Re-wrap all subject DEKs under a new KEK (`--old-key`, `--old-kek-id`, `--chunk`)                     |
 | `chronicle:encrypt-backfill`                | Re-baseline migration: encrypt historical entries' PII (`--from`, `--chunk`, `--dry-run`, `--force`)  |
 
-See the [Artisan Commands reference](https://laravel-chronicle.github.io/docs/artisan-commands).
+See the [Artisan Commands reference](https://laravel-chronicle.dev/docs/artisan-commands).
 
 ---
 
@@ -454,13 +454,13 @@ See the [Artisan Commands reference](https://laravel-chronicle.github.io/docs/ar
 - **Low magic.** Automatic auditing is opt-in; nothing is logged behind your back.
 - **Transport agnostic.** Works in HTTP requests, queue workers, CLI commands, and scheduled jobs.
 
-Read more in [Philosophy](https://laravel-chronicle.github.io/docs/philosophy) and the [Architecture](https://laravel-chronicle.github.io/docs/architecture) and [Security Model](https://laravel-chronicle.github.io/docs/security-model) docs.
+Read more in [Philosophy](https://laravel-chronicle.dev/docs/philosophy) and the [Architecture](https://laravel-chronicle.dev/docs/architecture) and [Security Model](https://laravel-chronicle.dev/docs/security-model) docs.
 
 ---
 
 ## Extending Chronicle
 
-Chronicle is designed to be extended. You can write custom validators, policies, and context resolvers, swap in custom storage drivers or signing providers (for example, AWS KMS), and listen to ledger events. See the [Extending Chronicle](https://laravel-chronicle.github.io/docs/extending-chronicle) guide.
+Chronicle is designed to be extended. You can write custom validators, policies, and context resolvers, swap in custom storage drivers or signing providers (for example, AWS KMS), and listen to ledger events. See the [Extending Chronicle](https://laravel-chronicle.dev/docs/extending-chronicle) guide.
 
 ### Custom entry model
 
