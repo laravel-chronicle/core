@@ -36,7 +36,7 @@ final class LegacySigningConfigAdapter
             Log::notice(
                 '[Chronicle] Deprecated flat signing config detected. '
                 .'Migrate to the signing.active + signing.keys[] shape. '
-                .'See https://laravel-chronicle.github.io/docs/signing-and-keys'
+                .'See https://laravel-chronicle.dev/docs/signing-and-keys'
             );
         }
 
