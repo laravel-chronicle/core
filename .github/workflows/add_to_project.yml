@@ -1,0 +1,17 @@
+name: Add to project board
+ 
+on:
+  issues:
+    types: [opened, reopened]
+  pull_request_target:
+    types: [opened, reopened]
+ 
+jobs:
+  add-to-project:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/add-to-project@5afcf98fcd03f1c2f92c3c83f58ae24323cc57fd # v2
+        with:
+          project-url: https://github.com/orgs/laravel-chronicle/projects/3
+          github-token: ${{ secrets.PROJECT_BOARD_TOKEN }}
+ 
