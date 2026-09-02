@@ -5,12 +5,14 @@ declare(strict_types=1);
 namespace Chronicle\Jobs;
 
 use Chronicle\Entry\PendingEntry;
+use Chronicle\Events\EntryRecorded;
 use Chronicle\Pipeline\ChainHashEntry;
 use Chronicle\Storage\DatabaseDriver;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Event;
 use Throwable;
 
 /**
@@ -53,7 +55,11 @@ final class PersistChronicleEntryJob implements ShouldQueue
 
             $entry = $chainHasher->process($entry);
 
-            $dbDriver->store($entry->toDatabasePayload());
+            $stored = $dbDriver->store($entry->toDatabasePayload());
+
+            if ($stored->exists) {
+                Event::dispatch(new EntryRecorded($stored));
+            }
         });
     }
 }

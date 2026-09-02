@@ -3,9 +3,11 @@
 declare(strict_types=1);
 
 use Chronicle\Entry\Entry;
+use Chronicle\Events\EntryRecorded;
 use Chronicle\Facades\Chronicle;
 use Chronicle\Jobs\PersistChronicleEntryJob;
 use Chronicle\Storage\QueuedDriver;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Queue;
 
 it('does not write to the database synchronously when the queued driver is active', function () {
@@ -36,6 +38,24 @@ it('persists the entry when the job is processed synchronously', function () {
 
     expect(Entry::count())->toBe(1)
         ->and(Entry::first()->action)->toBe('invoice.sent');
+});
+
+it('fires EntryRecorded after the queued entry is persisted', function () {
+    config(['queue.default' => 'sync']);
+    Event::fake([EntryRecorded::class]);
+
+    app('chronicle')->swapDriver(app(QueuedDriver::class));
+
+    Chronicle::record()
+        ->actor(ref('user-1'))
+        ->action('invoice.sent')
+        ->subject(ref('invoice-99'))
+        ->commit();
+
+    Event::assertDispatched(EntryRecorded::class, function (EntryRecorded $event): bool {
+        return $event->entry->exists
+            && $event->entry->action === 'invoice.sent';
+    });
 });
 
 it('computes a valid chain hash when the job runs synchronously', function () {
