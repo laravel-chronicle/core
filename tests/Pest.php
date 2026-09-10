@@ -6,6 +6,7 @@ use Chronicle\Checkpoints\Checkpoint;
 use Chronicle\Checkpoints\CheckpointCreator;
 use Chronicle\Entry\PendingEntry;
 use Chronicle\Facades\Chronicle;
+use Chronicle\Tests\Fakes\FakeSqsQueue;
 use Chronicle\Tests\Feature\UI\UiTestCase;
 use Chronicle\Tests\TestCase;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -107,4 +108,17 @@ function seedUiEntries(int $count = 5): void
             'created_at' => now()->subMinutes($i)->toDateTimeString(),
         ]);
     }
+}
+
+/**
+ * Resolve the SQS message options Laravel would send for the given job and queue.
+ *
+ * Pass $queue as null to push without an explicit queue name, in which case SQS
+ * resolves $connectionDefault - the `queue` key of the connection config.
+ *
+ * @return array<string, string>
+ */
+function sqsOptionsFor(object $job, ?string $queue, string $connectionDefault = 'default'): array
+{
+    return (new FakeSqsQueue($connectionDefault))->getQueueableOptions($job, $queue, '{}');
 }

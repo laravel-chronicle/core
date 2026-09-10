@@ -122,6 +122,79 @@ If any entry is modified or removed, the chain becomes invalid. See [Hashing](ht
 
 ---
 
+## Queued writes
+
+Set `CHRONICLE_DRIVER=queued` to move entry persistence off the request. Because the chain
+hash links each entry to the one before it, the queue must persist entries in the order they
+were dispatched.
+
+There are two ways to guarantee that.
+
+### A single worker
+
+On a queue with no ordering guarantee (`database`, `redis`, a standard SQS queue), run exactly
+one worker:
+
+```sh
+php artisan queue:work --queue=chronicle --tries=1
+```
+
+Concurrent workers on such a queue cannot fork the chain - `sequence` carries a unique index and
+the chain head is taken with a row lock - but they do race for it, and depending on your database
+engine's isolation level a losing write can fail on that unique index rather than serialise behind
+the lock. Because the job is dispatched with `tries = 1`, a failed entry is not retried: it lands
+in `failed_jobs` and is missing from the ledger until you replay it.
+
+### A FIFO queue
+
+A FIFO queue removes the race instead of losing to it. Chronicle dispatches every entry under a
+single SQS message group, and SQS keeps at most one message per group in flight, so entries are
+persisted in dispatch order however many workers are running.
+
+The trade-off is throughput: one message group means one entry in flight at a time, so extra
+workers add no parallelism to the Chronicle queue.
+
+On [Laravel Cloud](https://laravel.com/cloud), add a **managed queue** and choose the **FIFO**
+queue type. Laravel Cloud appends the `.fifo` suffix when it provisions the queue, so a managed
+FIFO queue named `chronicle` is dispatched to as `chronicle.fifo`:
+
+```dotenv
+QUEUE_CONNECTION=cloud
+CHRONICLE_DRIVER=queued
+CHRONICLE_QUEUE=chronicle.fifo
+```
+
+Name the queue explicitly, including the `.fifo` suffix. SQS derives the FIFO message attributes
+from the queue name, so a Chronicle queue left blank - dispatching to the connection's default
+queue - is only safe when that connection's own default queue name carries the suffix.
+
+Four notes on FIFO behaviour:
+
+- **The message group must stay stable.** It defaults to `chronicle` and is configurable via
+  `CHRONICLE_QUEUE_MESSAGE_GROUP`, but only so that separate ledgers can share one queue. A group
+  that varies per entry would let entries persist out of order.
+- **Chronicle sets no deduplication ID.** Laravel generates a unique one per dispatch, so a
+  redelivered entry is never silently discarded inside the queue's five minute deduplication
+  window. Do not rely on the queue to deduplicate audit entries.
+- **The group is attached on standard SQS queues too.** Chronicle cannot tell a FIFO queue from a
+  standard one - the framework resolves the real target queue after the job has supplied its
+  group - so it always supplies one, exactly as any other job with a message group does. Real SQS
+  accepts this on a standard queue as a [fair queue](https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-fair-queues.html)
+  tenant marker: it imposes no ordering and does not reduce throughput. SQS-compatible endpoints
+  predating fair queues reject a group on a standard queue, so keep local emulators current.
+- **Replaying a failed entry works.** `queue:retry` re-attaches the FIFO message attributes when
+  it re-pushes the job, so a recovered entry lands back on the FIFO queue in order. Laravel Cloud
+  managed queues do not support `queue:retry` - retry from the Queues dashboard instead.
+
+Checkpoint anchoring (`AnchorCheckpointJob`) works on either queue type. Anchoring is not
+order-sensitive, so anchors are grouped by checkpoint and different checkpoints anchor in parallel.
+
+Already published `config/chronicle.php`? Add the `queue.message_group` key to pick up
+`CHRONICLE_QUEUE_MESSAGE_GROUP`; without it Chronicle uses the default group name, which is what
+existing setups already get.
+
+---
+
 ## Signing and key rotation
 
 Checkpoints, exports, and compliance reports are signed. Chronicle holds its signing keys in a **key ring**: one key is *active* and signs new artifacts, while every key (active or retired) remains available to **verify** the artifacts it produced. Each artifact records the `algorithm` and `key_id` it was signed with, and verification resolves the matching key from the ring - so **rotating keys never invalidates existing checkpoints or exports**.
@@ -439,6 +512,7 @@ See the [Artisan Commands reference](https://laravel-chronicle.dev/docs/artisan-
 - **Diff engine** for capturing field-level changes
 - **Extensible pipeline** - validators, policies, and context resolvers
 - **Storage drivers** - `eloquent`/`database`, `queued`, `array`, `null`
+- **FIFO queue support** - order-preserving async writes on SQS FIFO and Laravel Cloud managed FIFO queues
 - **Retention & pruning** with checkpoint-aware deletion
 - **Read-only web UI** (optional Blade interface)
 - **Events** - `EntryRecorded` and `EntryRejected`
