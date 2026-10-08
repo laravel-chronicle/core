@@ -77,7 +77,10 @@ it('records a deleted entry when a model is deleted', function () {
 it('excludes chronicleIgnore fields from the recorded diff', function () {
     $model = new class extends FakeChronicleModel
     {
-        protected array $chronicleIgnore = ['password'];
+        protected function chronicleIgnore(): array
+        {
+            return ['password'];
+        }
 
         protected function chronicleActionPrefix(): string
         {
@@ -99,7 +102,10 @@ it('excludes chronicleIgnore fields from the recorded diff', function () {
 it('still records an updated entry when only a chronicleIgnore field changes', function () {
     $model = new class extends FakeChronicleModel
     {
-        protected array $chronicleIgnore = ['password'];
+        protected function chronicleIgnore(): array
+        {
+            return ['password'];
+        }
 
         protected function chronicleActionPrefix(): string
         {
@@ -197,7 +203,10 @@ it('uses a custom action prefix when chronicleActionPrefix() is overridden', fun
 it('does not record events excluded from chronicleEvents', function () {
     $model = new class extends FakeChronicleModel
     {
-        protected array $chronicleEvents = ['created', 'deleted'];
+        protected function chronicleEvents(): array
+        {
+            return ['created', 'deleted'];
+        }
 
         protected function chronicleActionPrefix(): string
         {
@@ -216,7 +225,10 @@ it('does not record events excluded from chronicleEvents', function () {
 it('records no entries when chronicleEvents is empty', function () {
     $model = new class extends FakeChronicleModel
     {
-        protected array $chronicleEvents = [];
+        protected function chronicleEvents(): array
+        {
+            return [];
+        }
     };
     $model->setTable('fake_chronicle_models');
     $model->fill(['name' => 'Alice'])->save();

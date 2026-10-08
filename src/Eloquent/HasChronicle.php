@@ -14,15 +14,6 @@ use Throwable;
  */
 trait HasChronicle
 {
-    /** @var list<string> */
-    protected array $chronicleEvents = ['created', 'updated', 'deleted'];
-
-    /** @var list<string> */
-    protected array $chronicleIgnore = [];
-
-    /** @var list<string> */
-    protected array $chronicleRedact = [];
-
     public static function bootHasChronicle(): void
     {
         static::created(
@@ -50,7 +41,7 @@ trait HasChronicle
                     return;
                 }
 
-                $diff = ModelDiffBuilder::build($model, $model->chronicleIgnoredFields(), $model->chronicleRedact);
+                $diff = ModelDiffBuilder::build($model, $model->chronicleIgnoredFields(), $model->chronicleRedact());
 
                 $builder = Chronicle::record()
                     ->actor($model->chronicleActor())
@@ -92,7 +83,7 @@ trait HasChronicle
 
     protected function shouldChronicleEvent(string $event): bool
     {
-        return in_array($event, $this->chronicleEvents, true);
+        return in_array($event, $this->chronicleEvents(), true);
     }
 
     /**
@@ -102,7 +93,37 @@ trait HasChronicle
     {
         return array_merge(
             [static::CREATED_AT ?? 'created_at', static::UPDATED_AT ?? 'updated_at'],
-            $this->chronicleIgnore,
+            $this->chronicleIgnore(),
         );
+    }
+
+    /**
+     * Override to define ignored fields
+     *
+     * @return list<string>
+     */
+    protected function chronicleIgnore(): array
+    {
+        return [];
+    }
+
+    /**
+     * Override to define redacted fields
+     *
+     * @return list<string>
+     */
+    protected function chronicleRedact(): array
+    {
+        return [];
+    }
+
+    /**
+     * Override to define triggering model events
+     *
+     * @return list<string>
+     */
+    protected function chronicleEvents(): array
+    {
+        return ['created', 'updated', 'deleted'];
     }
 }
