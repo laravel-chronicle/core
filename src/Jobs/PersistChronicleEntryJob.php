@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Chronicle\Jobs;
 
+use Chronicle\Entry\Entry;
 use Chronicle\Entry\PendingEntry;
 use Chronicle\Events\EntryRecorded;
 use Chronicle\Pipeline\ChainHashEntry;
@@ -81,7 +82,7 @@ final class PersistChronicleEntryJob implements ShouldQueue
         /** @var string|null $connection */
         $connection = Config::get('chronicle.connection');
 
-        DB::connection($connection)->transaction(function () use ($chainHasher, $dbDriver): void {
+        $stored = DB::connection($connection)->transaction(function () use ($chainHasher, $dbDriver): Entry {
             $entry = new PendingEntry($this->attributes);
 
             /** @var array<string, mixed> $payload */
@@ -95,11 +96,13 @@ final class PersistChronicleEntryJob implements ShouldQueue
 
             $entry = $chainHasher->process($entry);
 
-            $stored = $dbDriver->store($entry->toDatabasePayload());
-
-            if ($stored->exists) {
-                Event::dispatch(new EntryRecorded($stored));
-            }
+            return $dbDriver->store($entry->toDatabasePayload());
         });
+
+        // Dispatched after the transaction so a throwing listener fails the job
+        // without rolling back the entry. With tries = 1 nothing would retry it.
+        if ($stored->exists) {
+            Event::dispatch(new EntryRecorded($stored));
+        }
     }
 }
