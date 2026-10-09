@@ -7,6 +7,7 @@ namespace Chronicle\Eloquent;
 use Chronicle\Facades\Chronicle;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
+use LogicException;
 use Throwable;
 
 /**
@@ -104,7 +105,7 @@ trait HasChronicle
      */
     protected function chronicleIgnore(): array
     {
-        return [];
+        return $this->chronicleConfigProperty('chronicleIgnore', []);
     }
 
     /**
@@ -114,7 +115,7 @@ trait HasChronicle
      */
     protected function chronicleRedact(): array
     {
-        return [];
+        return $this->chronicleConfigProperty('chronicleRedact', []);
     }
 
     /**
@@ -124,6 +125,35 @@ trait HasChronicle
      */
     protected function chronicleEvents(): array
     {
-        return ['created', 'updated', 'deleted'];
+        return $this->chronicleConfigProperty('chronicleEvents', ['created', 'updated', 'deleted']);
+    }
+
+    /**
+     * @param  list<string>  $default
+     * @return list<string>
+     */
+    private function chronicleConfigProperty(string $property, array $default): array
+    {
+        if (! property_exists($this, $property)) {
+            return $default;
+        }
+
+        $propertyValue = $this->{$property};
+
+        if (! is_array($propertyValue)) {
+            throw new LogicException("{$property} must be an array of strings");
+        }
+
+        $values = [];
+
+        foreach ($propertyValue as $item) {
+            if (! is_string($item)) {
+                throw new LogicException("{$property} must be an array of strings");
+            }
+
+            $values[] = $item;
+        }
+
+        return $values;
     }
 }

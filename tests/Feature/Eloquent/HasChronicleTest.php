@@ -2,8 +2,10 @@
 
 declare(strict_types=1);
 
+use Chronicle\Eloquent\HasChronicle;
 use Chronicle\Entry\Entry;
 use Chronicle\Tests\Fakes\FakeChronicleModel;
+use Chronicle\Tests\Fakes\FakeModel;
 use Chronicle\Tests\Fakes\FakeUser;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -74,7 +76,31 @@ it('records a deleted entry when a model is deleted', function () {
         ->and($entry->subject_id)->toBe((string) $model->id);
 });
 
-it('excludes chronicleIgnore fields from the recorded diff', function () {
+it('excludes chronicleIgnore fields from the recorded diff when defined as an array on the model', function () {
+    $model = new class extends FakeModel
+    {
+        use HasChronicle;
+
+        protected array $chronicleIgnore = ['password'];
+
+        protected function chronicleActionPrefix(): string
+        {
+            return 'fake_chronicle_model';
+        }
+    };
+    $model->setTable('fake_chronicle_models');
+    $model->fill(['name' => 'Alice', 'password' => 'secret'])->save();
+    Entry::query()->delete();
+
+    $model->update(['name' => 'Bob', 'password' => 'newsecret']);
+
+    $entry = Entry::first();
+
+    expect($entry->diff)->toHaveKey('name')
+        ->and($entry->diff)->not->toHaveKey('password');
+});
+
+it('excludes chronicleIgnore fields from the recorded diff when defined in overridden method on the model', function () {
     $model = new class extends FakeChronicleModel
     {
         protected function chronicleIgnore(): array
@@ -99,7 +125,33 @@ it('excludes chronicleIgnore fields from the recorded diff', function () {
         ->and($entry->diff)->not->toHaveKey('password');
 });
 
-it('still records an updated entry when only a chronicleIgnore field changes', function () {
+it('still records an updated entry when only a chronicleIgnore field changes and defined as an array on the model', function () {
+    $model = new class extends FakeModel
+    {
+        use HasChronicle;
+
+        protected array $chronicleIgnore = ['password'];
+
+        protected function chronicleActionPrefix(): string
+        {
+            return 'fake_chronicle_model';
+        }
+    };
+    $model->setTable('fake_chronicle_models');
+    $model->fill(['name' => 'Alice', 'password' => 'secret'])->save();
+    Entry::query()->delete();
+
+    $model->update(['password' => 'newsecret']); // only ignored field changed
+
+    $entry = Entry::first();
+
+    // Entry is recorded (something changed), but diff is empty/null.
+    expect(Entry::count())->toBe(1)
+        ->and($entry->action)->toBe('fake_chronicle_model.updated')
+        ->and($entry->diff)->toBeNull();
+});
+
+it('still records an updated entry when only a chronicleIgnore field changes and defined as an overridden method on the model', function () {
     $model = new class extends FakeChronicleModel
     {
         protected function chronicleIgnore(): array
@@ -124,6 +176,59 @@ it('still records an updated entry when only a chronicleIgnore field changes', f
     expect(Entry::count())->toBe(1)
         ->and($entry->action)->toBe('fake_chronicle_model.updated')
         ->and($entry->diff)->toBeNull();
+});
+
+it('redacts an updated entry when chronicleRedact is defined as an array on the model', function () {
+    $model = new class extends FakeModel
+    {
+        use HasChronicle;
+
+        protected $chronicleRedact = ['password'];
+
+        protected function chronicleActionPrefix(): string
+        {
+            return 'fake_chronicle_model';
+        }
+    };
+    $model->setTable('fake_chronicle_models');
+    $model->fill(['name' => 'Alice', 'password' => 'secret'])->save();
+    Entry::query()->delete();
+
+    $model->update(['password' => 'newsecret']);
+
+    $entry = Entry::first();
+
+    // Entry is recorded (something changed), but diff is empty/null.
+    expect(Entry::count())->toBe(1)
+        ->and($entry->action)->toBe('fake_chronicle_model.updated')
+        ->and($entry->diff['password']['new'])->toBe('[redacted]');
+});
+
+it('redacts an updated entry when chronicleRedact is defined as an overridden method on the model', function () {
+    $model = new class extends FakeChronicleModel
+    {
+        protected function chronicleRedact(): array
+        {
+            return ['password'];
+        }
+
+        protected function chronicleActionPrefix(): string
+        {
+            return 'fake_chronicle_model';
+        }
+    };
+    $model->setTable('fake_chronicle_models');
+    $model->fill(['name' => 'Alice', 'password' => 'secret'])->save();
+    Entry::query()->delete();
+
+    $model->update(['password' => 'newsecret']);
+
+    $entry = Entry::first();
+
+    // Entry is recorded (something changed), but diff is empty/null.
+    expect(Entry::count())->toBe(1)
+        ->and($entry->action)->toBe('fake_chronicle_model.updated')
+        ->and($entry->diff['password']['new'])->toBe('[redacted]');
 });
 
 it('uses the authenticated user as actor when one is logged in', function () {
@@ -200,13 +305,12 @@ it('uses a custom action prefix when chronicleActionPrefix() is overridden', fun
     expect(Entry::first()->action)->toBe('order.created');
 });
 
-it('does not record events excluded from chronicleEvents', function () {
-    $model = new class extends FakeChronicleModel
+it('does not record events excluded from chronicleEvents when declared as an array', function () {
+    $model = new class extends FakeModel
     {
-        protected function chronicleEvents(): array
-        {
-            return ['created', 'deleted'];
-        }
+        use HasChronicle;
+
+        protected array $chronicleEvents = ['created', 'deleted'];
 
         protected function chronicleActionPrefix(): string
         {
@@ -225,10 +329,7 @@ it('does not record events excluded from chronicleEvents', function () {
 it('records no entries when chronicleEvents is empty', function () {
     $model = new class extends FakeChronicleModel
     {
-        protected function chronicleEvents(): array
-        {
-            return [];
-        }
+        protected array $chronicleEvents = [];
     };
     $model->setTable('fake_chronicle_models');
     $model->fill(['name' => 'Alice'])->save();
