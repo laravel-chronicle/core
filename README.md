@@ -512,10 +512,11 @@ Contributions are welcome. Please read: [CONTRIBUTING](CONTRIBUTING.md) before s
 <table>
   <tbody>
     <tr>
-      <td style="text-align: center; vertical-align: top; width: 14.28%"><a href="https://poornachandradinesh.netlify.app/"><img src="https://avatars.githubusercontent.com/u/69423861?v=4?s=100" width="100px;" alt="Poorna Chandra Dinesh"/><br /><sub><b>Poorna Chandra Dinesh</b></sub></a><br /><a href="#code-Poorna-Chandra-D" title="Code">💻</a></td>
-      <td style="text-align: center; vertical-align: top; width: 14.28%"><a href="https://github.com/ntoufoudis"><img src="https://avatars.githubusercontent.com/u/93659348?v=4?s=100" width="100px;" alt="Vasileios Ntoufoudis"/><br /><sub><b>Vasileios Ntoufoudis</b></sub></a><br /><a href="#code-ntoufoudis" title="Code">💻</a></td>
-      <td style="text-align: center; vertical-align: top; width: 14.28%"><a href="https://jamesking.dev"><img src="https://avatars.githubusercontent.com/u/253237?v=4?s=100" width="100px;" alt="James King"/><br /><sub><b>James King</b></sub></a><br /><a href="#doc-Jamesking56" title="Documentation">📖</a></td>
-      <td style="text-align: center; vertical-align: top; width: 14.28%"><a href="https://github.com/devc4rlos"><img src="https://avatars.githubusercontent.com/u/196385361?v=4?s=100" width="100px;" alt="Carlos Alexandre"/><br /><sub><b>Carlos Alexandre</b></sub></a><br /><a href="#code-devc4rlos" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://poornachandradinesh.netlify.app/"><img src="https://avatars.githubusercontent.com/u/69423861?v=4?s=100" width="100px;" alt="Poorna Chandra Dinesh"/><br /><sub><b>Poorna Chandra Dinesh</b></sub></a><br /><a href="#code-Poorna-Chandra-D" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/ntoufoudis"><img src="https://avatars.githubusercontent.com/u/93659348?v=4?s=100" width="100px;" alt="Vasileios Ntoufoudis"/><br /><sub><b>Vasileios Ntoufoudis</b></sub></a><br /><a href="#code-ntoufoudis" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://jamesking.dev"><img src="https://avatars.githubusercontent.com/u/253237?v=4?s=100" width="100px;" alt="James King"/><br /><sub><b>James King</b></sub></a><br /><a href="#doc-Jamesking56" title="Documentation">📖</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/devc4rlos"><img src="https://avatars.githubusercontent.com/u/196385361?v=4?s=100" width="100px;" alt="Carlos Alexandre"/><br /><sub><b>Carlos Alexandre</b></sub></a><br /><a href="#code-devc4rlos" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="http://www.google.com/ping?sitemap=https://github.com/ShejaEddy"><img src="https://avatars.githubusercontent.com/u/49254767?v=4?s=100" width="100px;" alt="Sheja Eddy"/><br /><sub><b>Sheja Eddy</b></sub></a><br /><a href="#code-ShejaEddy" title="Code">💻</a></td>
     </tr>
   </tbody>
 </table>
