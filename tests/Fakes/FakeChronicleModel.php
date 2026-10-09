@@ -5,15 +5,8 @@ declare(strict_types=1);
 namespace Chronicle\Tests\Fakes;
 
 use Chronicle\Eloquent\HasChronicle;
-use Illuminate\Database\Eloquent\Model;
 
-class FakeChronicleModel extends Model
+class FakeChronicleModel extends FakeModel
 {
     use HasChronicle;
-
-    protected $table = 'fake_chronicle_models';
-
-    protected $guarded = [];
-
-    public $timestamps = true;
 }

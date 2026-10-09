@@ -7,6 +7,7 @@ namespace Chronicle\Eloquent;
 use Chronicle\Facades\Chronicle;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
+use LogicException;
 use Throwable;
 
 /**
@@ -14,15 +15,6 @@ use Throwable;
  */
 trait HasChronicle
 {
-    /** @var list<string> */
-    protected array $chronicleEvents = ['created', 'updated', 'deleted'];
-
-    /** @var list<string> */
-    protected array $chronicleIgnore = [];
-
-    /** @var list<string> */
-    protected array $chronicleRedact = [];
-
     public static function bootHasChronicle(): void
     {
         static::created(
@@ -50,7 +42,7 @@ trait HasChronicle
                     return;
                 }
 
-                $diff = ModelDiffBuilder::build($model, $model->chronicleIgnoredFields(), $model->chronicleRedact);
+                $diff = ModelDiffBuilder::build($model, $model->chronicleIgnoredFields(), $model->chronicleRedact());
 
                 $builder = Chronicle::record()
                     ->actor($model->chronicleActor())
@@ -92,7 +84,7 @@ trait HasChronicle
 
     protected function shouldChronicleEvent(string $event): bool
     {
-        return in_array($event, $this->chronicleEvents, true);
+        return in_array($event, $this->chronicleEvents(), true);
     }
 
     /**
@@ -102,7 +94,66 @@ trait HasChronicle
     {
         return array_merge(
             [static::CREATED_AT ?? 'created_at', static::UPDATED_AT ?? 'updated_at'],
-            $this->chronicleIgnore,
+            $this->chronicleIgnore(),
         );
+    }
+
+    /**
+     * Override to define ignored fields
+     *
+     * @return list<string>
+     */
+    protected function chronicleIgnore(): array
+    {
+        return $this->chronicleConfigProperty('chronicleIgnore', []);
+    }
+
+    /**
+     * Override to define redacted fields
+     *
+     * @return list<string>
+     */
+    protected function chronicleRedact(): array
+    {
+        return $this->chronicleConfigProperty('chronicleRedact', []);
+    }
+
+    /**
+     * Override to define triggering model events
+     *
+     * @return list<string>
+     */
+    protected function chronicleEvents(): array
+    {
+        return $this->chronicleConfigProperty('chronicleEvents', ['created', 'updated', 'deleted']);
+    }
+
+    /**
+     * @param  list<string>  $default
+     * @return list<string>
+     */
+    private function chronicleConfigProperty(string $property, array $default): array
+    {
+        if (! property_exists($this, $property)) {
+            return $default;
+        }
+
+        $propertyValue = $this->{$property};
+
+        if (! is_array($propertyValue)) {
+            throw new LogicException("{$property} must be an array of strings");
+        }
+
+        $values = [];
+
+        foreach ($propertyValue as $item) {
+            if (! is_string($item)) {
+                throw new LogicException("{$property} must be an array of strings");
+            }
+
+            $values[] = $item;
+        }
+
+        return $values;
     }
 }
