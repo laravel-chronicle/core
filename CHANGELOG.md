@@ -12,6 +12,27 @@ breaking changes between any two versions - see upgrade notes per version.
 
 ---
 
+## [1.14.0] - 2026-10-09
+
+### Added
+
+- FIFO queue support for the `queued` driver. `PersistChronicleEntryJob::messageGroup()` dispatches every entry under one stable SQS message group, taken from the new `chronicle.queue.message_group` config key (env `CHRONICLE_QUEUE_MESSAGE_GROUP`, default `chronicle`), so an SQS FIFO queue - including a Laravel Cloud managed FIFO queue - persists entries one at a time however many workers run. `AnchorCheckpointJob::messageGroup()` groups anchors by checkpoint ID, so different checkpoints still anchor in parallel. `->onGroup()` on a dispatched job overrides either. No deduplication ID is set, so a redelivered entry is never silently discarded by the queue. Before this, sending to a `.fifo` queue failed for a missing `MessageGroupId` on Laravel 12.x and 13.0-13.32. See the new **Queued writes** section of the README.
+
+### Changed
+
+- Chronicle's queued jobs now carry a message group on standard SQS queues as well as FIFO ones. A job cannot tell which type it is dispatched to, because the framework resolves the real queue afterwards. AWS treats the group on a standard queue as a fair-queue tenant marker: it imposes no ordering and no throughput limit. Non-SQS queue drivers ignore it.
+  **Upgrade note:** SQS-compatible emulators that predate fair queues can reject a message group on a standard queue. Update local emulators (ElasticMQ, LocalStack) if sends start failing.
+- A blank or `null` `chronicle.queue.name` now dispatches to the queue connection's default queue. Previously `null` threw and an empty string targeted a queue literally named `""`. A non-string `chronicle.queue.connection` is ignored instead of being passed to the queue.
+- The `chronicle.queue` config comment and the class docblocks no longer claim that running several workers forks the chain. `sequence` is uniquely indexed and the chain head is read under a row lock, so concurrent workers cannot fork it; a losing write can fail instead, and with `tries = 1` it lands in `failed_jobs` until replayed. A single worker or a FIFO queue avoids that.
+  **Upgrade note:** apps with a published `config/chronicle.php` can add the `queue.message_group` key to pick up `CHRONICLE_QUEUE_MESSAGE_GROUP`. Without it Chronicle uses the default group `chronicle`.
+
+### Fixed
+
+- `EntryRecorded` is now dispatched for entries persisted by the `queued` driver. `PersistChronicleEntryJob` stored the entry directly and never fired the event, so listeners that worked with the `eloquent` driver silently received nothing with `queued`. The event is dispatched in the queue worker after the job's transaction has committed, so a listener that throws fails the job but cannot roll back the entry. With a synchronous driver the event still fires inside the write transaction.
+  **Upgrade note:** apps on the `queued` driver that already register an `EntryRecorded` listener will see it start running, in the queue worker, after upgrading.
+
+---
+
 ## [1.13.0] - 2026-06-19
 
 ### Added
