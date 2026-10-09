@@ -58,6 +58,23 @@ it('fires EntryRecorded after the queued entry is persisted', function () {
     });
 });
 
+it('keeps the queued entry when an EntryRecorded listener throws', function () {
+    config(['queue.default' => 'sync']);
+    Event::listen(EntryRecorded::class, fn () => throw new RuntimeException('listener failed'));
+
+    app('chronicle')->swapDriver(app(QueuedDriver::class));
+
+    // The job still fails, so the listener error is visible in failed_jobs,
+    // but the entry was committed before the event fired.
+    expect(fn () => Chronicle::record()
+        ->actor(ref('user-1'))
+        ->action('invoice.sent')
+        ->subject(ref('invoice-99'))
+        ->commit())->toThrow(RuntimeException::class, 'listener failed');
+
+    expect(Entry::count())->toBe(1);
+});
+
 it('computes a valid chain hash when the job runs synchronously', function () {
     config(['queue.default' => 'sync']);
 
