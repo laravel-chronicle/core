@@ -72,7 +72,7 @@ final class DefaultReferenceResolver implements ReferenceResolver
         }
 
         return new Reference(
-            $model::class,
+            $model->getMorphClass(),
             (string) $key,
         );
     }
