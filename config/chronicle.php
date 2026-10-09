@@ -24,7 +24,7 @@ return [
     | The driver Chronicle uses to persist audit entries. Built-in drivers:
     |
     | 'eloquent' / 'database' - Synchronous write via Laravel's database layer. Default.
-    | 'queued' - Async write via queue (single-worker required).
+    | 'queued' - Async write via queue (single worker, or a FIFO queue).
     | 'array' - In-memory. For testing only.
     | 'null' - Discards all entries silently. For testing or local dev.
     |
@@ -51,16 +51,63 @@ return [
     |--------------------------------------------------------------------------
     |
     | Used when driver = 'queued'. Chronicle chain hashes are order-sensitive,
-    | so this queue MUST be processed by a single worker:
+    | so entries MUST be persisted in dispatch order. On a queue that cannot
+    | guarantee ordering, that means a single worker:
     |
     |   php artisan queue:work --queue=chronicle --tries=1
     |
-    | Running multiple workers on this queue will produce chain forks.
+    | Concurrent workers on such a queue cannot fork the chain - `sequence` is
+    | uniquely indexed and the chain head is taken with a row lock - but they do
+    | race for it, and depending on the database engine's isolation level a
+    | losing write can fail on that unique index. Because the job runs with
+    | tries = 1 it is not retried: it lands in failed_jobs, missing from the
+    | ledger until replayed.
+    |
+    | A FIFO queue removes the race. Every entry is dispatched under one message
+    | group (see message_group below) and SQS keeps at most one message per group
+    | in flight, so ordering holds no matter how many workers run - at the cost
+    | of one entry in flight at a time. On Laravel Cloud, create a managed FIFO
+    | queue and set:
+    |
+    |   QUEUE_CONNECTION=cloud
+    |   CHRONICLE_QUEUE=chronicle.fifo
+    |
+    | Laravel Cloud appends the '.fifo' suffix when it provisions the queue, so
+    | a managed FIFO queue named 'chronicle' must be dispatched to as
+    | 'chronicle.fifo'. Name it explicitly: SQS derives the FIFO message
+    | attributes from the queue name, so leaving `name` blank - dispatching to
+    | the connection's default queue - is only safe when that connection's own
+    | default queue name carries the suffix.
+    |
+    | `name` and `connection` must each be a string, or blank to fall back to
+    | the queue connection's own default.
     |
     */
     'queue' => [
         'connection' => env('CHRONICLE_QUEUE_CONNECTION'),
         'name' => env('CHRONICLE_QUEUE', 'chronicle'),
+
+        /*
+        |----------------------------------------------------------------------
+        | FIFO Message Group
+        |----------------------------------------------------------------------
+        |
+        | The SQS message group every entry is dispatched under on a FIFO queue.
+        | FIFO queues order messages only within a group, and the hash chain is
+        | one global sequence, so this MUST be a single stable value - anything
+        | that varies per entry would let entries persist out of order. Change it
+        | only to namespace separate ledgers that share one queue.
+        |
+        | Must satisfy SQS's own rules for a group ID: at most 128 characters of
+        | alphanumerics and punctuation, with no whitespace.
+        |
+        | Sent on standard SQS queues too: the real target queue is resolved
+        | after the job supplies its group, so Chronicle cannot tell the two
+        | apart. Real SQS treats it as a fair-queue tenant marker, imposing no
+        | ordering. Ignored by every non-SQS queue driver.
+        |
+        */
+        'message_group' => env('CHRONICLE_QUEUE_MESSAGE_GROUP', 'chronicle'),
     ],
 
     /*
@@ -192,6 +239,9 @@ return [
         'enabled' => env('CHRONICLE_ANCHORING_ENABLED', false),
 
         // Optional queue/connection for AnchorCheckpointJob (null = default).
+        // Anchoring is not order-sensitive, so a standard queue is fine here. A
+        // FIFO queue also works: anchors are grouped by checkpoint, so different
+        // checkpoints still anchor in parallel.
         'queue' => env('CHRONICLE_ANCHORING_QUEUE'),
 
         // name => ['provider' => class, ...provider config]

@@ -336,20 +336,26 @@ class ChronicleManager
             $entry = new PendingEntry($payload);
             $entry = $this->prePipeline->process($entry);
 
-            $queue = Config::string('chronicle.queue.name', 'chronicle');
-
-            /** @var string|null $connection */
+            $queue = Config::get('chronicle.queue.name', 'chronicle');
             $connection = Config::get('chronicle.queue.connection');
 
             $attrs = $entry->toDatabasePayload();
 
             $job = new PersistChronicleEntryJob($attrs);
 
-            if ($connection !== null && $connection !== '') {
+            if (is_string($connection) && $connection !== '') {
                 $job->onConnection($connection);
             }
 
-            dispatch($job->onQueue($queue));
+            // A blank name leaves the job's queue unset so the connection
+            // resolves its own default. The is_string() guard matters as much as
+            // the emptiness one: a falsy non-string is coerced to the default
+            // rather than rejected, silently misrouting the entry.
+            if (is_string($queue) && $queue !== '') {
+                $job->onQueue($queue);
+            }
+
+            dispatch($job);
 
             return;
         }

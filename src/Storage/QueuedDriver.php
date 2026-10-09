@@ -9,7 +9,8 @@ use Chronicle\Entry\Entry;
 use LogicException;
 
 /**
- * Storage driver that defers entry persistence to a queued job on the single-worker chronicle queue.
+ * Storage driver that defers entry persistence to a queued job on the chronicle queue,
+ * which must preserve dispatch order: a single worker, or a FIFO queue.
  */
 final class QueuedDriver implements StorageDriver
 {
