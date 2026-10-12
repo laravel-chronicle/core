@@ -238,7 +238,7 @@ class Entry extends Model
     final public function scopeForActor(Builder $query, Model $actor): Builder
     {
         return $query
-            ->where('actor_type', $actor::class)
+            ->where('actor_type', $actor->getMorphClass())
             ->where('actor_id', $actor->getKey());
     }
 
@@ -251,7 +251,7 @@ class Entry extends Model
     final public function scopeForSubject(Builder $query, Model $subject): Builder
     {
         return $query
-            ->where('subject_type', $subject::class)
+            ->where('subject_type', $subject->getMorphClass())
             ->where('subject_id', $subject->getKey());
     }
 
