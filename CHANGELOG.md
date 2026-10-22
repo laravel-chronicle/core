@@ -13,6 +13,7 @@ breaking changes between any two versions - see upgrade notes per version.
 ### Fixed
 
 - A rolled-back write no longer leaves its subject's DEK cached. `SubjectKeyManager` cached a DEK as soon as it created or unwrapped it, before the transaction that inserted its key row committed. After a rollback, the next write for that subject in the same process took the DEK from the cache and never stored it, so the entry was encrypted with a key that existed nowhere and read as erased everywhere else. A DEK read or created inside a transaction is now cached only once that transaction commits, and not at all if the subject is destroyed first. Fixes #251.
+- Concurrent synchronous writes no longer fail with a unique violation on `sequence` on PostgreSQL. A transaction that waited for the row lock on the chain head re-read that same row once it was released, not the entry committed meanwhile, so two writers took the same sequence and the second request failed. `ChainHashEntry` now takes a transaction-level advisory lock (`pg_advisory_xact_lock`) on PostgreSQL before it reads the head, and `ChronicleManager` tries a synchronous write again (up to `CHAIN_WRITE_ATTEMPTS`, 3) when it loses its place in the chain anyway. Inside a caller's transaction only Chronicle's own savepoint is rolled back.
 
 ### CI
 

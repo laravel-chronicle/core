@@ -31,6 +31,7 @@ use Chronicle\Transaction\ChronicleTransaction;
 use Illuminate\Contracts\Container\BindingResolutionException;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\DB;
@@ -75,6 +76,12 @@ class ChronicleManager
     protected ?StorageDriver $resolvedDriver = null;
 
     protected EntryPipeline $prePipeline;
+
+    /**
+     * How often a synchronous write is tried when a concurrent writer took
+     * its place in the chain.
+     */
+    public const CHAIN_WRITE_ATTEMPTS = 3;
 
     /**
      * Active transaction stack.
@@ -363,11 +370,29 @@ class ChronicleManager
         /** @var string|null $connection */
         $connection = Config::get('chronicle.connection');
 
-        DB::connection($connection)->transaction(function () use ($payload) {
-            $entry = new PendingEntry($payload);
+        // A concurrent writer can still take the sequence first: on a database
+        // without the advisory lock, or one that reads the head the way
+        // PostgreSQL does. The losing write breaks the unique index on
+        // `sequence` or `chain_hash`; it is tried again on the new head
+        // instead of failing the request. Inside a caller's transaction only
+        // this one's savepoint is rolled back.
+        for ($attempt = 1; ; $attempt++) {
+            try {
+                DB::connection($connection)->transaction(function () use ($payload) {
+                    $entry = new PendingEntry($payload);
 
-            $this->pipeline->process($entry);
-        });
+                    $this->pipeline->process($entry);
+                });
+
+                return;
+            } catch (UniqueConstraintViolationException $e) {
+                if ($attempt >= self::CHAIN_WRITE_ATTEMPTS) {
+                    throw $e;
+                }
+
+                usleep(10_000 * $attempt);
+            }
+        }
     }
 
     /**
