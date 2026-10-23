@@ -29,4 +29,29 @@ class EntryPipeline implements EntryProcessor
 
         return $entry;
     }
+
+    /**
+     * Split the pipeline before the first processor of the given class.
+     *
+     * Returns the processors before it, and the rest starting with it - null
+     * when the pipeline holds no such processor.
+     *
+     * @param  class-string<EntryProcessor>  $class
+     * @return array{0: EntryPipeline, 1: EntryPipeline|null}
+     */
+    public function splitBefore(string $class): array
+    {
+        $processors = array_values($this->processors);
+
+        foreach ($processors as $index => $processor) {
+            if ($processor instanceof $class) {
+                return [
+                    new self(array_slice($processors, 0, $index)),
+                    new self(array_slice($processors, $index)),
+                ];
+            }
+        }
+
+        return [$this, null];
+    }
 }

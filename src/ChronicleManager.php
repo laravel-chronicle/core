@@ -18,6 +18,8 @@ use Chronicle\Events\EntryRejected;
 use Chronicle\Exceptions\ChronicleException;
 use Chronicle\Exceptions\InvalidEntryModelException;
 use Chronicle\Jobs\PersistChronicleEntryJob;
+use Chronicle\Pipeline\ChainHashEntry;
+use Chronicle\Pipeline\ChainPlaceTaken;
 use Chronicle\Pipeline\EntryExtensionRegistry;
 use Chronicle\Pipeline\EntryPipeline;
 use Chronicle\Query\LedgerQuery;
@@ -29,8 +31,10 @@ use Chronicle\Support\ResolvedReference;
 use Chronicle\Testing\ChronicleAssertions;
 use Chronicle\Transaction\ChronicleTransaction;
 use Illuminate\Contracts\Container\BindingResolutionException;
+use Illuminate\Database\ConnectionInterface;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\DB;
@@ -75,6 +79,12 @@ class ChronicleManager
     protected ?StorageDriver $resolvedDriver = null;
 
     protected EntryPipeline $prePipeline;
+
+    /**
+     * How often a synchronous write appends to the chain when a concurrent
+     * writer took its place there first.
+     */
+    public const CHAIN_WRITE_ATTEMPTS = 3;
 
     /**
      * Active transaction stack.
@@ -363,11 +373,52 @@ class ChronicleManager
         /** @var string|null $connection */
         $connection = Config::get('chronicle.connection');
 
-        DB::connection($connection)->transaction(function () use ($payload) {
-            $entry = new PendingEntry($payload);
+        $db = DB::connection($connection);
 
-            $this->pipeline->process($entry);
+        // The stages before the chain run once. Only appending to the chain is
+        // tried again when a concurrent writer takes the place first, the way
+        // the queued job splits them too.
+        [$prepare, $append] = $this->pipeline->splitBefore(ChainHashEntry::class);
+
+        $db->transaction(function () use ($db, $payload, $prepare, $append) {
+            $entry = $prepare->process(new PendingEntry($payload));
+
+            if ($append !== null) {
+                $this->appendToChain($db, $append, $entry);
+            }
         });
+    }
+
+    /**
+     * Run the chain and persist stages, and run them again on the new head
+     * when a concurrent writer took this entry's place first.
+     *
+     * The advisory lock in ChainHashEntry prevents that on PostgreSQL under
+     * READ COMMITTED; this covers the databases without it. Only a unique
+     * violation on `sequence` or `chain_hash` is tried again: any other one
+     * is rethrown at once. Each attempt runs in its own savepoint, so a retry
+     * rolls back only this attempt, never the stages before it or a caller's
+     * own work. It does not help inside a caller's REPEATABLE READ or
+     * SERIALIZABLE transaction: the snapshot was taken at that transaction's
+     * first statement, so every attempt reads the same stale head and loses.
+     *
+     * @throws Throwable
+     */
+    protected function appendToChain(ConnectionInterface $db, EntryPipeline $append, PendingEntry $entry): void
+    {
+        for ($attempt = 1; ; $attempt++) {
+            try {
+                $db->transaction(fn () => $append->process($entry));
+
+                return;
+            } catch (UniqueConstraintViolationException $e) {
+                if ($attempt >= self::CHAIN_WRITE_ATTEMPTS || ! ChainPlaceTaken::by($e, $db)) {
+                    throw $e;
+                }
+
+                usleep(10_000 * $attempt);
+            }
+        }
     }
 
     /**
