@@ -83,3 +83,17 @@ it('persists entry using storage driver', function () {
 
     expect($processor->process($entry))->toBe($entry);
 });
+
+it('splits before the first processor of a class, and not at all without one', function () {
+    $first = mock(EntryProcessor::class);
+    $persist = new PersistEntry(mock(StorageDriver::class));
+    $last = mock(EntryProcessor::class);
+
+    $pipeline = new EntryPipeline([$first, $persist, $last]);
+
+    [$before, $from] = $pipeline->splitBefore(PersistEntry::class);
+
+    expect((fn () => $this->processors)->call($before))->toBe([$first])
+        ->and((fn () => $this->processors)->call($from))->toBe([$persist, $last])
+        ->and((new EntryPipeline([$first, $last]))->splitBefore(PersistEntry::class)[1])->toBeNull();
+});

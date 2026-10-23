@@ -9,6 +9,7 @@ use Chronicle\Entry\Entry;
 use Chronicle\Entry\PendingEntry;
 use Chronicle\Facades\Chronicle;
 use Chronicle\Hashing\ChainHasher;
+use Illuminate\Database\ConnectionInterface;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\DB;
 use LogicException;
@@ -19,20 +20,23 @@ use LogicException;
  * Uses row-level locking to prevent concurrent chain forks. On PostgreSQL the
  * row lock alone does not serialise writers: a transaction that waited for the
  * lock on the head re-reads that same row once it is released, not the entry
- * committed in the meantime, and so takes the same sequence. A transaction-level
- * advisory lock is taken first there, so the head is read only after the
- * previous writer committed.
+ * committed in the meantime, and so takes the same sequence. On an empty ledger
+ * there is no row to lock at all. A transaction-level advisory lock is taken
+ * first there, keyed on the entries table, so the head is read only after the
+ * previous writer committed. It is held until the transaction ends.
+ *
+ * Both locks assume READ COMMITTED, the default on PostgreSQL, where every
+ * statement reads the latest committed data. Under REPEATABLE READ or
+ * SERIALIZABLE the snapshot is taken at the transaction's first statement, so
+ * a writer that waited for the lock still reads the head as it was then, and
+ * loses its place however often it is tried. A caller that wraps Chronicle
+ * writes in a transaction at one of those levels must handle the unique
+ * violation itself.
  *
  * This processor expects to run inside an open DB transaction.
  */
 final class ChainHashEntry implements EntryProcessor
 {
-    /**
-     * Key of the PostgreSQL advisory lock that serialises chain writes
-     * ("chrn" as a 32-bit integer). Held until the transaction ends.
-     */
-    public const CHAIN_LOCK_KEY = 0x6368726E;
-
     protected ChainHasher $hasher;
 
     public function __construct(ChainHasher $hasher)
@@ -54,7 +58,7 @@ final class ChainHashEntry implements EntryProcessor
         }
 
         if ($db->getDriverName() === 'pgsql') {
-            $db->select('select pg_advisory_xact_lock(?)', [self::CHAIN_LOCK_KEY]);
+            $db->select('select pg_advisory_xact_lock(hashtext(?))', [self::lockName($db)]);
         }
 
         /** @var Entry|null $head */
@@ -78,5 +82,17 @@ final class ChainHashEntry implements EntryProcessor
         $entry->setSequence($sequence);
 
         return $entry;
+    }
+
+    /**
+     * Name the advisory lock is keyed on: the entries table as the connection
+     * sees it, prefix included. Two applications, or two Chronicle ledgers, in
+     * one database lock only their own chain.
+     */
+    public static function lockName(ConnectionInterface $db): string
+    {
+        $prefix = method_exists($db, 'getTablePrefix') ? $db->getTablePrefix() : '';
+
+        return (is_string($prefix) ? $prefix : '').Config::string('chronicle.tables.entries', 'chronicle_entries');
     }
 }

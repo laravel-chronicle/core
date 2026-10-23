@@ -56,12 +56,15 @@ return [
     |
     |   php artisan queue:work --queue=chronicle --tries=1
     |
-    | Concurrent workers on such a queue cannot fork the chain - `sequence` is
-    | uniquely indexed and the chain head is taken with a row lock - but they do
-    | race for it, and depending on the database engine's isolation level a
-    | losing write can fail on that unique index. Because the job runs with
-    | tries = 1 it is not retried: it lands in failed_jobs, missing from the
-    | ledger until replayed.
+    | Concurrent workers on such a queue cannot fork the chain. On PostgreSQL
+    | each write takes an advisory lock on the entries table before reading
+    | the head, so they serialise. On other engines `sequence` and `chain_hash`
+    | are uniquely indexed and the head is taken with a row lock, but depending
+    | on the engine and its isolation level a losing write can fail on that
+    | unique index. Because the job runs with tries = 1 it is not retried: it
+    | lands in failed_jobs, missing from the ledger until replayed. Either way,
+    | entries are chained in the order workers pick them up, not the order they
+    | were dispatched.
     |
     | A FIFO queue removes the race. Every entry is dispatched under one message
     | group (see message_group below) and SQS keeps at most one message per group
