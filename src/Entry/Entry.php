@@ -9,6 +9,7 @@ use Carbon\CarbonInterface;
 use Chronicle\Checkpoints\Checkpoint;
 use Chronicle\Encryption\EntryDecryptor;
 use Chronicle\Exceptions\ImmutabilityViolationException;
+use Chronicle\Support\MorphTypes;
 use Illuminate\Contracts\Pagination\CursorPaginator;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
@@ -230,7 +231,8 @@ class Entry extends Model
     }
 
     /**
-     * Scope entries for a specific actor.
+     * Scope entries for a specific actor, stored under its class name or its
+     * morph alias.
      *
      * @param  Builder<$this>  $query
      * @return Builder<$this>
@@ -238,12 +240,13 @@ class Entry extends Model
     final public function scopeForActor(Builder $query, Model $actor): Builder
     {
         return $query
-            ->where('actor_type', $actor::class)
+            ->whereIn('actor_type', MorphTypes::forModel($actor))
             ->where('actor_id', $actor->getKey());
     }
 
     /**
-     * Scope entries for a specific subject.
+     * Scope entries for a specific subject, stored under its class name or its
+     * morph alias.
      *
      * @param  Builder<$this>  $query
      * @return Builder<$this>
@@ -251,7 +254,7 @@ class Entry extends Model
     final public function scopeForSubject(Builder $query, Model $subject): Builder
     {
         return $query
-            ->where('subject_type', $subject::class)
+            ->whereIn('subject_type', MorphTypes::forModel($subject))
             ->where('subject_id', $subject->getKey());
     }
 

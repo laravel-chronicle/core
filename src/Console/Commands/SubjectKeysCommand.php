@@ -7,6 +7,7 @@ namespace Chronicle\Console\Commands;
 use Chronicle\Encryption\SubjectKey;
 use Chronicle\Entry\Entry;
 use Chronicle\Facades\Chronicle;
+use Chronicle\Support\MorphTypes;
 use Illuminate\Console\Command;
 
 /**
@@ -45,7 +46,7 @@ final class SubjectKeysCommand extends Command
                 'created_at' => $key->created_at->toIso8601String(),
                 'erased_at' => $key->erased_at?->toIso8601String(),
                 'entry_count' => Chronicle::newEntryQuery()
-                    ->where('subject_type', $key->subject_type)
+                    ->whereIn('subject_type', MorphTypes::variants($key->subject_type))
                     ->where('subject_id', $key->subject_id)
                     ->count(),
             ];

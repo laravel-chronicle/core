@@ -8,6 +8,7 @@ use Carbon\Carbon;
 use Chronicle\Entry\Entry;
 use Chronicle\Facades\Chronicle;
 use Chronicle\Lifecycle\LegalHold;
+use Chronicle\Support\MorphTypes;
 use Illuminate\Console\Command;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Query\Builder as QueryBuilder;
@@ -171,6 +172,28 @@ final class PruneCommand extends Command
                 ->whereColumn($holdsTable.'.subject_id', $entriesTable.'.subject_id')
                 ->whereNull($holdsTable.'.released_at');
         });
+
+        // The join above matches a hold on the exact stored type. A hold placed
+        // under a model's class name also covers its entries stored under the
+        // morph alias, and the other way round; SQL cannot map one to the
+        // other, so those pairs are excluded here.
+        $otherNames = [];
+
+        foreach (LegalHold::query()->whereNull('released_at')->get(['subject_type', 'subject_id']) as $hold) {
+            foreach (MorphTypes::variants($hold->subject_type) as $type) {
+                if ($type !== $hold->subject_type) {
+                    $otherNames[] = [$type, $hold->subject_id];
+                }
+            }
+        }
+
+        if ($otherNames !== []) {
+            $query->whereNot(function (Builder $held) use ($otherNames) {
+                foreach ($otherNames as [$type, $id]) {
+                    $held->orWhere(fn (Builder $pair) => $pair->where('subject_type', $type)->where('subject_id', $id));
+                }
+            });
+        }
 
         return $query;
     }

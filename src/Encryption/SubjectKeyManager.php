@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace Chronicle\Encryption;
 
 use Chronicle\Exceptions\EncryptionException;
+use Chronicle\Support\MorphTypes;
 use Exception;
+use Illuminate\Database\Eloquent\Collection;
 
 /**
  * Owns the per-subject DEK lifecycle: get-or-create (wrap + persist),
@@ -115,18 +117,21 @@ final class SubjectKeyManager
     /**
      * Erase a subject: destroy the wrapped DEK, tombstone the row, and purge
      * the cached plaintext DEK. Idempotent. Erased subjects stay erased - a
-     * tombstone is written even for a never-seen subject.
+     * tombstone is written even for a never-seen subject. A subject with keys
+     * under both its class name and its morph alias loses all of them.
      */
     public function destroy(string $subjectType, string $subjectId): void
     {
-        $cacheKey = $this->cacheKey($subjectType, $subjectId);
+        foreach (MorphTypes::variants($subjectType) as $type) {
+            $cacheKey = $this->cacheKey($type, $subjectId);
 
-        unset($this->cache[$cacheKey]);
-        $this->generations[$cacheKey] = ($this->generations[$cacheKey] ?? 0) + 1;
+            unset($this->cache[$cacheKey]);
+            $this->generations[$cacheKey] = ($this->generations[$cacheKey] ?? 0) + 1;
+        }
 
-        $row = $this->find($subjectType, $subjectId);
+        $rows = $this->rows($subjectType, $subjectId);
 
-        if ($row === null) {
+        if ($rows->isEmpty()) {
             SubjectKey::create([
                 'subject_type' => $subjectType,
                 'subject_id' => $subjectId,
@@ -140,14 +145,16 @@ final class SubjectKeyManager
             return;
         }
 
-        if ($row->isErased()) {
-            return;
-        }
+        foreach ($rows as $row) {
+            if ($row->isErased()) {
+                continue;
+            }
 
-        $row->wrapped_dek = null;
-        $row->status = 'erased';
-        $row->erased_at = now();
-        $row->save();
+            $row->wrapped_dek = null;
+            $row->status = 'erased';
+            $row->erased_at = now();
+            $row->save();
+        }
     }
 
     /**
@@ -171,12 +178,32 @@ final class SubjectKeyManager
         return $dek;
     }
 
+    /**
+     * The subject's key row. A subject recorded under both its class name and
+     * its morph alias shares one key: an erased row wins, so a subject erased
+     * under one name reads as erased under the other; otherwise the row under
+     * the exact type, then the one under the other name.
+     */
     protected function find(string $subjectType, string $subjectId): ?SubjectKey
     {
+        $rows = $this->rows($subjectType, $subjectId);
+
+        return $rows->first(fn (SubjectKey $row) => $row->isErased())
+            ?? $rows->firstWhere('subject_type', $subjectType)
+            ?? $rows->first();
+    }
+
+    /**
+     * The subject's key rows under its class name and its morph alias.
+     *
+     * @return Collection<int, SubjectKey>
+     */
+    protected function rows(string $subjectType, string $subjectId): Collection
+    {
         return SubjectKey::query()
-            ->where('subject_type', $subjectType)
+            ->whereIn('subject_type', MorphTypes::variants($subjectType))
             ->where('subject_id', $subjectId)
-            ->first();
+            ->get();
     }
 
     protected function cacheKey(string $subjectType, string $subjectId): string

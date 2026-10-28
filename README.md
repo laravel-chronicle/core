@@ -274,7 +274,9 @@ See the [Query API reference](https://laravel-chronicle.dev/docs/query-api).
 ### Resolving references
 
 Entries store actors and subjects as a `(type, id)` pair, where `type` is the
-class name (or a configured morph alias). To turn one back into something
+class name, or the model's morph alias with `references.use_morph_map` turned
+on ([details](https://laravel-chronicle.dev/docs/reference-resolution#storing-morph-aliases)).
+To turn one back into something
 displayable, use the reverse resolver - it honours `Relation::morphMap()` and
 **does not touch the database**:
 
