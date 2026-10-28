@@ -13,6 +13,7 @@ breaking changes between any two versions - see upgrade notes per version.
 ### Added
 
 - `chronicle.references.use_morph_map` (default `false`) stores a model's morph alias from `Relation::morphMap()` as its `actor_type` / `subject_type` instead of its class name. Lookups by type now match both names, whether the option is on or off, so a ledger with entries from before and after turning it on keeps working: the `forActor()` and `forSubject()` scopes, subject keys (a subject keeps one key, and `chronicle:subject:erase` shreds it under either name), legal holds and `chronicle:prune`, and the entry counts in `chronicle:subject:keys`. A model missing from an enforced morph map is stored under its class name rather than failing the write. Closes #237.
+- `ExtensionStage::PREPARE` runs before every other stage, ahead of the built-in validators. Use it to turn values Chronicle cannot store as they are - value objects, DTOs - into the scalars or arrays an entry should record, for example a money object into the minor amount your application stores. Previously that meant a `VALIDATE` extension with a low priority. Code with an exhaustive `match` over `ExtensionStage` needs a `PREPARE` arm. Closes #243.
 
 ---
 

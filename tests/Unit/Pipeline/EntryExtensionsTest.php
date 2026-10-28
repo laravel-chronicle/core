@@ -77,6 +77,20 @@ it('orders extensions deterministically by stage and priority', function () {
     ]);
 });
 
+it('runs prepare extensions before every validator, whatever their priority', function () {
+    $registry = new EntryExtensionRegistry(app());
+
+    $registry->register(new TestEntryExtension('validate_first', ExtensionStage::VALIDATE, -100000));
+    $registry->register(new TestEntryExtension('prepare_late', ExtensionStage::PREPARE, 100000));
+
+    $orderedNames = array_map(
+        fn (TestEntryExtension $extension): string => $extension->name,
+        $registry->ordered()
+    );
+
+    expect($orderedNames)->toBe(['prepare_late', 'validate_first']);
+});
+
 it('is a no-op when no extensions are registered', function () {
     $registry = new EntryExtensionRegistry(app());
     $processor = new RunExtensions($registry);
