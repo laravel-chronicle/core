@@ -81,3 +81,52 @@ jobs:
 
       - name: Execute tests
         run: vendor/bin/pest --ci
+
+  test-pgsql:
+    name: PostgreSQL - P8.4 - L13.*
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: chronicle_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      CHRONICLE_PRIVATE_KEY: 'RcSfC2MuYTPnkrL/MIA4/l/sAjirGXXIFXZEPokdwh1Lcz+SvNE7bjvgCsDotjnlHfJyZ4XW/kUXemtoyaa92Q=='
+      CHRONICLE_PUBLIC_KEY: 'S3M/krzRO2474ArA6LY55R3ycmeF1v5FF3praMmmvdk='
+      CHRONICLE_TEST_DB_CONNECTION: pgsql
+      CHRONICLE_TEST_DB_HOST: 127.0.0.1
+      CHRONICLE_TEST_DB_PORT: 5432
+      CHRONICLE_TEST_DB_DATABASE: chronicle_test
+      CHRONICLE_TEST_DB_USERNAME: postgres
+      CHRONICLE_TEST_DB_PASSWORD: postgres
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 #v7
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 #v2
+        with:
+          php-version: 8.4
+          extensions: sodium, pdo_pgsql
+          coverage: none
+
+      - name: Install dependencies
+        run: |
+          composer require "laravel/framework:13.*" "orchestra/testbench:11.*" --no-interaction --no-update
+          composer update --prefer-stable --prefer-dist --no-interaction
+
+      # The chain-write tests, among them the ones that race a second
+      # connection on the chain head. The rest of the suite targets SQLite.
+      - name: Execute tests
+        run: vendor/bin/pest --ci tests/Feature/Transactions

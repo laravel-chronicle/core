@@ -9,6 +9,7 @@ use Chronicle\Contracts\ReferenceLookup;
 use Chronicle\Contracts\ReferenceResolver;
 use Chronicle\Entry\EntryBuilder;
 use Chronicle\Entry\PendingEntry;
+use Chronicle\Pipeline\ChainHashEntry;
 use Chronicle\Pipeline\EntryExtensionRegistry;
 use Chronicle\Pipeline\EntryPipeline;
 use Chronicle\Pipeline\ExtensionStage;
@@ -51,6 +52,12 @@ it('delegates recording to the pipeline', function () {
         'context' => [],
         'created_at' => now('UTC'),
     ];
+
+    $pipeline
+        ->shouldReceive('splitBefore')
+        ->once()
+        ->with(ChainHashEntry::class)
+        ->andReturn([$pipeline, null]);
 
     $pipeline
         ->shouldReceive('process')

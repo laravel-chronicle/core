@@ -140,11 +140,17 @@ one worker:
 php artisan queue:work --queue=chronicle --tries=1
 ```
 
-Concurrent workers on such a queue cannot fork the chain - `sequence` carries a unique index and
-the chain head is taken with a row lock - but they do race for it, and depending on your database
-engine's isolation level a losing write can fail on that unique index rather than serialise behind
-the lock. Because the job is dispatched with `tries = 1`, a failed entry is not retried: it lands
-in `failed_jobs` and is missing from the ledger until you replay it.
+The chain itself is safe with concurrent workers: on PostgreSQL every write takes an advisory
+lock on the entries table before it reads the chain head, so writers queue up behind each other
+and each one appends on the entry committed before it. On other engines `sequence` and
+`chain_hash` carry a unique index and the head is taken with a row lock, so the chain cannot fork,
+but depending on the engine and its isolation level a losing write can fail on that unique index
+rather than serialise behind the lock. Because the job is dispatched with `tries = 1`, such an
+entry is not retried: it lands in `failed_jobs` and is missing from the ledger until you replay it.
+
+Concurrent workers on such a queue still persist entries in the order the workers pick them up,
+not the order they were dispatched, so the chain order can differ from the order of events. One
+worker keeps both.
 
 ### A FIFO queue
 
