@@ -10,6 +10,10 @@ breaking changes between any two versions - see upgrade notes per version.
 
 ## [Unreleased]
 
+---
+
+## [1.16.0] - 2026-10-28
+
 ### Added
 
 - `chronicle.references.use_morph_map` (default `false`) stores a model's morph alias from `Relation::morphMap()` as its `actor_type` / `subject_type` instead of its class name. Lookups by type now match both names, whether the option is on or off, so a ledger with entries from before and after turning it on keeps working: the `forActor()` and `forSubject()` scopes, subject keys (a subject keeps one key, and `chronicle:subject:erase` shreds it under either name), legal holds and `chronicle:prune`, and the entry counts in `chronicle:subject:keys`. A model missing from an enforced morph map is stored under its class name rather than failing the write. Closes #237.
