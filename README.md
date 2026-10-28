@@ -623,6 +623,7 @@ Contributions are welcome. Please read: [CONTRIBUTING](CONTRIBUTING.md) before s
     </tr>
     <tr>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/Jaspur"><img src="https://avatars.githubusercontent.com/u/4254854?v=4?s=100" width="100px;" alt="Jaspur"/><br /><sub><b>Jaspur</b></sub></a><br /><a href="#code-Jaspur" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/halyna-tech"><img src="https://avatars.githubusercontent.com/u/269947085?v=4?s=100" width="100px;" alt="halyna-tech"/><br /><sub><b>halyna-tech</b></sub></a><br /><a href="#code-halyna-tech" title="Code">💻</a></td>
     </tr>
   </tbody>
 </table>
