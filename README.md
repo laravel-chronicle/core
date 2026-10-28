@@ -619,6 +619,9 @@ Contributions are welcome. Please read: [CONTRIBUTING](CONTRIBUTING.md) before s
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/joelbutcher"><img src="https://avatars.githubusercontent.com/u/7163152?v=4?s=100" width="100px;" alt="Joel Butcher"/><br /><sub><b>Joel Butcher</b></sub></a><br /><a href="#code-joelbutcher" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="http://www.skylundy.io"><img src="https://avatars.githubusercontent.com/u/61801600?v=4?s=100" width="100px;" alt="Sky"/><br /><sub><b>Sky</b></sub></a><br /><a href="#code-SkyLundy" title="Code">💻</a></td>
     </tr>
+    <tr>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/Jaspur"><img src="https://avatars.githubusercontent.com/u/4254854?v=4?s=100" width="100px;" alt="Jaspur"/><br /><sub><b>Jaspur</b></sub></a><br /><a href="#code-Jaspur" title="Code">💻</a></td>
+    </tr>
   </tbody>
 </table>
 
