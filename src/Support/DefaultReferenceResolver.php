@@ -6,6 +6,7 @@ namespace Chronicle\Support;
 
 use Chronicle\Contracts\ReferenceResolver;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Config;
 use InvalidArgumentException;
 
 /**
@@ -17,6 +18,9 @@ use InvalidArgumentException;
  *  - Eloquent models
  *  - Scalar values
  *  - Objects with id property
+ *
+ * A model's type is its class name, or its morph alias when
+ * `chronicle.references.use_morph_map` is on.
  */
 final class DefaultReferenceResolver implements ReferenceResolver
 {
@@ -72,7 +76,7 @@ final class DefaultReferenceResolver implements ReferenceResolver
         }
 
         return new Reference(
-            $model::class,
+            Config::boolean('chronicle.references.use_morph_map', false) ? MorphTypes::morphClass($model) : $model::class,
             (string) $key,
         );
     }

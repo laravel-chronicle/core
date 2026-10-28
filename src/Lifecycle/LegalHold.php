@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Chronicle\Lifecycle;
 
+use Chronicle\Support\MorphTypes;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
@@ -74,13 +75,15 @@ class LegalHold extends Model
     }
 
     /**
+     * Active holds on a subject, placed under its class name or its morph alias.
+     *
      * @param  Builder<LegalHold>  $query
      * @return Builder<LegalHold>
      */
     public function scopeActiveFor(Builder $query, string $subjectType, string $subjectId): Builder
     {
         return $query
-            ->where('subject_type', $subjectType)
+            ->whereIn('subject_type', MorphTypes::variants($subjectType))
             ->where('subject_id', $subjectId)
             ->whereNull('released_at');
     }

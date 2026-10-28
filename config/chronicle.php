@@ -172,9 +172,16 @@ return [
     | Reverse resolution honours Relation::morphMap() and never queries the
     | database unless hydration is explicitly requested.
     |
+    | use_morph_map stores a model's morph alias (Relation::morphMap()) as its
+    | actor_type / subject_type instead of its class name. Lookups by type -
+    | forActor(), forSubject(), subject keys, legal holds, pruning - match
+    | both names, so a ledger with entries from before and after turning it
+    | on keeps working. Turning it off again is safe for the same reason.
+    |
     */
     'references' => [
         'label_attribute' => 'name',
+        'use_morph_map' => env('CHRONICLE_USE_MORPH_MAP', false),
     ],
 
     'signing' => [
