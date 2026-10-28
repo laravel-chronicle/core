@@ -10,6 +10,10 @@ breaking changes between any two versions - see upgrade notes per version.
 
 ## [Unreleased]
 
+---
+
+## [1.15.1] - 2026-10-28
+
 ### Fixed
 
 - A rolled-back write no longer leaves its subject's DEK cached. `SubjectKeyManager` cached a DEK as soon as it created or unwrapped it, before the transaction that inserted its key row committed. After a rollback, the next write for that subject in the same process took the DEK from the cache and never stored it, so the entry was encrypted with a key that existed nowhere and read as erased everywhere else. A DEK read or created inside a transaction is now cached only once that transaction commits, and not at all if the subject is destroyed first. Fixes #251.
