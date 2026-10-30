@@ -55,6 +55,12 @@ Chronicle takes a different approach. Events are recorded in an **append-only le
 
 ---
 
+## Professional setup
+
+Need Chronicle running before an audit? The maintainer sets it up in your app for a fixed price: Review, Standard (production setup) and Compliance (KMS signing, external anchoring, auditor handover). See [Services](https://laravel-chronicle.dev/services).
+
+---
+
 ## Requirements
 
 - PHP `^8.2`
