@@ -14,6 +14,7 @@ cryptographic audit log
 
 ![Packagist Version](https://img.shields.io/packagist/v/laravel-chronicle/core)
 ![Packagist Downloads](https://img.shields.io/packagist/dt/laravel-chronicle/core)
+[![Live demo](https://img.shields.io/badge/demo-live-b25c2c)](https://demo.laravel-chronicle.dev)
 [![Tests](https://github.com/laravel-chronicle/core/actions/workflows/run-tests.yml/badge.svg)](https://github.com/laravel-chronicle/core/actions)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Sponsor](https://img.shields.io/badge/sponsor-GitHub%20Sponsors-ea4aaa?logo=githubsponsors)](https://github.com/sponsors/ntoufoudis)
@@ -615,7 +616,7 @@ Your name here. [Become a backer](https://github.com/sponsors/ntoufoudis).
 
 ## Contributing
 
-Contributions are welcome. Please read: [CONTRIBUTING](CONTRIBUTING.md) before submitting pull requests.
+Contributions are welcome. Please read: [CONTRIBUTING](https://github.com/laravel-chronicle/.github/blob/main/CONTRIBUTING.md) before submitting pull requests.
 
 ---
 
@@ -651,7 +652,7 @@ Contributions are welcome. Please read: [CONTRIBUTING](CONTRIBUTING.md) before s
 
 # Security
 
-If you discover a security vulnerability, please report it responsibly. See: [SECURITY](SECURITY.md) for details.
+If you discover a security vulnerability, please report it responsibly. See: [SECURITY](https://github.com/laravel-chronicle/core/security/policy) for details.
 
 ---
 
