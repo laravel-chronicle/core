@@ -19,6 +19,8 @@ cryptographic audit log
 [![Sponsor](https://img.shields.io/badge/sponsor-GitHub%20Sponsors-ea4aaa?logo=githubsponsors)](https://github.com/sponsors/ntoufoudis)
 [![All Contributors](https://img.shields.io/github/all-contributors/laravel-chronicle/core?color=ee8449&style=flat-square)](#contributors)
 
+<!-- Partners ($300/month sponsor tier): logos go here, once the first partner joins. -->
+
 **Chronicle** is a cryptographically verifiable audit ledger for Laravel.
 
 Unlike traditional activity log packages, Chronicle records events in an **append-only ledger protected by hash chaining**, allowing audit history to be **verified for tampering**.
@@ -590,6 +592,12 @@ Planned for upcoming releases:
 ## Sponsors
 
 Chronicle is free and MIT licensed. If your team relies on it for an audit trail, you can support its maintenance through [GitHub Sponsors](https://github.com/sponsors/ntoufoudis). Sponsorship pays for support for new Laravel and PHP releases, security fixes, and the documentation.
+
+### Partners
+
+<!-- $300/month tier: logo, linked to the sponsor's site. Also shown above the intro at the top of this README. -->
+
+Your logo here. [Become a partner](https://github.com/sponsors/ntoufoudis).
 
 ### Company sponsors
 
