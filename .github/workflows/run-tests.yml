@@ -8,11 +8,6 @@ on:
       - 'phpunit.xml.dist'
       - 'composer.json'
   pull_request:
-    paths:
-      - '**.php'
-      - '.github/workflows/run-tests.yml'
-      - 'phpunit.xml.dist'
-      - 'composer.json'
 
 permissions:
   contents: read
@@ -130,3 +125,13 @@ jobs:
       # connection on the chain head. The rest of the suite targets SQLite.
       - name: Execute tests
         run: vendor/bin/pest --ci tests/Feature/Transactions
+
+  ci-passed:
+    name: CI passed
+    if: always()
+    needs: [validate, test, test-pgsql]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fail unless every job passed
+        if: ${{ contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled') || contains(needs.*.result, 'skipped') }}
+        run: exit 1
