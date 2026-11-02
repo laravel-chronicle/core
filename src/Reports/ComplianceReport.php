@@ -32,9 +32,10 @@ class ComplianceReport
 
         [$entryCount, $chainHead, $firstEntryId, $lastEntryId] = $this->collectStats($from, $to);
 
-        $reportHash = $this->hashReportData(
+        $signedData = $this->canonicalReportData(
             $generatedAt, $entryCount, $firstEntryId, $lastEntryId, $chainHead, $from, $to
         );
+        $reportHash = hash('sha256', $signedData);
 
         $signer = $this->keyRing->active();
         $signature = $signer->sign($reportHash);
@@ -47,6 +48,9 @@ class ComplianceReport
         $html = $this->renderHtml(
             entryCount: $entryCount,
             chainHead: $chainHead,
+            firstEntryId: $firstEntryId,
+            lastEntryId: $lastEntryId,
+            signedData: $signedData,
             reportHash: $reportHash,
             signature: $signature,
             algorithm: $algorithm,
@@ -121,7 +125,11 @@ class ComplianceReport
         return [$entryCount, $chainHead, $firstEntryId, $lastEntryId];
     }
 
-    protected function hashReportData(
+    /**
+     * The exact JSON the report hash is computed over. It is shown in the
+     * report so an auditor can recompute the hash with standard tools.
+     */
+    protected function canonicalReportData(
         Carbon $generatedAt,
         int $entryCount,
         ?string $firstEntryId,
@@ -131,7 +139,7 @@ class ComplianceReport
         ?CarbonInterface $to,
     ): string {
         try {
-            $canonical = json_encode([
+            return json_encode([
                 'generated_at' => $generatedAt->toIso8601String(),
                 'entry_count' => $entryCount,
                 'first_entry_id' => $firstEntryId,
@@ -143,13 +151,14 @@ class ComplianceReport
         } catch (JsonException $e) {
             throw new RuntimeException('Chronicle: failed to encode compliance report data.', 0, $e);
         }
-
-        return hash('sha256', $canonical);
     }
 
     protected function renderHtml(
         int $entryCount,
         ?string $chainHead,
+        ?string $firstEntryId,
+        ?string $lastEntryId,
+        string $signedData,
         string $reportHash,
         string $signature,
         string $algorithm,
@@ -183,6 +192,7 @@ class ComplianceReport
         .label { font-family: system-ui, sans-serif; font-size: 0.9rem; }
         .sig-block { margin-top: 32px; padding: 16px; background: #f9f9f9; border: 1px solid #ddd; border-radius: 4px; font-size: 0.75rem; color: #555; }
         .sig-block strong { color: #1a1a1a; display: block; margin-bottom: 8px; }
+        .sig-block pre { margin: 8px 0 0; white-space: pre-wrap; word-break: break-all; font-size: 0.8rem; color: #1a1a1a; }
         @media print { body { margin: 20px; } }
       </style>
     </head>
@@ -193,8 +203,15 @@ class ComplianceReport
         <tr><th class="label">Period</th><td>$period</td></tr>
         <tr><th class="label">Entry count</th><td>{$e($entryCount)}</td></tr>
         <tr><th class="label">Chain head</th><td>$chainHeadHtml</td></tr>
+        <tr><th class="label">First entry</th><td>{$e($firstEntryId)}</td></tr>
+        <tr><th class="label">Last entry</th><td>{$e($lastEntryId)}</td></tr>
         <tr><th class="label">Report hash (SHA-256)</th><td>{$e($reportHash)}</td></tr>
       </table>
+      <div class="sig-block">
+        <strong>Signed data</strong>
+        <div>The report hash is the SHA-256 of this exact text, and the signature covers the report hash.</div>
+        <pre id="signed-data">{$e($signedData)}</pre>
+      </div>
       <div class="sig-block">
         <strong>Signature block</strong>
         <div><b>Algorithm:</b> {$e($algorithm)}</div>
