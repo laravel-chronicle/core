@@ -10,6 +10,10 @@ breaking changes between any two versions - see upgrade notes per version.
 
 ## [Unreleased]
 
+### Changed
+
+- `chronicle:report` now shows the exact data its report hash is computed over, in a "Signed data" block, plus the first and last entry ids. An auditor can recompute the report hash from the HTML with any SHA-256 tool and check it against the signature. Before, the hash also covered the entry ids, which the report did not show, so only the signature could be checked. The hash, the signature and what they cover are unchanged; reports generated before this release still verify.
+
 ---
 
 ## [1.16.0] - 2026-10-28

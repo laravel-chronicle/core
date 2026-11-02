@@ -115,3 +115,51 @@ it('html report escapes values to prevent xss', function () {
         ->toContain('<!DOCTYPE html>')
         ->toContain('</html>');
 });
+
+/**
+ * Read the rendered text of the report's signed-data block, the way an auditor
+ * copying it from the browser would see it.
+ */
+function reportSignedData(string $html): ?string
+{
+    $dom = new DOMDocument;
+    @$dom->loadHTML($html);
+
+    return $dom->getElementById('signed-data')?->textContent;
+}
+
+it('html report shows the signed data so an auditor can recompute the report hash', function () {
+    Chronicle::record()->actor('system')->action('report.first')->subject(ref('ledger'))->commit();
+    Chronicle::record()->actor('system')->action('report.last')->subject(ref('ledger'))->commit();
+    $ids = Chronicle::newEntryQuery()->orderBy('id')->pluck('id')->all();
+
+    $result = app(ComplianceReport::class)->generate(storage_path('chronicle-report-'.Str::uuid().'.html'));
+
+    $signedData = reportSignedData($result->html);
+
+    expect($signedData)->toBeString()
+        ->and(hash('sha256', (string) $signedData))->toBe($result->reportHash);
+
+    $decoded = json_decode((string) $signedData, true, flags: JSON_THROW_ON_ERROR);
+
+    expect($ids)->toHaveCount(2)
+        ->and($decoded['first_entry_id'])->toBe($ids[0])
+        ->and($decoded['last_entry_id'])->toBe($ids[1])
+        ->and($decoded['entry_count'])->toBe(2)
+        ->and($decoded['chain_head'])->toBe($result->chainHead);
+});
+
+it('html report signed data matches the report hash for a date-ranged report', function () {
+    Chronicle::record()->actor('system')->action('report.ranged')->subject(ref('ledger'))->commit();
+
+    $result = app(ComplianceReport::class)->generate(
+        storage_path('chronicle-report-'.Str::uuid().'.html'),
+        from: Carbon::parse('2020-01-01T00:00:00+00:00'),
+        to: Carbon::parse('2099-12-31T23:59:59+00:00'),
+    );
+
+    $signedData = reportSignedData($result->html);
+
+    expect($signedData)->toBeString()
+        ->and(hash('sha256', (string) $signedData))->toBe($result->reportHash);
+});
