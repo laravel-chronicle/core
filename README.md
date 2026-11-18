@@ -18,9 +18,9 @@ cryptographic audit log
 [![Tests](https://github.com/laravel-chronicle/core/actions/workflows/run-tests.yml/badge.svg)](https://github.com/laravel-chronicle/core/actions)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Sponsor](https://img.shields.io/badge/sponsor-GitHub%20Sponsors-ea4aaa?logo=githubsponsors)](https://github.com/sponsors/ntoufoudis)
-[![All Contributors](https://img.shields.io/github/all-contributors/laravel-chronicle/core?color=ee8449&style=flat-square)](#contributors)
+[![All Contributors](https://img.shields.io/github/all-contributors/laravel-chronicle/core?color=ee8449)](#contributors)
 <a href="https://discord.laravel-chronicle.dev">
-  <img alt="Discord" src="https://img.shields.io/discord/1572273900308668566?style=for-the-badge&logo=Discord&logoColor=000000&label=Discord&labelColor=ececec">
+  <img alt="Discord" src="https://img.shields.io/discord/1572273900308668566?logo=Discord&logoColor=000000&label=Discord&labelColor=ececec">
 </a>
 
 <!-- Partners ($300/month sponsor tier): logos go here, once the first partner joins. -->
